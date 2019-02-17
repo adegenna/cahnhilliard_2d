@@ -1,0 +1,372 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Code Docs &mdash; cahnhilliard_2d 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Contact" href="contact.html" />
+    <link rel="prev" title="Requirements" href="requirements.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> cahnhilliard_2d
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="requirements.html">Requirements</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Code Docs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-src.driver">Src/</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contact.html">Contact</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">cahnhilliard_2d</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Code Docs</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/code.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="code-docs">
+<h1>Code Docs<a class="headerlink" href="#code-docs" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-src.driver">
+<span id="src"></span><h2>Src/<a class="headerlink" href="#module-src.driver" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.driver.main">
+<code class="descclassname">src.driver.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/driver.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.driver.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main driver script for integrating the 2D Cahn Hilliard equations.</p>
+<p><strong>Inputs</strong></p>
+<dl class="docutils">
+<dt>args <span class="classifier-delimiter">:</span> <span class="classifier">command line arguments</span></dt>
+<dd>Command line arguments used in shell call for this main driver script. args must have a inputfilename member that specifies the desired inputfile name.</dd>
+</dl>
+<p><strong>Outputs</strong></p>
+<dl class="docutils">
+<dt>inputs.outdir/results.txt <span class="classifier-delimiter">:</span> <span class="classifier">text file </span></dt>
+<dd>time-integrated state</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-src.InputFile"></span><dl class="class">
+<dt id="src.InputFile.InputFile">
+<em class="property">class </em><code class="descclassname">src.InputFile.</code><code class="descname">InputFile</code><span class="sig-paren">(</span><em>args=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/InputFile.html#InputFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.InputFile.InputFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for packaging all input/config file options together.</p>
+<p><strong>Inputs</strong></p>
+<dl class="docutils">
+<dt>args <span class="classifier-delimiter">:</span> <span class="classifier">command line arguments </span></dt>
+<dd>(passed to constructor at runtime) command line arguments used in shell call for main driver script.</dd>
+</dl>
+<p><strong>Options</strong></p>
+<dl class="docutils">
+<dt>projdir <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Absolute path to project directory</dd>
+<dt>datadir <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Absolute path to data directory</dd>
+<dt>loaddir <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Absolute path to load directory</dd>
+<dt>outdir <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Absolute path to output directory</dd>
+<dt>initialstatepath <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>Absolute path to initial state file</dd>
+<dt>epsilon <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Diffusion coefficient</dd>
+<dt>dt <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Timestep</dd>
+<dt>t_steps <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Number of timesteps</dd>
+<dt>saveperiod <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Sampling period for saving to output</dd>
+<dt>eyre_a <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Eyre time-scheme parameter</dd>
+</dl>
+<dl class="method">
+<dt id="src.InputFile.InputFile.printInputs">
+<code class="descname">printInputs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/InputFile.html#InputFile.printInputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.InputFile.InputFile.printInputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to print all config options.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-src.CahnHilliardState"></span><dl class="class">
+<dt id="src.CahnHilliardState.CahnHilliardState">
+<em class="property">class </em><code class="descclassname">src.CahnHilliardState.</code><code class="descname">CahnHilliardState</code><span class="sig-paren">(</span><em>C0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/CahnHilliardState.html#CahnHilliardState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.CahnHilliardState.CahnHilliardState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for tracking the state of 1D Cahn Hilliard equations.</p>
+<p><strong>Inputs</strong></p>
+<dl class="docutils">
+<dt>C0 <span class="classifier-delimiter">:</span> <span class="classifier">numpy float array</span></dt>
+<dd>Initial state.</dd>
+</dl>
+<dl class="method">
+<dt id="src.CahnHilliardState.CahnHilliardState.push_state_to_stack">
+<code class="descname">push_state_to_stack</code><span class="sig-paren">(</span><em>Cnew</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/CahnHilliardState.html#CahnHilliardState.push_state_to_stack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.CahnHilliardState.CahnHilliardState.push_state_to_stack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to push new state to stack.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-src.CahnHilliardPhysics"></span><dl class="class">
+<dt id="src.CahnHilliardPhysics.CahnHilliardPhysics">
+<em class="property">class </em><code class="descclassname">src.CahnHilliardPhysics.</code><code class="descname">CahnHilliardPhysics</code><span class="sig-paren">(</span><em>inputs</em>, <em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/CahnHilliardPhysics.html#CahnHilliardPhysics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.CahnHilliardPhysics.CahnHilliardPhysics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for computing physics of 1D Cahn Hilliard equations.</p>
+<p><strong>Inputs</strong></p>
+<dl class="docutils">
+<dt>inputs <span class="classifier-delimiter">:</span> <span class="classifier">InputFile</span></dt>
+<dd>InputFile specifying various things needed for constructor.</dd>
+<dt>state <span class="classifier-delimiter">:</span> <span class="classifier">CahnHilliardState</span></dt>
+<dd>Initial state needed for constructor.</dd>
+</dl>
+<dl class="method">
+<dt id="src.CahnHilliardPhysics.CahnHilliardPhysics.compute_current_state_dct">
+<code class="descname">compute_current_state_dct</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/CahnHilliardPhysics.html#CahnHilliardPhysics.compute_current_state_dct"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.CahnHilliardPhysics.CahnHilliardPhysics.compute_current_state_dct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to compute dct of current state</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.CahnHilliardPhysics.CahnHilliardPhysics.compute_laplacian_eigenvalues">
+<code class="descname">compute_laplacian_eigenvalues</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/CahnHilliardPhysics.html#CahnHilliardPhysics.compute_laplacian_eigenvalues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.CahnHilliardPhysics.CahnHilliardPhysics.compute_laplacian_eigenvalues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to compute laplacian eigenvalue matrix and associated quantities.
+Note: assumes Neumann BCs</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.CahnHilliardPhysics.CahnHilliardPhysics.compute_update">
+<code class="descname">compute_update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/CahnHilliardPhysics.html#CahnHilliardPhysics.compute_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.CahnHilliardPhysics.CahnHilliardPhysics.compute_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to compute an update to the CH physics.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.CahnHilliardPhysics.CahnHilliardPhysics.get_current_state">
+<code class="descname">get_current_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/CahnHilliardPhysics.html#CahnHilliardPhysics.get_current_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.CahnHilliardPhysics.CahnHilliardPhysics.get_current_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to return current state (in 2D form).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.CahnHilliardPhysics.CahnHilliardPhysics.set_current_state">
+<code class="descname">set_current_state</code><span class="sig-paren">(</span><em>C</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/CahnHilliardPhysics.html#CahnHilliardPhysics.set_current_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.CahnHilliardPhysics.CahnHilliardPhysics.set_current_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set current state (1D form).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.CahnHilliardPhysics.CahnHilliardPhysics.solve">
+<code class="descname">solve</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/CahnHilliardPhysics.html#CahnHilliardPhysics.solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.CahnHilliardPhysics.CahnHilliardPhysics.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to perform time integration of CH physics.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.CahnHilliardPhysics.CahnHilliardPhysics.update_state">
+<code class="descname">update_state</code><span class="sig-paren">(</span><em>Cnew</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/CahnHilliardPhysics.html#CahnHilliardPhysics.update_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.CahnHilliardPhysics.CahnHilliardPhysics.update_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to push new state (1D form) to stack.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-src.TimeIntegration"></span><dl class="class">
+<dt id="src.TimeIntegration.TimeIntegration">
+<em class="property">class </em><code class="descclassname">src.TimeIntegration.</code><code class="descname">TimeIntegration</code><span class="sig-paren">(</span><em>state</em>, <em>physics</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/TimeIntegration.html#TimeIntegration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.TimeIntegration.TimeIntegration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for integrating 1D Cahn Hilliard equations.</p>
+<p><strong>Inputs</strong></p>
+<dl class="docutils">
+<dt>state <span class="classifier-delimiter">:</span> <span class="classifier">CahnHilliardState</span></dt>
+<dd>Initial state needed for constructor.</dd>
+<dt>physics <span class="classifier-delimiter">:</span> <span class="classifier">CahnHilliardPhysics</span></dt>
+<dd>Physics object needed for constructor.</dd>
+</dl>
+<dl class="method">
+<dt id="src.TimeIntegration.TimeIntegration.euler">
+<code class="descname">euler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/TimeIntegration.html#TimeIntegration.euler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.TimeIntegration.TimeIntegration.euler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Explicit euler method.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="contact.html" class="btn btn-neutral float-right" title="Contact" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="requirements.html" class="btn btn-neutral" title="Requirements" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Anthony DeGennaro
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
