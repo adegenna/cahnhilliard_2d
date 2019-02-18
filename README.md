@@ -1,7 +1,7 @@
 # Introduction
 Solver for the 2D Cahn Hilliard equation:
 
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/cheqn.gif">=
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/cheqn.gif">
 
 Zero flux boundary conditions, square domain.
 
