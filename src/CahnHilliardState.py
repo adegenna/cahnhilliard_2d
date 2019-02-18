@@ -23,6 +23,12 @@ class CahnHilliardState():
         self.yy = yy
         self.C  = self.state2D_to_1D(C0)
 
+    def reset(self):
+        """
+        Method to reset state to just the initial condition.
+        """
+        self.C = self.state2D_to_1D(self.C[0])
+
     def state2D_to_1D(self,C):
         return C.ravel().reshape((1,-1))
 

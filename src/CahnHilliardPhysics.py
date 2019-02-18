@@ -28,8 +28,15 @@ class CahnHilliardPhysics():
         self.t_step     = 0
         self.t_steps    = inputs.t_steps
         self.dt         = inputs.dt
+        self.epsilon    = inputs.epsilon
         self.compute_laplacian_eigenvalues()
         self.compute_current_state_dct()
+
+    def set_parameters(self,p):
+        """
+        Method used to set parameters of physics (ie., epsilon).
+        """
+        self.epsilon = p
         
     def get_current_state(self):
         """
@@ -64,7 +71,7 @@ class CahnHilliardPhysics():
         dy = self.state.y[1]-self.state.y[0]
         # time marching update parameters
         lam1 = self.inputs.dt / (dx**2)
-        lam2 = self.inputs.epsilon**2 * lam1 / (dx**2)
+        lam2 = self.epsilon**2 * lam1 / (dx**2)
         # unscaled eigenvalues of the laplacian (nuemann bc)
         L1   = np.tile( 2*np.cos(np.pi*np.arange(N)/(N-1)) - 2 , [M,1] ).T
         L2   = np.tile( 2*np.cos(np.pi*np.arange(M)/(M-1)) - 2 , [N,1] )
@@ -104,3 +111,19 @@ class CahnHilliardPhysics():
             C = self.compute_update()
             self.update_state(C)
             
+    def get_state_history(self):
+        """
+        Method to return entire state history.
+        """
+        return self.state.C
+
+    def reset_state(self):
+        """
+        Method used to reset state history to just the initial condition.
+        """
+        self.state.reset()
+        self.t_step  = 0
+
+    def reset(self):
+        self.compute_laplacian_eigenvalues()
+        self.compute_current_state_dct()
