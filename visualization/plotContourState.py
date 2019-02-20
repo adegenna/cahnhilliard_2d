@@ -7,11 +7,18 @@ def dct2d(x,inverse=False):
     temp = dct(x,type=t,norm='ortho').transpose()
     return dct(temp,type=t,norm='ortho').transpose()
 
-statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/output/state.csv'
+statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/output/C_'
 M           = 128
 N           = 128
-C           = np.genfromtxt(statefile)
-samps       = C.shape[0]
+Tfinal      = 100000
+Tsave       = 5000
+
+# Read data
+samps = Tfinal/Tsave + 1
+C     = np.zeros([samps,M*N])
+for i in range(samps):
+    timestamp = int(Tsave*i)
+    C[i]      = np.genfromtxt(statefile + str(timestamp) + '.out')
 
 # Precompute fourier cosine spectrum
 dct_c  = np.zeros([samps,M,N])
@@ -20,7 +27,7 @@ for i in range(samps):
     dct_c[i] = dct2d(Ci)
 
 # State plot, colored by time
-fig   = plt.figure(1,figsize=(20,10))
+fig   = plt.figure(1,figsize=(10,5))
 ax1   = fig.add_subplot(221)
 ax2   = fig.add_subplot(222)
 ax3   = fig.add_subplot(223)
@@ -46,7 +53,7 @@ for i in range(samps):
 
 # Static plot of 3 different times
 plt.ioff()
-fig   = plt.figure(2,figsize=(20,10))
+fig   = plt.figure(2,figsize=(10,5))
 ax1   = fig.add_subplot(231)
 ax2   = fig.add_subplot(234)
 ax3   = fig.add_subplot(232)
@@ -54,7 +61,7 @@ ax4   = fig.add_subplot(235)
 ax5   = fig.add_subplot(233)
 ax6   = fig.add_subplot(236)
 ax    = [ax1,ax2,ax3,ax4,ax5,ax6]
-T     = [5,25,100]
+T     = [0,samps/2,samps-1]
 tr    = 32
 for i in range(len(T)):
     ax[2*i].contourf( np.reshape(C[T[i]],[M,N]) , 30, vmin=-1, vmax=1 )

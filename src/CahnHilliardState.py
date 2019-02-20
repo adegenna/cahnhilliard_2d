@@ -21,13 +21,14 @@ class CahnHilliardState():
         self.N  = N
         self.xx = xx
         self.yy = yy
+        self.C0 = self.state2D_to_1D(C0)
         self.C  = self.state2D_to_1D(C0)
 
     def reset(self):
         """
         Method to reset state to just the initial condition.
         """
-        self.C = self.state2D_to_1D(self.C[0])
+        self.C = self.state2D_to_1D(self.C0)
 
     def state2D_to_1D(self,C):
         return C.ravel().reshape((1,-1))
@@ -42,6 +43,5 @@ class CahnHilliardState():
         Cnew        = self.state2D_to_1D(Cnew)
         self.C      = np.vstack( [self.C, Cnew] )
 
-    def write(self,outfile,tskip=1):
-        C = self.C[::tskip] # tskip period sampling
-        np.savetxt(outfile,C)
+    def write(self,outdir,timestamp):
+        np.savetxt(outdir + "C_" + str(timestamp) + ".out",self.C)

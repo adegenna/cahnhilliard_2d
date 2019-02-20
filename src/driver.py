@@ -5,6 +5,7 @@ from InputFile import *
 from CahnHilliardState import *
 from CahnHilliardPhysics import *
 from TimeIntegration import *
+import time
 
 def main():
     """
@@ -40,10 +41,10 @@ def main():
     physics    = CahnHilliardPhysics(inputs, state)
 
     # Solve
+    start = time.time()
     physics.solve()
-
-    # Output
-    state.write(inputs.outdir + "state.csv" , tskip=inputs.saveperiod)
+    end   = time.time()
+    print("Time elapsed: %.2f seconds" %(end-start))
     
 if __name__ == '__main__':
     main()

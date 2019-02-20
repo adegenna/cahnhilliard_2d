@@ -22,6 +22,8 @@ class CahnHilliardPhysics():
     """
     def __init__(self,inputs,state):
         self.inputs     = inputs
+        self.outdir     = inputs.outdir
+        self.saveperiod = inputs.saveperiod
         self.state      = state
         self.xx         = state.xx
         self.yy         = state.yy
@@ -42,23 +44,22 @@ class CahnHilliardPhysics():
         """
         Method to return current state (in 2D form).
         """
-        state2D = self.state.state1D_to_2D(self.state.C[self.t_step])
-        return state2D
+        C = self.state.state1D_to_2D(self.state.C)
+        return C
 
     def update_state(self,Cnew):
         """
         Method to push new state (1D form) to stack.
         """
-        Cnew = self.state.state2D_to_1D(Cnew)
-        self.state.push_state_to_stack(Cnew)
-        self.t_step = self.state.C.shape[0] - 1
+        Cnew         = self.state.state2D_to_1D(Cnew)
+        self.state.C = Cnew
 
     def set_current_state(self,C):
         """
         Method to set current state (1D form).
         """
-        C = self.state.state2D_to_1D(C)
-        self.state.C[self.t_step] = C
+        C            = self.state.state2D_to_1D(C)
+        self.state.C = C
 
     def compute_laplacian_eigenvalues(self):
         """
@@ -107,22 +108,18 @@ class CahnHilliardPhysics():
         """
         Method to perform time integration of CH physics.
         """
-        for i in range(self.t_steps):
+        self.state.write(self.outdir, 0)
+        for i in range(1,self.t_steps+1):
             C = self.compute_update()
             self.update_state(C)
+            if ((i % self.saveperiod) == 0):
+                self.state.write(self.outdir, i)
             
-    def get_state_history(self):
-        """
-        Method to return entire state history.
-        """
-        return self.state.C
-
     def reset_state(self):
         """
         Method used to reset state history to just the initial condition.
         """
         self.state.reset()
-        self.t_step  = 0
 
     def reset(self):
         self.compute_laplacian_eigenvalues()
