@@ -10,11 +10,11 @@ def dct2d(x,inverse=False):
 statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/output/C_'
 M           = 128
 N           = 128
-Tfinal      = 100000
-Tsave       = 5000
+Tfinal      = 1000
+Tsave       = 100
 
 # Read data
-samps = Tfinal/Tsave + 1
+samps = int(Tfinal/Tsave) + 1
 C     = np.zeros([samps,M*N])
 for i in range(samps):
     timestamp = int(Tsave*i)

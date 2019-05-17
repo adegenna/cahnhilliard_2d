@@ -1,10 +1,9 @@
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-from InputFile import *
-from CahnHilliardState import *
-from CahnHilliardPhysics import *
-from TimeIntegration import *
+from cahnhilliard_2d.src.InputFile import *
+from cahnhilliard_2d.src.CahnHilliardState import *
+from cahnhilliard_2d.src.CahnHilliardPhysics import *
 import time
 
 def main():

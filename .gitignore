@@ -1,2 +1,7 @@
-src/*~
-src/*.pyc
+*~
+*.pyc
+*pycache*
+*.egg*
+dist/
+output/
+build/
