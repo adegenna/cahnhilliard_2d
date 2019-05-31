@@ -3,7 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from cahnhilliard_2d.src.InputFile import *
 from cahnhilliard_2d.src.CahnHilliardState import *
-from cahnhilliard_2d.src.CahnHilliardPhysics import *
+from cahnhilliard_2d.src.CahnHilliardSpectral import *
+from cahnhilliard_2d.src.CahnHilliardSolver import *
+
 import time
 
 def main():
@@ -37,11 +39,12 @@ def main():
 
     # Problem setup
     state      = CahnHilliardState(C0)
-    physics    = CahnHilliardPhysics(inputs, state)
+    physics    = CahnHilliardSpectral(inputs, state)
+    solver     = CahnHilliardSolver(inputs,state,physics)
 
     # Solve
     start = time.time()
-    physics.solve()
+    solver.solve()
     end   = time.time()
     print("Time elapsed: %.2f seconds" %(end-start))
     
