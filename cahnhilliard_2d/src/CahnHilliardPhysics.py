@@ -17,15 +17,16 @@ class CahnHilliardPhysics(ABC):
         Initial state needed for constructor.
     """
     def __init__(self,inputs,state):
-        self.inputs     = inputs
-        self.saveperiod = inputs.saveperiod
-        self.state      = state
-        self.xx         = state.xx
-        self.yy         = state.yy
-        self.t_step     = 0
-        self.t_steps    = inputs.t_steps
-        self.dt         = inputs.dt
-        self.epsilon    = inputs.epsilon
+        self.inputs          = inputs
+        self.saveperiod      = inputs.saveperiod
+        self.state           = state
+        self.xx              = state.xx
+        self.yy              = state.yy
+        self.t_step          = 0
+        self.t_steps         = inputs.t_steps
+        self.dt              = inputs.dt
+        self.epsilon         = inputs.epsilon
+        self.noise_amplitude = inputs.noise_amplitude
         super().__init__()
         
     def get_current_state(self):

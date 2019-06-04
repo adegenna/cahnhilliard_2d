@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.fftpack import dct
+from scipy.fftpack import dct,diff
 import sys
 from cahnhilliard_2d.src.CahnHilliardPhysics import CahnHilliardPhysics
 
@@ -8,6 +8,11 @@ def dct2d(x,inverse=False):
     t    = 2 if not inverse else 3
     temp = dct(x,type=t,norm='ortho').transpose()
     return dct(temp,type=t,norm='ortho').transpose()
+
+def spectral_diff2d(x):
+    temp = np.array( [diff(xi) for xi in x] ).transpose()
+    temp = np.array( [diff(ti) for ti in temp] ).transpose()
+    return temp
 
 class CahnHilliardSpectral(CahnHilliardPhysics):
     """
@@ -53,6 +58,18 @@ class CahnHilliardSpectral(CahnHilliardPhysics):
         """
         C = self.get_current_state()
         self.hat_U = dct2d(C)
+
+    def compute_stochastic_term(self,A=1):
+        eta       = np.random.normal(0,1,[self.state.N , self.state.M])
+        eta[0]    = 0
+        eta[-1]   = 0
+        eta[:,0]  = 0
+        eta[:,-1] = 0
+        #kx        = np.fft.fftfreq(self.state.N)*self.state.N
+        #ky        = np.fft.fftfreq(self.state.M)*self.state.M
+        #kkx,kky   = np.meshgrid(kx,ky)
+        eta       = A * spectral_diff2d( eta )
+        return eta
         
     def compute_update(self):
         """
@@ -62,7 +79,8 @@ class CahnHilliardSpectral(CahnHilliardPhysics):
         # compute the shifted nonlinear term
         fU      = (U*U*U) - ((1+self.inputs.eyre_a)*U)
         # compute the right hand side in tranform space
-        hat_rhs = self.hat_U + (self.Seig*dct2d(fU))
+        hat_rhs  = self.hat_U + (self.Seig*dct2d(fU))
+        hat_rhs += self.compute_stochastic_term(self.noise_amplitude)
         # compute the updated solution in tranform space
         self.hat_U   = hat_rhs/self.CHeig
         # invert the cosine transform

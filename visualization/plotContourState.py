@@ -10,7 +10,7 @@ def dct2d(x,inverse=False):
 statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/output/C_'
 M           = 128
 N           = 128
-Tfinal      = 1000
+Tfinal      = 3000
 Tsave       = 100
 
 # Read data
@@ -21,16 +21,21 @@ for i in range(samps):
     C[i]      = np.genfromtxt(statefile + str(timestamp) + '.out')
 
 # Precompute fourier cosine spectrum
-dct_c  = np.zeros([samps,M,N])
+dct_c   = np.zeros([samps,M,N])
+total_c = np.zeros(samps)
+max_c   = np.zeros(samps)
 for i in range(samps):
-    Ci       = np.reshape(C[i],[M,N])
-    dct_c[i] = dct2d(Ci)
-
+    Ci         = np.reshape(C[i],[M,N])
+    dct_c[i]   = dct2d(Ci)
+    total_c[i] = np.sum(C[i])
+    max_c[i]   = np.max(np.abs(C[i]))
+    
 # State plot, colored by time
 fig   = plt.figure(1,figsize=(10,5))
 ax1   = fig.add_subplot(221)
 ax2   = fig.add_subplot(222)
 ax3   = fig.add_subplot(223)
+ax4   = fig.add_subplot(224)
 plt.ion()
 for i in range(samps):
     Ci = np.reshape(C[i],[M,N])
@@ -49,6 +54,10 @@ for i in range(samps):
     ax3.cla()
     ax3.contourf(np.log10(np.abs(dct_c[i])),30,vmin=-2,vmax=2)
     ax3.set_title('log10(DCT(C))')
+    ax4.scatter(i+1,np.abs(total_c[i]-total_c[0]),c='b')
+    ax4.set_title('sum(C)-sum(C0)')
+    ax4.set_yscale('log')
+    #ax4.set_ylim([1e-8,1])
     plt.pause(0.01)
 
 # Static plot of 3 different times
@@ -61,11 +70,17 @@ ax4   = fig.add_subplot(235)
 ax5   = fig.add_subplot(233)
 ax6   = fig.add_subplot(236)
 ax    = [ax1,ax2,ax3,ax4,ax5,ax6]
-T     = [0,samps/2,samps-1]
+T     = [0,int(samps/2),int(samps-1)]
 tr    = 32
 for i in range(len(T)):
     ax[2*i].contourf( np.reshape(C[T[i]],[M,N]) , 30, vmin=-1, vmax=1 )
     ax[2*i+1].contourf( np.log10(np.abs(dct_c[T[i]]))[0:tr,0:tr],30,vmin=-1,vmax=1 )
     ax[2*i].set_title(T[i])
+
+plt.figure()
+plt.subplot(121); plt.plot(total_c/float(M*N))
+plt.subplot(122); plt.plot(max_c)
+
+
 
 plt.show()
