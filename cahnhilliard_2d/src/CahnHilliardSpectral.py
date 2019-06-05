@@ -29,13 +29,10 @@ class CahnHilliardSpectral(CahnHilliardPhysics):
     def __init__(self,inputs,state):
         super().__init__(inputs,state)
         self.compute_laplacian_eigenvalues()
+        self.compute_preconditioner()
         self.compute_current_state_dct()
-        
-    def compute_laplacian_eigenvalues(self):
-        """
-        Method to compute laplacian eigenvalue matrix and associated quantities.
-        Note: assumes Neumann BCs
-        """
+
+    def get_problem_constants(self):
         N  = self.state.N
         M  = self.state.M
         dx = self.state.x[1]-self.state.x[0]
@@ -43,14 +40,26 @@ class CahnHilliardSpectral(CahnHilliardPhysics):
         # time marching update parameters
         lam1 = self.inputs.dt / (dx**2)
         lam2 = self.epsilon**2 * lam1 / (dx**2)
+        return N,M,dx,dy,lam1,lam2
+        
+    def compute_laplacian_eigenvalues(self):
+        """
+        Method to compute laplacian eigenvalue matrix and associated quantities.
+        Note: assumes Neumann BCs
+        """
+        N,M,dx,dy,lam1,lam2 = self.get_problem_constants()
         # unscaled eigenvalues of the laplacian (nuemann bc)
-        L1   = np.tile( 2*np.cos(np.pi*np.arange(N)/(N-1)) - 2 , [M,1] ).T
-        L2   = np.tile( 2*np.cos(np.pi*np.arange(M)/(M-1)) - 2 , [N,1] )
-        Leig = L1 + L2
-        # scaled eigenvalues of stabilized CH update matrix
-        self.CHeig = np.ones((N,M)) - (self.inputs.eyre_a*lam1*Leig) + (lam2*Leig*Leig)
+        L1        = np.tile( 2*np.cos(np.pi*np.arange(N)/(N-1)) - 2 , [M,1] ).T
+        L2        = np.tile( 2*np.cos(np.pi*np.arange(M)/(M-1)) - 2 , [N,1] )
+        self.Leig = L1 + L2
         # scaled eigenvalues of the laplacian
-        self.Seig = lam1*Leig
+        self.Seig = lam1*self.Leig
+
+    def compute_preconditioner(self):
+        assert( self.Leig is not None )
+        N,M,dx,dy,lam1,lam2 = self.get_problem_constants()
+        # scaled eigenvalues of stabilized CH update matrix
+        self.CHeig = np.ones((N,M)) - (self.inputs.eyre_a*lam1*self.Leig) + (lam2*self.Leig*self.Leig)
 
     def compute_current_state_dct(self):
         """
@@ -65,9 +74,6 @@ class CahnHilliardSpectral(CahnHilliardPhysics):
         eta[-1]   = 0
         eta[:,0]  = 0
         eta[:,-1] = 0
-        #kx        = np.fft.fftfreq(self.state.N)*self.state.N
-        #ky        = np.fft.fftfreq(self.state.M)*self.state.M
-        #kkx,kky   = np.meshgrid(kx,ky)
         eta       = A * spectral_diff2d( eta )
         return eta
         
