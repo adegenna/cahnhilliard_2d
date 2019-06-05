@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from cahnhilliard_2d.src.InputFile import *
 from cahnhilliard_2d.src.CahnHilliardState import *
 from cahnhilliard_2d.src.CahnHilliardSpectral import *
+from cahnhilliard_2d.src.CahnHilliardCook import *
 from cahnhilliard_2d.src.CahnHilliardSolver import *
 
 import time
@@ -39,7 +40,7 @@ def main():
 
     # Problem setup
     state      = CahnHilliardState(C0)
-    physics    = CahnHilliardSpectral(inputs, state)
+    physics    = CahnHilliardCook(inputs, state)
     solver     = CahnHilliardSolver(inputs,state,physics)
 
     # Solve

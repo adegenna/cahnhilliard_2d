@@ -10,8 +10,8 @@ def dct2d(x,inverse=False):
 statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/output/C_'
 M           = 128
 N           = 128
-Tfinal      = 3000
-Tsave       = 100
+Tfinal      = 20
+Tsave       = 1
 
 # Read data
 samps = int(Tfinal/Tsave) + 1

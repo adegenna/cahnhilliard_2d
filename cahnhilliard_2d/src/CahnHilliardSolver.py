@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fftpack import dct
+from scipy.integrate import odeint
 import sys
 
 class CahnHilliardSolver():
@@ -21,9 +22,10 @@ class CahnHilliardSolver():
         self.saveperiod = inputs.saveperiod
         self.state      = state
         self.t_steps    = inputs.t_steps
+        self.dt         = inputs.dt
         self.physics    = physics
 
-    def solve(self):
+    def solve_eyre(self):
         """
         Method to perform time integration of CH physics.
         """
@@ -33,3 +35,12 @@ class CahnHilliardSolver():
             self.physics.update_state(C)
             if ((i % self.saveperiod) == 0):
                 self.state.write(self.outdir, i)
+
+    def solve(self):
+        self.state.write(self.outdir, 0)
+        t  = np.arange(0 , (self.t_steps+1)*self.dt , self.dt*self.saveperiod)
+        C0 = self.state.C.ravel()
+        C  = odeint(self.physics.compute_RHS , C0 , t)
+        print(C.shape)
+        for i in range(C.shape[0]):
+            np.savetxt(self.outdir + "C_" + str(i*self.saveperiod) + ".out",C[i] )

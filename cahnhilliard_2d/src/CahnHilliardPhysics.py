@@ -55,7 +55,3 @@ class CahnHilliardPhysics(ABC):
         Method used to reset state history to just the initial condition.
         """
         self.state.reset()
-
-    @abstractmethod
-    def compute_update(self):
-        pass

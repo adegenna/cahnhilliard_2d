@@ -37,6 +37,11 @@ class InputFile():
         Eyre time-scheme parameter
     noise_amplitude : float
         Amplitude of noise
+    p_m : float
+    p_b : float
+    p_u : float
+    p_K : float
+
     """
     
     def __init__(self,args=[]):
@@ -54,6 +59,10 @@ class InputFile():
             self.saveperiod       = int(inputfilestream.readline().strip().split('= ')[1])
             self.eyre_a           = int(inputfilestream.readline().strip().split('= ')[1])
             self.noise_amplitude  = float(inputfilestream.readline().strip().split('= ')[1])
+            self.p_m              = float(inputfilestream.readline().strip().split('= ')[1])
+            self.p_b              = float(inputfilestream.readline().strip().split('= ')[1])
+            self.p_u              = float(inputfilestream.readline().strip().split('= ')[1])
+            self.p_K              = float(inputfilestream.readline().strip().split('= ')[1])
             inputfilestream.close();
         except:
             print("Using no input file (blank initialization).")
