@@ -11,6 +11,8 @@ class CahnHilliardCook(CahnHilliardPhysics):
         self.b  = self.inputs.p_b
         self.u  = self.inputs.p_u
         self.K  = self.inputs.p_K
+        self.sig      = self.inputs.p_sig
+        self.phi_star = self.inputs.p_phi_star
         self.dx = self.state.x[1]-self.state.x[0]
         self.dy = self.state.y[1]-self.state.y[0]
 
@@ -18,7 +20,8 @@ class CahnHilliardCook(CahnHilliardPhysics):
         t1 = -self.m*self.b * lapl(phi,self.dx)
         t2 =  self.m*self.u * lapl(phi**3,self.dx)
         t3 = -self.m*self.K**2 * biharm(phi,self.dx)
-        return t1 + t2 + t3
+        t4 =  self.sig * (phi - self.phi_star)
+        return t1 + t2 + t3 + t4
 
     def compute_stochastic_RHS(self):
         pass
@@ -28,9 +31,10 @@ class CahnHilliardCook(CahnHilliardPhysics):
         phi = apply_periodic_bc(phi)
         return phi
     
-    def compute_RHS(self,U,t):
+    def compute_RHS(self,t,U):
         U    = self.state.state1D_to_2D(U)
         U    = self.compute_boundary_conditions(U)
         fU   = self.compute_deterministic_RHS(U) #+ self.compute_stochastic_RHS()
+        fU[0:2] = 0; fU[-2:] = 0; fU[:,0:2] = 0; fU[:,-2:] = 0;
         fU   = self.state.state2D_to_1D(fU).flatten()
         return fU

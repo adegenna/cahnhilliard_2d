@@ -86,9 +86,10 @@ if __name__ == "__main__":
     
     import matplotlib.pyplot as plt
 
-    nx = 10; ny = 9;
-    x  = np.arange(nx)
-    y  = np.arange(ny)+10
+    nx = 8; ny = 8;
+    dx = 1; dy = 1
+    x  = np.arange(nx)*dx
+    y  = np.arange(ny)*dy
     xx,yy = np.meshgrid(x,y)
     zz    = xx
 
@@ -113,10 +114,10 @@ if __name__ == "__main__":
 
     zz = np.zeros_like(xx)
     zz[2:-2,2:-2] = xx[2:-2,2:-2]**4 + yy[2:-2,2:-2]**2
-    zz = apply_neumann_bc_d1_and_d3(zz)
+    zz = apply_periodic_bc(zz)
     
-    print( '\n u \n' , zz , '\n lapl(u) \n' , lapl(zz) )
+    print( '\n u \n' , zz , '\n lapl(u) \n' , lapl(zz,dx) )
     print( '\n analytic lapl(u) \n' , 12*xx**2 + 2 )
 
-    print( '\n u \n' , zz , '\n biharm(u) \n' , biharm(zz) )
+    print( '\n u \n' , zz , '\n biharm(u) \n' , biharm(zz,dy) )
     print( '\n analytic biharm(u) \n' , 24 )

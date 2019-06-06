@@ -41,6 +41,8 @@ class InputFile():
     p_b : float
     p_u : float
     p_K : float
+    p_sig : float    
+    p_phi_star : float
 
     """
     
@@ -63,6 +65,8 @@ class InputFile():
             self.p_b              = float(inputfilestream.readline().strip().split('= ')[1])
             self.p_u              = float(inputfilestream.readline().strip().split('= ')[1])
             self.p_K              = float(inputfilestream.readline().strip().split('= ')[1])
+            self.p_sig            = float(inputfilestream.readline().strip().split('= ')[1])
+            self.p_phi_star       = float(inputfilestream.readline().strip().split('= ')[1])
             inputfilestream.close();
         except:
             print("Using no input file (blank initialization).")

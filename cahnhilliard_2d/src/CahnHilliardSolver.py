@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fftpack import dct
-from scipy.integrate import odeint
+from scipy.integrate import solve_ivp
 import sys
 
 class CahnHilliardSolver():
@@ -38,9 +38,9 @@ class CahnHilliardSolver():
 
     def solve(self):
         self.state.write(self.outdir, 0)
-        t  = np.arange(0 , (self.t_steps+1)*self.dt , self.dt*self.saveperiod)
+        tf = (self.t_steps+1)*self.dt
+        t  = np.arange(0 , tf , self.dt*self.saveperiod)
         C0 = self.state.C.ravel()
-        C  = odeint(self.physics.compute_RHS , C0 , t)
-        print(C.shape)
-        for i in range(C.shape[0]):
-            np.savetxt(self.outdir + "C_" + str(i*self.saveperiod) + ".out",C[i] )
+        C  = solve_ivp( self.physics.compute_RHS , [0 , tf] , C0 , t_eval = t)
+        for i in range(C.y.shape[1]):
+            np.savetxt(self.outdir + "C_" + str(i*self.saveperiod) + ".out",C.y[:,i] )
