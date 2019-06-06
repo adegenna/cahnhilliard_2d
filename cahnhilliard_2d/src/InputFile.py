@@ -25,6 +25,8 @@ class InputFile():
         Absolute path to output directory
     initialstatepath : string
         Absolute path to initial state file
+    boundary_conditions : string
+        Choices are 'neumann' or 'periodic'
     epsilon : float
         Diffusion coefficient
     dt : float
@@ -55,6 +57,7 @@ class InputFile():
             self.loaddir          = inputfilestream.readline().strip().split('= ')[1];
             self.outdir           = inputfilestream.readline().strip().split('= ')[1];
             self.initialstatepath = inputfilestream.readline().strip().split('= ')[1];
+            self.boundary_conditions = inputfilestream.readline().strip().split('= ')[1];
             self.epsilon          = float(inputfilestream.readline().strip().split('= ')[1])
             self.dt               = float(inputfilestream.readline().strip().split('= ')[1])
             self.t_steps          = int(inputfilestream.readline().strip().split('= ')[1])
@@ -67,6 +70,7 @@ class InputFile():
             self.p_K              = float(inputfilestream.readline().strip().split('= ')[1])
             self.p_sig            = float(inputfilestream.readline().strip().split('= ')[1])
             self.p_phi_star       = float(inputfilestream.readline().strip().split('= ')[1])
+            self.p_noise_sigma    = float(inputfilestream.readline().strip().split('= ')[1])
             inputfilestream.close();
         except:
             print("Using no input file (blank initialization).")

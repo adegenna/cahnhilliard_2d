@@ -1,10 +1,11 @@
 #include <iostream>
 #include <vector>
 #include <random>
+#include <fstream>
 
 #include <boost/numeric/odeint.hpp>
 
-#include "matplotlibcpp.h"
+//#include "matplotlibcpp.h"
 
 typedef std::vector<double> state_type;
 
@@ -81,7 +82,7 @@ public:
     {
       for (int j = 0; j < nx_; ++j)
       {
-        x[idx2d(i,j)] = distribution(generator);
+        x[idx2d(i,j)] = distribution(generator) * 0.005;
         // x[idx2d(i, j)] = initial_value;
         // initial_value *= -1.0; // alternate between -1 and 1 for "random" initial conditions
       }
@@ -130,13 +131,51 @@ private:
   }
 };
 
+struct Recorder
+{
+  int nx;
+  std::ofstream& out;
+  
+  Recorder( std::ofstream& out , int nx )
+    : out( out ) , nx( nx ) { }
+
+  void operator()( const state_type &x , const double t )
+  {
+    for (int i = 0; i < nx; ++i){
+      for (int j = 0; j < nx; ++j){
+	out << x[i * nx + j] << " ";
+      }
+      out << std::endl;
+    }
+  }
+  
+};
+
+
+void write_state(const state_type &x , const int idx , const int nx )
+{
+  std::ofstream out;
+  out.open( "C_" + std::to_string(idx) + ".out" );
+  out.precision(16);
+  
+  for (int i = 0; i < nx; ++i){
+    for (int j = 0; j < nx; ++j){
+      out << x[i * nx + j] << " ";
+    }
+    //out << std::endl;
+  }
+
+  out.close();
+};
+
 int main()
 {
   const double D = 1.0;
-  const double gam = 0.5;
+  const double gam = 0.0001;
   const int nx = 128;
-  const double dx = 0.1;
-
+  const double dx = 1./nx;
+  const int checkpoint = 10;
+  
   CahnHilliard2DRHS rhs(D, gam, nx, dx);
 
   state_type x;
@@ -151,36 +190,23 @@ int main()
   controlled_stepper_type controlled_stepper;
 
   double time = 0.0;
-  const double stability_limit = 0.5*dx*dx*dx*dx/D; // just an estimate
+  const double stability_limit = 0.5*dx*dx*dx*dx/D/gam; // just an estimate
   double dt_initial = stability_limit * 0.5;
   double dt_check_residual = dt_initial * 10.0;
-  const int maxsteps = 50;
+  const int maxsteps = 100;
 
   const double res0 = rhs.l2residual(x);
 
   std::cout << "residual at initial condition: " << res0 << std::endl;
-
+  write_state(x,0,nx);
+  
   for (int i = 0; i < maxsteps; ++i){
     integrate_adaptive(controlled_stepper, rhs, x, time, time+dt_check_residual, dt_initial);
-    std::cout << "iter: " << i << " relative residual: " << rhs.l2residual(x) / res0 << std::endl;
     time += dt_check_residual;
-  }
-
-
-  std::vector<std::vector<double>> xx, yy, zz;
-  for (int i = 0; i < nx; ++i){
-    std::vector<double> x_row, y_row, z_row;
-    for (int j = 0; j < nx; ++j){
-      x_row.push_back(i*dx);
-      y_row.push_back(j*dx);
-      z_row.push_back(x[i * nx + j]);
+    if ( (i+1) % checkpoint == 0) {
+      std::cout << "iter: " << i+1 << " , t = " << time << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
+      write_state(x,i+1,nx);
     }
-    xx.push_back(x_row);
-    yy.push_back(y_row);
-    zz.push_back(z_row);
   }
 
-  namespace plt = matplotlibcpp;
-  plt::plot_surface(xx, yy, zz);
-  plt::show();
 }
