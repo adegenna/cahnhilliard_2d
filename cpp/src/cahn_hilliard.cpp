@@ -18,6 +18,7 @@ struct CHparams
   double u;
   double alpha;
   double phi_star;
+  double sigma;
 };
 
 
@@ -25,7 +26,7 @@ class CahnHilliard2DRHS
 {
 public:
   CahnHilliard2DRHS(CHparams& chp, int nx, double dx)
-    : D_(chp.m), gamma_(chp.gam), b_(chp.b), u_(chp.u), alpha_(chp.alpha), phi_star_(chp.phi_star), nx_(nx), dx_(dx)
+    : D_(chp.m), gamma_(chp.gam), b_(chp.b), u_(chp.u), alpha_(chp.alpha), phi_star_(chp.phi_star), nx_(nx), dx_(dx), sigma_(chp.sigma) , noise_dist_(0.0,1.0)
   {
     std::cout << "Initialized Cahn-Hilliard equation with D_ " << D_ 
       << " gamma_ " << gamma_ << " dx_ " << nx_ << " dx_ " << dx_ << std::endl;
@@ -74,14 +75,23 @@ public:
         const double c_jp1 = c[idx2d(i, j + 1)];
         const double c_jm2 = c[idx2d(i, j - 2)];
         const double c_jp2 = c[idx2d(i, j + 2)];
+	const double c_ul  = c[idx2d(i-1 , j-1)];
+	const double c_ur  = c[idx2d(i-1 , j+1)];
+	const double c_bl  = c[idx2d(i+1 , j-1)];
+	const double c_br  = c[idx2d(i+1 , j+1)];
+	
 
-        // x-direction
+        // x-direction u_xxxx
         dcdt[idx2d(i,j)] -= D_ * gamma_ /(dx_*dx_*dx_*dx_) * 
           (c_ip2 - 4.0*c_ip1 + 6.0*c_i - 4.0*c_im1 + c_im2);
 
-        // y-direction
+        // y-direction u_yyyy
         dcdt[idx2d(i,j)] -= D_ * gamma_ /(dx_*dx_*dx_*dx_) * 
           (c_jp2 - 4.0*c_jp1 + 6.0*c_i - 4.0*c_jm1 + c_jm2);
+
+	// mixed term 2*u_xxyy
+	dcdt[idx2d(i,j)] -= D_ * gamma_ /(dx_*dx_*dx_*dx_) * 
+          2 * (4*c_i - 2*(c_im1 + c_ip1 + c_jm1 + c_jp1) + c_ul + c_ur + c_bl + c_br );
       }
     }
 
@@ -91,6 +101,24 @@ public:
       for (int j = 0; j < nx_; ++j){
         const double c_i   = c[idx2d(i, j)];
     	dcdt[idx2d(i,j)]  -= alpha_ * ( c_i - phi_star_ );
+      }
+    }
+
+    // evaluate the noise term
+    state_type noise(nx_*nx_);
+    # pragma omp parallel for
+    for (int i = 0; i < nx_; ++i){
+      for (int j = 0; j < nx_; ++j){
+        noise[idx2d(i,j)]  = noise_dist_(generator_);
+      }
+    }
+    double mean_noise = std::accumulate( noise.begin() , noise.end() , 0.0 ) / noise.size();
+
+    # pragma omp parallel for
+    for (int i = 0; i < nx_; ++i){
+      for (int j = 0; j < nx_; ++j){
+        const double c_i   = c[idx2d(i, j)];
+	dcdt[idx2d(i,j)]  += sigma_ * (noise[i,j] - mean_noise);
       }
     }
     
@@ -109,8 +137,6 @@ public:
       for (int j = 0; j < nx_; ++j)
       {
         x[idx2d(i,j)] = distribution(generator) * 0.005;
-        // x[idx2d(i, j)] = initial_value;
-        // initial_value *= -1.0; // alternate between -1 and 1 for "random" initial conditions
       }
     }
   }
@@ -134,6 +160,10 @@ private:
   const double phi_star_;
   const int nx_;       // number of finite difference nodes in each dimension
   const double dx_;       // mesh size
+  const double sigma_;
+  std::default_random_engine generator_;
+  std::normal_distribution<double> noise_dist_;
+
 
   double laplace_component(double c)
   {
@@ -244,11 +274,12 @@ int main()
   chparams.b        = 1.0;
   chparams.u        = 1.0;
   chparams.alpha    = 10.0;
-  chparams.phi_star = 0.;
+  chparams.phi_star = 0.0;
+  chparams.sigma    = 0.0;
   const int nx          = 128;
   const double dx       = 1./nx;
-  const int checkpoint  = 200;
-  const int maxsteps    = 2000;
+  const int checkpoint  = 20;
+  const int maxsteps    = 200;
   // ******************************
 
   run_ch_solver(chparams, nx, dx, checkpoint, maxsteps);
