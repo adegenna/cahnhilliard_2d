@@ -11,8 +11,8 @@ def dct2d(x,inverse=False):
 statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/C_'
 M           = 128
 N           = 128
-Tfinal      = 100
-Tsave       = 10
+Tfinal      = 500
+Tsave       = 50
 
 # Read data
 samps = int(Tfinal/Tsave) + 1

@@ -2,6 +2,7 @@
 #include <vector>
 #include <random>
 #include <fstream>
+#include <omp.h>
 
 #include <boost/numeric/odeint.hpp>
 
@@ -9,21 +10,34 @@
 
 typedef std::vector<double> state_type;
 
+struct CHparams
+{
+  double m;
+  double gam;
+  double b;
+  double u;
+  double sig;
+  double phi_star;
+};
+
+
 class CahnHilliard2DRHS
 {
 public:
-  CahnHilliard2DRHS(double D, double g, int nx, double dx)
-      : D_(D), gamma_(g), nx_(nx), dx_(dx)
+  CahnHilliard2DRHS(CHparams& chp, int nx, double dx)
+    : D_(chp.m), gamma_(chp.gam), b_(chp.b), u_(chp.u), sig_(chp.sig), phi_star_(chp.phi_star), nx_(nx), dx_(dx)
   {
     std::cout << "Initialized Cahn-Hilliard equation with D_ " << D_ 
       << " gamma_ " << gamma_ << " dx_ " << nx_ << " dx_ " << dx_ << std::endl;
   }
 
   /*
-  Cahn-Hilliard according to https://en.wikipedia.org/wiki/Cahn%E2%80%93Hilliard_equation is
-  dc/dt = D laplacian(c^3 - c - gamma*laplacian(c))
+  Cahn-Hilliard:
+  
+  dc/dt = D*laplacian( u*c^3 - b*c) - D*gamma*biharm(c)
+  
   expanding out RHS into individual differentials:
-  D laplacian(c^3 - c) - D gamma laplacian(laplacian(c))
+  D*laplacian( u*c^3 - b*c) - D*gamma*biharm(c)
   assuming constant gamma.
 
   need a d^4 and a d^2 operator.
@@ -33,23 +47,25 @@ public:
     dcdt.resize(nx_*nx_);
 
     // evaluate the second order term, 5 point central stencil
+    # pragma omp parallel for
     for (int i = 0; i < nx_; ++i)
     {
       for (int j = 0; j < nx_; ++j)
       {
-        const double c_i = laplace_component(c[idx2d(i, j)]);
+        const double c_i   = laplace_component(c[idx2d(i, j)]);
         const double c_im1 = laplace_component(c[idx2d(i - 1, j)]);
         const double c_ip1 = laplace_component(c[idx2d(i + 1, j)]);
         const double c_jm1 = laplace_component(c[idx2d(i, j - 1)]);
         const double c_jp1 = laplace_component(c[idx2d(i, j + 1)]);
-        dcdt[idx2d(i, j)] = (D_ / (dx_ * dx_)) * (c_im1 + c_ip1 + c_jm1 + c_jp1 - 4.0 * c_i);
+        dcdt[idx2d(i, j)]  = (D_ / (dx_ * dx_)) * (c_im1 + c_ip1 + c_jm1 + c_jp1 - 4.0 * c_i);
       }
     }
 
     // evaluate the 4th order term, 9 point central stencil
+    # pragma omp parallel for
     for (int i = 0; i < nx_; ++i){
       for (int j = 0; j < nx_; ++j){
-        const double c_i = c[idx2d(i, j)];
+        const double c_i   = c[idx2d(i, j)];
         const double c_im1 = c[idx2d(i - 1, j)];
         const double c_ip1 = c[idx2d(i + 1, j)];
         const double c_im2 = c[idx2d(i - 2, j)];
@@ -68,8 +84,18 @@ public:
           (c_jp2 - 4.0*c_jp1 + 6.0*c_i - 4.0*c_jm1 + c_jm2);
       }
     }
-  }
 
+    // evaluate linear term
+    # pragma omp parallel for
+    for (int i = 0; i < nx_; ++i){
+      for (int j = 0; j < nx_; ++j){
+        const double c_i   = c[idx2d(i, j)];
+    	dcdt[idx2d(i,j)]  += sig_ * ( c_i - phi_star_ );
+      }
+    }
+    
+  }
+  
   void setInitialConditions(state_type &x)
   {
     x.resize(nx_ * nx_);
@@ -102,13 +128,16 @@ public:
 private:
   const double D_;     // diffusion coefficient
   const double gamma_; // the other term
+  const double b_;
+  const double u_;
+  const double sig_;
+  const double phi_star_;
   const int nx_;       // number of finite difference nodes in each dimension
   const double dx_;       // mesh size
 
   double laplace_component(double c)
   {
-    return c * c * c - c;
-    // return c;
+    return D_ * u_ * (c * c * c) - D_ * b_ * c;
   }
 
   int idx2d_impl(int i, int j)
@@ -162,21 +191,31 @@ void write_state(const state_type &x , const int idx , const int nx )
     for (int j = 0; j < nx; ++j){
       out << x[i * nx + j] << " ";
     }
-    //out << std::endl;
   }
 
   out.close();
 };
 
+
+
 int main()
 {
-  const double D = 1.0;
-  const double gam = 0.0001;
-  const int nx = 128;
-  const double dx = 1./nx;
-  const int checkpoint = 10;
+  CHparams chparams;
   
-  CahnHilliard2DRHS rhs(D, gam, nx, dx);
+  // *********  Inputs  ***********
+  chparams.m        = 1.0;
+  chparams.gam      = pow( 0.01 ,2 );
+  chparams.b        = 1.0;
+  chparams.u        = 1.0;
+  chparams.sig      = -10.0;
+  chparams.phi_star = 0.2;
+  const int nx          = 128;
+  const double dx       = 1./nx;
+  const int checkpoint  = 50;
+  const int maxsteps    = 500;
+  // ******************************
+  
+  CahnHilliard2DRHS rhs(chparams, nx, dx);
 
   state_type x;
   rhs.setInitialConditions(x);
@@ -189,12 +228,11 @@ int main()
 
   controlled_stepper_type controlled_stepper;
 
-  double time = 0.0;
-  const double stability_limit = 0.5*dx*dx*dx*dx/D/gam; // just an estimate
-  double dt_initial = stability_limit * 0.5;
-  double dt_check_residual = dt_initial * 10.0;
-  const int maxsteps = 100;
-
+  double time                  = 0.0;
+  const double stability_limit = 0.5*dx*dx*dx*dx/chparams.m/chparams.gam; // just an estimate
+  double dt_initial            = stability_limit * 0.5;
+  double dt_check_residual     = dt_initial * 10.0;
+  
   const double res0 = rhs.l2residual(x);
 
   std::cout << "residual at initial condition: " << res0 << std::endl;
