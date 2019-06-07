@@ -16,7 +16,7 @@ struct CHparams
   double gam;
   double b;
   double u;
-  double sig;
+  double alpha;
   double phi_star;
 };
 
@@ -25,7 +25,7 @@ class CahnHilliard2DRHS
 {
 public:
   CahnHilliard2DRHS(CHparams& chp, int nx, double dx)
-    : D_(chp.m), gamma_(chp.gam), b_(chp.b), u_(chp.u), sig_(chp.sig), phi_star_(chp.phi_star), nx_(nx), dx_(dx)
+    : D_(chp.m), gamma_(chp.gam), b_(chp.b), u_(chp.u), alpha_(chp.alpha), phi_star_(chp.phi_star), nx_(nx), dx_(dx)
   {
     std::cout << "Initialized Cahn-Hilliard equation with D_ " << D_ 
       << " gamma_ " << gamma_ << " dx_ " << nx_ << " dx_ " << dx_ << std::endl;
@@ -90,7 +90,7 @@ public:
     for (int i = 0; i < nx_; ++i){
       for (int j = 0; j < nx_; ++j){
         const double c_i   = c[idx2d(i, j)];
-    	dcdt[idx2d(i,j)]  += sig_ * ( c_i - phi_star_ );
+    	dcdt[idx2d(i,j)]  -= alpha_ * ( c_i - phi_star_ );
       }
     }
     
@@ -130,7 +130,7 @@ private:
   const double gamma_; // the other term
   const double b_;
   const double u_;
-  const double sig_;
+  const double alpha_;
   const double phi_star_;
   const int nx_;       // number of finite difference nodes in each dimension
   const double dx_;       // mesh size
@@ -196,25 +196,8 @@ void write_state(const state_type &x , const int idx , const int nx )
   out.close();
 };
 
-
-
-int main()
+void run_ch_solver(CHparams& chparams, const int nx, const double dx, const int checkpoint, const int maxsteps)
 {
-  CHparams chparams;
-  
-  // *********  Inputs  ***********
-  chparams.m        = 1.0;
-  chparams.gam      = pow( 0.01 ,2 );
-  chparams.b        = 1.0;
-  chparams.u        = 1.0;
-  chparams.sig      = -10.0;
-  chparams.phi_star = 0.2;
-  const int nx          = 128;
-  const double dx       = 1./nx;
-  const int checkpoint  = 50;
-  const int maxsteps    = 500;
-  // ******************************
-  
   CahnHilliard2DRHS rhs(chparams, nx, dx);
 
   state_type x;
@@ -247,4 +230,27 @@ int main()
     }
   }
 
+};
+
+
+
+int main()
+{
+  CHparams chparams;
+  
+  // *********  Inputs  ***********
+  chparams.m        = 1.0;
+  chparams.gam      = pow( 0.01 ,2 );
+  chparams.b        = 1.0;
+  chparams.u        = 1.0;
+  chparams.alpha    = 10.0;
+  chparams.phi_star = 0.;
+  const int nx          = 128;
+  const double dx       = 1./nx;
+  const int checkpoint  = 200;
+  const int maxsteps    = 2000;
+  // ******************************
+
+  run_ch_solver(chparams, nx, dx, checkpoint, maxsteps);
+  
 }
