@@ -3,29 +3,10 @@
 #include <random>
 #include <fstream>
 #include <omp.h>
-
 #include <boost/numeric/odeint.hpp>
+#include "cahnhilliard.h"
 
-//#include "matplotlibcpp.h"
-
-typedef std::vector<double> state_type;
-
-struct CHparams
-{
-  double m;
-  double gam;
-  double b;
-  double u;
-  double alpha;
-  double phi_star;
-  double sigma;
-};
-
-
-class CahnHilliard2DRHS
-{
-public:
-  CahnHilliard2DRHS(CHparams& chp, int nx, double dx)
+CahnHilliard2DRHS::CahnHilliard2DRHS(CHparams& chp, int nx, double dx)
     : D_(chp.m), gamma_(chp.gam), b_(chp.b), u_(chp.u), alpha_(chp.alpha), phi_star_(chp.phi_star), nx_(nx), dx_(dx), sigma_(chp.sigma) , noise_dist_(0.0,1.0)
   {
     std::cout << "Initialized Cahn-Hilliard equation with D_ " << D_ 
@@ -43,7 +24,10 @@ public:
 
   need a d^4 and a d^2 operator.
   */
-  void operator()(const state_type &c, state_type &dcdt, const double t)
+
+CahnHilliard2DRHS::~CahnHilliard2DRHS() { };
+
+void CahnHilliard2DRHS::operator()(const state_type &c, state_type &dcdt, const double t)
   {
     dcdt.resize(nx_*nx_);
 
@@ -79,7 +63,6 @@ public:
 	const double c_ur  = c[idx2d(i-1 , j+1)];
 	const double c_bl  = c[idx2d(i+1 , j-1)];
 	const double c_br  = c[idx2d(i+1 , j+1)];
-	
 
         // x-direction u_xxxx
         dcdt[idx2d(i,j)] -= D_ * gamma_ /(dx_*dx_*dx_*dx_) * 
@@ -124,7 +107,7 @@ public:
     
   }
   
-  void setInitialConditions(state_type &x)
+void CahnHilliard2DRHS::setInitialConditions(state_type &x)
   {
     x.resize(nx_ * nx_);
 
@@ -141,7 +124,8 @@ public:
     }
   }
 
-  double l2residual(const state_type&c){
+double CahnHilliard2DRHS::l2residual(const state_type&c)
+  {
     state_type dcdt;
     (*this)(c, dcdt, 0);
     double res = 0;
@@ -151,35 +135,21 @@ public:
     return sqrt(res);
   }
 
-private:
-  const double D_;     // diffusion coefficient
-  const double gamma_; // the other term
-  const double b_;
-  const double u_;
-  const double alpha_;
-  const double phi_star_;
-  const int nx_;       // number of finite difference nodes in each dimension
-  const double dx_;       // mesh size
-  const double sigma_;
-  std::default_random_engine generator_;
-  std::normal_distribution<double> noise_dist_;
-
-
-  double laplace_component(double c)
+double CahnHilliard2DRHS::laplace_component(double c)
   {
     return D_ * u_ * (c * c * c) - D_ * b_ * c;
   }
 
-  int idx2d_impl(int i, int j)
+int CahnHilliard2DRHS::idx2d_impl(int i, int j)
   {
     return i * nx_ + j;
   }
   
   // regular modulo operator gives negative values without this
-  int mod(int a, int b)
+int CahnHilliard2DRHS::mod(int a, int b)
   { return (a%b+b)%b; }
 
-  int idx2d(int i, int j)
+int CahnHilliard2DRHS::idx2d(int i, int j)
   {
     // modify the indices to map to a periodic mesh. need two levels for the 4th order operator.
     // i coordinates:
@@ -188,7 +158,6 @@ private:
 
     return idx2d_impl(i, j);
   }
-};
 
 struct Recorder
 {
@@ -261,27 +230,3 @@ void run_ch_solver(CHparams& chparams, const int nx, const double dx, const int 
   }
 
 };
-
-
-
-int main()
-{
-  CHparams chparams;
-  
-  // *********  Inputs  ***********
-  chparams.m        = 1.0;
-  chparams.gam      = pow( 0.01 ,2 );
-  chparams.b        = 1.0;
-  chparams.u        = 1.0;
-  chparams.alpha    = 10.0;
-  chparams.phi_star = 0.0;
-  chparams.sigma    = 0.0;
-  const int nx          = 128;
-  const double dx       = 1./nx;
-  const int checkpoint  = 20;
-  const int maxsteps    = 200;
-  // ******************************
-
-  run_ch_solver(chparams, nx, dx, checkpoint, maxsteps);
-  
-}

@@ -28,7 +28,8 @@ include_directories( ${CMAKE_SOURCE_DIR}
 )
 
 add_executable( ch2d
-  src/cahn_hilliard.cpp
+  src/driver.cpp
+  src/cahnhilliard.cpp
 )
 
 
