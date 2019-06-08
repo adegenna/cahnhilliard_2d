@@ -8,11 +8,11 @@ def dct2d(x,inverse=False):
     return dct(temp,type=t,norm='ortho').transpose()
 
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/output/C_'
-statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/C_'
+statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/swig/C_'
 M           = 128
 N           = 128
-Tfinal      = 200
-Tsave       = 20
+Tfinal      = 10
+Tsave       = 1
 
 # Read data
 samps = int(Tfinal/Tsave) + 1

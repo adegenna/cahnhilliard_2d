@@ -12,13 +12,20 @@ struct CHparams
   double alpha;
   double phi_star;
   double sigma;
+  double t0;
+  double tf;
+  int iter = 0;
+  double dx;
+  double nx;
+  double dt_check;
+  state_type x;
 };
 
 class CahnHilliard2DRHS {
 
  public:
 
-  CahnHilliard2DRHS(CHparams& chp, int nx, double dx);
+  CahnHilliard2DRHS(CHparams& chp);
   ~CahnHilliard2DRHS();
   void operator()(const state_type &c, state_type &dcdt, const double t);
   void setInitialConditions(state_type &x);
@@ -26,15 +33,15 @@ class CahnHilliard2DRHS {
   
  private:
 
-  const double D_;     // diffusion coefficient
-  const double gamma_; // the other term
-  const double b_;
-  const double u_;
-  const double alpha_;
-  const double phi_star_;
+  double D_;     // diffusion coefficient
+  double gamma_; // the other term
+  double b_;
+  double u_;
+  double alpha_;
+  double phi_star_;
   const int nx_;       // number of finite difference nodes in each dimension
   const double dx_;       // mesh size
-  const double sigma_;
+  double sigma_;
   std::default_random_engine generator_;
   std::normal_distribution<double> noise_dist_;
 
@@ -46,7 +53,8 @@ class CahnHilliard2DRHS {
 };
 
 void write_state(const state_type &x , const int idx , const int nx );
-void run_ch_solver(CHparams& chparams, const int nx, const double dx, const int checkpoint, const int maxsteps);
+void run_ch_solver_checkpointing(CHparams& chparams);
+void run_ch_solver(CHparams& chparams);
 
 
 

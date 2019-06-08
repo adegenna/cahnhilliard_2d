@@ -6,8 +6,8 @@
 #include <boost/numeric/odeint.hpp>
 #include "cahnhilliard.h"
 
-CahnHilliard2DRHS::CahnHilliard2DRHS(CHparams& chp, int nx, double dx)
-    : D_(chp.m), gamma_(chp.gam), b_(chp.b), u_(chp.u), alpha_(chp.alpha), phi_star_(chp.phi_star), nx_(nx), dx_(dx), sigma_(chp.sigma) , noise_dist_(0.0,1.0)
+CahnHilliard2DRHS::CahnHilliard2DRHS(CHparams& chp)
+  : D_(chp.m), gamma_(chp.gam), b_(chp.b), u_(chp.u), alpha_(chp.alpha), phi_star_(chp.phi_star), nx_(chp.nx), dx_(chp.dx), sigma_(chp.sigma) , noise_dist_(0.0,1.0)
   {
     std::cout << "Initialized Cahn-Hilliard equation with D_ " << D_ 
       << " gamma_ " << gamma_ << " dx_ " << nx_ << " dx_ " << dx_ << std::endl;
@@ -195,9 +195,9 @@ void write_state(const state_type &x , const int idx , const int nx )
   out.close();
 };
 
-void run_ch_solver(CHparams& chparams, const int nx, const double dx, const int checkpoint, const int maxsteps)
+void run_ch_solver_checkpointing(CHparams& chparams)
 {
-  CahnHilliard2DRHS rhs(chparams, nx, dx);
+  CahnHilliard2DRHS rhs(chparams);
 
   state_type x;
   rhs.setInitialConditions(x);
@@ -211,22 +211,61 @@ void run_ch_solver(CHparams& chparams, const int nx, const double dx, const int 
   controlled_stepper_type controlled_stepper;
 
   double time                  = 0.0;
-  const double stability_limit = 0.5*dx*dx*dx*dx/chparams.m/chparams.gam; // just an estimate
+  const double stability_limit = 0.5*chparams.dx*chparams.dx*chparams.dx*chparams.dx/chparams.m/chparams.gam; // just an estimate
+  double dt_initial            = stability_limit * 0.5;
+  
+  const double res0            = rhs.l2residual(x);
+
+  std::cout << "residual at initial condition: " << res0 << std::endl;
+  write_state(x,0,chparams.nx);
+
+  double t_steps = int( chparams.tf / chparams.dt_check );
+  for (int i = 0; i < t_steps; ++i){
+    integrate_adaptive(controlled_stepper, rhs, x, time, time + chparams.dt_check, dt_initial);
+    time += chparams.dt_check;
+    std::cout << "iter: " << i+1 << " , t = " << time << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
+    write_state(x,i+1,chparams.nx);
+  }
+
+};
+
+void run_ch_solver(CHparams& chparams)
+{
+  CahnHilliard2DRHS rhs(chparams);
+
+  state_type x;
+  if (chparams.t0 == 0) {
+    rhs.setInitialConditions(x);
+    int iter = 0;
+  }
+  else {
+    x        = chparams.x;
+    int iter = chparams.iter;
+  }
+
+  // define adaptive stepper
+  typedef boost::numeric::odeint::runge_kutta_cash_karp54<state_type> error_stepper_type;
+
+  // define runge kutta
+  typedef boost::numeric::odeint::controlled_runge_kutta<error_stepper_type> controlled_stepper_type;
+
+  controlled_stepper_type controlled_stepper;
+
+  const double stability_limit = 0.5*chparams.dx*chparams.dx*chparams.dx*chparams.dx/chparams.m/chparams.gam; // just an estimate
   double dt_initial            = stability_limit * 0.5;
   double dt_check_residual     = dt_initial * 10.0;
   
-  const double res0 = rhs.l2residual(x);
+  const double res0            = rhs.l2residual(x);
 
   std::cout << "residual at initial condition: " << res0 << std::endl;
-  write_state(x,0,nx);
+  if (chparams.iter == 0)
+    write_state(x,0,chparams.nx);
+
+  integrate_adaptive(controlled_stepper, rhs, x, chparams.t0, chparams.tf, dt_initial);
   
-  for (int i = 0; i < maxsteps; ++i){
-    integrate_adaptive(controlled_stepper, rhs, x, time, time+dt_check_residual, dt_initial);
-    time += dt_check_residual;
-    if ( (i+1) % checkpoint == 0) {
-      std::cout << "iter: " << i+1 << " , t = " << time << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
-      write_state(x,i+1,nx);
-    }
-  }
+  chparams.iter += 1;
+  std::cout << "iter: " << chparams.iter << " , t = " << chparams.tf << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
+  write_state(x,chparams.iter,chparams.nx);
+  chparams.x = x;
 
 };

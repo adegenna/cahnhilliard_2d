@@ -5,3 +5,8 @@
 dist/
 output/
 build/
+cpp/swig/*.o
+cpp/swig/*.so
+cpp/swig/*.cxx
+cpp/swig/cahnhilliard.py
+cpp/swig/*.out
