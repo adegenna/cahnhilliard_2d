@@ -10,4 +10,9 @@
  #include "cahnhilliard.h"
  %}
 
+ %include <std_vector.i>
+ %include typemaps.i
+ namespace std {
+  %template(DoubleVector) vector<double>;
+ };
  %include "cahnhilliard.h"

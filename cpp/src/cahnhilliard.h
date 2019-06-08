@@ -5,6 +5,8 @@ typedef std::vector<double> state_type;
 
 struct CHparams
 {
+  int param_type;
+  
   double m;
   double gam;
   double b;
@@ -12,6 +14,15 @@ struct CHparams
   double alpha;
   double phi_star;
   double sigma;
+
+  std::vector<double> m_xy;
+  state_type gam_xy;
+  state_type b_xy;
+  state_type u_xy;
+  state_type alpha_xy;
+  state_type phi_star_xy;
+  state_type sigma_xy;
+  
   double t0;
   double tf;
   int iter = 0;
@@ -27,21 +38,34 @@ class CahnHilliard2DRHS {
 
   CahnHilliard2DRHS(CHparams& chp);
   ~CahnHilliard2DRHS();
+  void rhs_scalar_parameters(const state_type &c, state_type &dcdt, const double t);
+  void rhs_field_parameters(const state_type &c, state_type &dcdt, const double t);
   void operator()(const state_type &c, state_type &dcdt, const double t);
   void setInitialConditions(state_type &x);
   double l2residual(const state_type&c);
   
  private:
 
-  double D_;     // diffusion coefficient
-  double gamma_; // the other term
+  const int param_type_;
+  
+  double D_;
+  double gamma_;
   double b_;
   double u_;
   double alpha_;
   double phi_star_;
+  double sigma_;
+
+  state_type D_xy_;
+  state_type gamma_xy_;
+  state_type b_xy_;
+  state_type u_xy_;
+  state_type alpha_xy_;
+  state_type phi_star_xy_;
+  state_type sigma_xy_;
+  
   const int nx_;       // number of finite difference nodes in each dimension
   const double dx_;       // mesh size
-  double sigma_;
   std::default_random_engine generator_;
   std::normal_distribution<double> noise_dist_;
 
