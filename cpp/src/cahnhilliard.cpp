@@ -117,11 +117,11 @@ void CahnHilliard2DRHS::rhs_field_parameters(const state_type &c, state_type &dc
     {
       for (int j = 0; j < nx_; ++j)
       {
-        const double c_i   = laplace_component(c[idx2d(i, j)]);
-        const double c_im1 = laplace_component(c[idx2d(i - 1, j)]);
-        const double c_ip1 = laplace_component(c[idx2d(i + 1, j)]);
-        const double c_jm1 = laplace_component(c[idx2d(i, j - 1)]);
-        const double c_jp1 = laplace_component(c[idx2d(i, j + 1)]);
+        const double c_i   = laplace_component_field(c , i     , j);
+        const double c_im1 = laplace_component_field(c , i - 1 , j);
+        const double c_ip1 = laplace_component_field(c , i + 1 , j);
+        const double c_jm1 = laplace_component_field(c , i     , j - 1);
+        const double c_jp1 = laplace_component_field(c , i     , j + 1);
         dcdt[idx2d(i, j)]  = (D_xy_[idx2d(i, j)] / (dx_ * dx_)) * (c_im1 + c_ip1 + c_jm1 + c_jp1 - 4.0 * c_i);
       }
     }
@@ -226,6 +226,13 @@ double CahnHilliard2DRHS::l2residual(const state_type&c)
 double CahnHilliard2DRHS::laplace_component(double c)
   {
     return D_ * u_ * (c * c * c) - D_ * b_ * c;
+  }
+
+double CahnHilliard2DRHS::laplace_component_field(const state_type& c, int i, int j)
+  {
+    return D_xy_[idx2d(i, j)] * u_xy_[idx2d(i, j)] *
+      (c[idx2d(i, j)] * c[idx2d(i, j)] * c[idx2d(i, j)]) -
+      D_xy_[idx2d(i, j)] * b_xy_[idx2d(i, j)] * c[idx2d(i, j)];
   }
 
 int CahnHilliard2DRHS::idx2d_impl(int i, int j)

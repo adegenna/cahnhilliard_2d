@@ -70,6 +70,7 @@ class CahnHilliard2DRHS {
   std::normal_distribution<double> noise_dist_;
 
   double laplace_component(double c);
+  double laplace_component_field(const state_type& c, int i, int j);
   int idx2d_impl(int i, int j);
   int mod(int a, int b);
   int idx2d(int i, int j);
