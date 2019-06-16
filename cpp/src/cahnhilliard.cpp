@@ -9,8 +9,12 @@
 CahnHilliard2DRHS::CahnHilliard2DRHS(CHparams& chp)
   : D_(chp.m), gamma_(chp.gam), b_(chp.b), u_(chp.u), alpha_(chp.alpha), phi_star_(chp.phi_star), nx_(chp.nx), dx_(chp.dx), sigma_(chp.sigma) , noise_dist_(0.0,1.0) , param_type_(chp.param_type), D_xy_(chp.m_xy), gamma_xy_(chp.gam_xy), b_xy_(chp.b_xy), u_xy_(chp.u_xy), alpha_xy_(chp.alpha_xy), phi_star_xy_(chp.phi_star_xy), sigma_xy_(chp.sigma_xy)
   {
-    std::cout << "Initialized Cahn-Hilliard equation with D_ " << D_ 
-      << " gamma_ " << gamma_ << " dx_ " << nx_ << " dx_ " << dx_ << std::endl;
+    std::cout << "Initialized Cahn-Hilliard equation with ";
+    if (param_type_ == 0)
+      std::cout << "scalar parameters" << std::endl;
+    else
+      std::cout << "spatial-field parameters" << std::endl;
+ 
   }
 
   /*
