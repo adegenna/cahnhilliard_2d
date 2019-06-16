@@ -5,6 +5,7 @@
 #include <omp.h>
 #include <boost/numeric/odeint.hpp>
 #include "cahnhilliard.h"
+#include "stochastic_euler.hpp"
 
 CahnHilliard2DRHS::CahnHilliard2DRHS(CHparams& chp)
   : D_(chp.m), gamma_(chp.gam), b_(chp.b), u_(chp.u), alpha_(chp.alpha), phi_star_(chp.phi_star), nx_(chp.nx), dx_(chp.dx), sigma_(chp.sigma) , noise_dist_(0.0,1.0) , param_type_(chp.param_type), D_xy_(chp.m_xy), gamma_xy_(chp.gam_xy), b_xy_(chp.b_xy), u_xy_(chp.u_xy), alpha_xy_(chp.alpha_xy), phi_star_xy_(chp.phi_star_xy), sigma_xy_(chp.sigma_xy)
@@ -91,23 +92,23 @@ void CahnHilliard2DRHS::rhs_scalar_parameters(const state_type &c, state_type &d
       }
     }
 
-    // evaluate the noise term
-    state_type noise(nx_*nx_);
-    # pragma omp parallel for
-    for (int i = 0; i < nx_; ++i){
-      for (int j = 0; j < nx_; ++j){
-        noise[idx2d(i,j)]  = noise_dist_(generator_);
-      }
-    }
-    double mean_noise = std::accumulate( noise.begin() , noise.end() , 0.0 ) / noise.size();
+    // // evaluate the noise term
+    // state_type noise(nx_*nx_);
+    // # pragma omp parallel for
+    // for (int i = 0; i < nx_; ++i){
+    //   for (int j = 0; j < nx_; ++j){
+    //     noise[idx2d(i,j)]  = noise_dist_(generator_);
+    //   }
+    // }
+    // double mean_noise = std::accumulate( noise.begin() , noise.end() , 0.0 ) / noise.size();
 
-    # pragma omp parallel for
-    for (int i = 0; i < nx_; ++i){
-      for (int j = 0; j < nx_; ++j){
-        const double c_i   = c[idx2d(i, j)];
-	dcdt[idx2d(i,j)]  += sigma_ * (noise[i,j] - mean_noise);
-      }
-    }
+    // # pragma omp parallel for
+    // for (int i = 0; i < nx_; ++i){
+    //   for (int j = 0; j < nx_; ++j){
+    //     const double c_i   = c[idx2d(i, j)];
+    // 	dcdt[idx2d(i,j)]  += sigma_ * (noise[i,j] - mean_noise);
+    //   }
+    // }
     
   }
 
@@ -171,23 +172,23 @@ void CahnHilliard2DRHS::rhs_field_parameters(const state_type &c, state_type &dc
       }
     }
 
-    // evaluate the noise term
-    state_type noise(nx_*nx_);
-    # pragma omp parallel for
-    for (int i = 0; i < nx_; ++i){
-      for (int j = 0; j < nx_; ++j){
-        noise[idx2d(i,j)]  = noise_dist_(generator_);
-      }
-    }
-    double mean_noise = std::accumulate( noise.begin() , noise.end() , 0.0 ) / noise.size();
+    // // evaluate the noise term
+    // state_type noise(nx_*nx_);
+    // # pragma omp parallel for
+    // for (int i = 0; i < nx_; ++i){
+    //   for (int j = 0; j < nx_; ++j){
+    //     noise[idx2d(i,j)]  = noise_dist_(generator_);
+    //   }
+    // }
+    // double mean_noise = std::accumulate( noise.begin() , noise.end() , 0.0 ) / noise.size();
 
-    # pragma omp parallel for
-    for (int i = 0; i < nx_; ++i){
-      for (int j = 0; j < nx_; ++j){
-        const double c_i   = c[idx2d(i, j)];
-	dcdt[idx2d(i,j)]  += sigma_xy_[idx2d(i, j)] * (noise[i,j] - mean_noise);
-      }
-    }
+    // # pragma omp parallel for
+    // for (int i = 0; i < nx_; ++i){
+    //   for (int j = 0; j < nx_; ++j){
+    //     const double c_i   = c[idx2d(i, j)];
+    // 	dcdt[idx2d(i,j)]  += sigma_xy_[idx2d(i, j)] * (noise[i,j] - mean_noise);
+    //   }
+    // }
     
   }
 
@@ -360,8 +361,17 @@ void run_ch_solver(CHparams& chparams)
   if (chparams.iter == 0)
     write_state(x,0,chparams.nx);
 
-  integrate_adaptive(controlled_stepper, rhs, x, chparams.t0, chparams.tf, dt_initial);
-  
+  if (chparams.sigma < 1e-2) {
+    std::cout << "Solving deterministic (noise-free) CH" << std::endl;
+    integrate_adaptive(controlled_stepper, rhs, x, chparams.t0, chparams.tf, stability_limit/2.);
+  }
+  else {
+    std::cout << "Solving stochastic CH" << std::endl;
+    boost::mt19937 rng;
+    boost::numeric::odeint::integrate_const( stochastic_euler() ,
+					     std::make_pair( rhs , ornstein_stoch( rng , chparams.sigma ) ),
+					     x , chparams.t0 , chparams.tf , stability_limit/40. );
+  }
   chparams.iter += 1;
   std::cout << "iter: " << chparams.iter << " , t = " << chparams.tf << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
   write_state(x,chparams.iter,chparams.nx);

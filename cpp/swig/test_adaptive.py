@@ -3,19 +3,19 @@ import matplotlib.pyplot as plt
 from scipy import misc
 import cahnhilliard as ch
 
-gam0              = 0.005**2
+gam0              = 0.01**2
 
 chparams          = ch.CHparams();
 chparams.param_type = 1 # 0 for scalar params, 1 for field params
 chparams.t0       = 0.0;
-chparams.nx       = 256;
+chparams.nx       = 128;
 chparams.dx       = 1./chparams.nx;
 
 chparams.m        = 1.0
 chparams.gam      = gam0
 chparams.b        = 1.0;
 chparams.u        = 1.0;
-chparams.alpha    = 400.0;
+chparams.alpha    = 100.0;
 chparams.phi_star = 0.0;
 chparams.sigma    = 0.0;
 
@@ -35,19 +35,18 @@ chparams.phi_star_xy = ch.DoubleVector(phi_xy.ravel())
 chparams.sigma_xy    = ch.DoubleVector(chparams.sigma  * np.ones(nx**2))
 
 
-stab_dt           = 0.5*(chparams.dx**4) / np.max(chparams.m_xy) / np.max(chparams.gam_xy)
-biharm_dt         = 2*stab_dt
+biharm_dt         = (chparams.dx**4) / np.max(chparams.m_xy) / np.max(chparams.gam_xy)
 diff_dt           = (chparams.dx**2) / np.max(chparams.m_xy) / np.max( [np.max(chparams.u_xy) , np.max(chparams.b_xy)] )
 lin_dt            = 1.0 / np.max(chparams.alpha_xy)
 n_tsteps          = 10
-t                 = np.linspace(0,500*stab_dt,n_tsteps+1)
+t                 = np.linspace(0,200*biharm_dt,n_tsteps+1)
 chparams.dt_check = t[1]-t[0]
 
 print( 'Biharmonic timescale dt_biharm = ' , biharm_dt )
 print( 'Diffusion timescale dt_diff = ' , diff_dt , ' = ' , diff_dt/biharm_dt , ' dt_biharm')
 print( 'Linear timescale dt_lin = ' , lin_dt , ' = ' , lin_dt/biharm_dt , ' dt_biharm')
 
-print( 'Sampling interval = ' , chparams.dt_check / stab_dt , ' dt_biharm' )
+print( 'Sampling interval = ' , chparams.dt_check / biharm_dt , ' dt_biharm' )
 
 for i in range(n_tsteps):
     chparams.t0        = t[i]

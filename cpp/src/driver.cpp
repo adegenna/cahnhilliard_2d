@@ -19,20 +19,19 @@ int main()
   chparams.u        = 1.0;
   chparams.alpha    = 10.0;
   chparams.phi_star = 0.0;
-  chparams.sigma    = 0.0;
+  chparams.sigma    = 50.0;
   chparams.nx       = 128;
   chparams.dx       = 1./chparams.nx;
   chparams.param_type = 0;
   chparams.t0         = 0.0;
   int n_tsteps = 10;
-  double n_dt  = 500.0; 
+  double n_dt  = 1500.0;
   // ******************************
 
-  double dt_stab    = 0.5 * (chparams.dx * chparams.dx * chparams.dx * chparams.dx) / chparams.m / chparams.gam;
+  double dt_biharm  = (chparams.dx * chparams.dx * chparams.dx * chparams.dx) / chparams.m / chparams.gam;
   double tf         = n_dt * dt_stab;
   chparams.dt_check = tf / n_tsteps;
 
-  double dt_biharm  = 2 * dt_stab;
   double dt_diff    = chparams.dx * chparams.dx / chparams.m / chparams.u;
   double dt_lin     = 1.0 / chparams.alpha;
 

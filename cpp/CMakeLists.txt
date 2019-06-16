@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-project(navierstokes2d)
+project(ch2d)
 
 find_package(Boost COMPONENTS program_options REQUIRED)
 find_package(Threads)
@@ -29,6 +29,7 @@ include_directories( ${CMAKE_SOURCE_DIR}
 
 add_executable( ch2d
   src/driver.cpp
+  src/stochastic_euler.hpp
   src/cahnhilliard.cpp
 )
 
