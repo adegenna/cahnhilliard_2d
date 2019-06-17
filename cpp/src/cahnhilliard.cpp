@@ -52,6 +52,7 @@ void CahnHilliard2DRHS::rhs_scalar_parameters(const state_type &c, state_type &d
     }
 
     // evaluate the 4th order term, 9 point central stencil
+    const auto& gamma = gammaCoefficient();
     # pragma omp parallel for
     for (int i = 0; i < nx_; ++i){
       for (int j = 0; j < nx_; ++j){
@@ -68,17 +69,18 @@ void CahnHilliard2DRHS::rhs_scalar_parameters(const state_type &c, state_type &d
 	const double c_ur  = c[idx2d(i-1 , j+1)];
 	const double c_bl  = c[idx2d(i+1 , j-1)];
 	const double c_br  = c[idx2d(i+1 , j+1)];
+        const double g     = gamma[idx2d(i+1 , j+1)];
 
         // x-direction u_xxxx
-        dcdt[idx2d(i,j)] -= D_ * gamma_ /(dx_*dx_*dx_*dx_) * 
+        dcdt[idx2d(i,j)] -= D_ * g /(dx_*dx_*dx_*dx_) * 
           (c_ip2 - 4.0*c_ip1 + 6.0*c_i - 4.0*c_im1 + c_im2);
 
         // y-direction u_yyyy
-        dcdt[idx2d(i,j)] -= D_ * gamma_ /(dx_*dx_*dx_*dx_) * 
+        dcdt[idx2d(i,j)] -= D_ * g /(dx_*dx_*dx_*dx_) * 
           (c_jp2 - 4.0*c_jp1 + 6.0*c_i - 4.0*c_jm1 + c_jm2);
 
 	// mixed term 2*u_xxyy
-	dcdt[idx2d(i,j)] -= D_ * gamma_ /(dx_*dx_*dx_*dx_) * 
+	dcdt[idx2d(i,j)] -= D_ * g /(dx_*dx_*dx_*dx_) * 
           2 * (4*c_i - 2*(c_im1 + c_ip1 + c_jm1 + c_jp1) + c_ul + c_ur + c_bl + c_br );
       }
     }

@@ -3,10 +3,8 @@
 
 typedef std::vector<double> state_type;
 
-struct CHparams
+struct ConstantValuedCahnHilliardParams
 {
-  int param_type;
-  
   double m;
   double gam;
   double b;
@@ -14,29 +12,25 @@ struct CHparams
   double alpha;
   double phi_star;
   double sigma;
+};
 
-  std::vector<double> m_xy;
+struct VectorValuedCahnHilliardParams
+{
+  state_type m_xy;
   state_type gam_xy;
   state_type b_xy;
   state_type u_xy;
   state_type alpha_xy;
   state_type phi_star_xy;
   state_type sigma_xy;
-  
-  double t0;
-  double tf;
-  int iter = 0;
-  double dx;
-  double nx;
-  double dt_check;
-  state_type x;
 };
+
 
 class CahnHilliard2DRHS {
 
  public:
 
-  CahnHilliard2DRHS(CHparams& chp);
+  CahnHilliard2DRHS(int nx, double dx);
   ~CahnHilliard2DRHS();
   void rhs_scalar_parameters(const state_type &c, state_type &dcdt, const double t);
   void rhs_field_parameters(const state_type &c, state_type &dcdt, const double t);
@@ -69,6 +63,8 @@ class CahnHilliard2DRHS {
   std::default_random_engine generator_;
   std::normal_distribution<double> noise_dist_;
 
+  virtual const std::vector<double>& gammaCoefficient() const = 0;
+
   double laplace_component(double c);
   double laplace_component_field(const state_type& c, int i, int j);
   int idx2d_impl(int i, int j);
@@ -76,6 +72,37 @@ class CahnHilliard2DRHS {
   int idx2d(int i, int j);
   
 };
+
+
+class ConstantCoefficientCahnHilliard : public CahnHilliard2DRHS {
+ public:
+  ConstantCoefficientCahnHilliard(const ConstantValuedCahnHilliardParams& p, int nx, double dx)
+    : CahnHilliard2DRHS(nx, dx),
+      gamma_(std::vector<double>(nx*nx, p.gam))
+    {}
+
+ private:
+  const std::vector<double> gamma_;
+
+  const std::vector<double>& gammaCoefficient() const override { return gamma_; }
+};
+
+
+class VariableCoefficientCahnHilliard : public CahnHilliard2DRHS {
+ public:
+  VariableCoefficientCahnHilliard(const VectorValuedCahnHilliardParams& p, int nx, double dx)
+    : CahnHilliard2DRHS(nx, dx),
+      params_(p)
+    {}
+
+ private:
+  const VectorValuedCahnHilliardParams params_;
+
+  const std::vector<double>& gammaCoefficient() const override { return params_.gam_xy; }
+};
+
+
+
 
 void write_state(const state_type &x , const int idx , const int nx );
 void run_ch_solver_checkpointing(CHparams& chparams);
