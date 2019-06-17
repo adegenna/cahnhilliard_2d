@@ -5,7 +5,7 @@
 #include <omp.h>
 #include <boost/numeric/odeint.hpp>
 #include "cahnhilliard.h"
-
+#include "run_ch_solver.hpp"
 
 int main()
 {

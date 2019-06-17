@@ -33,6 +33,8 @@ CahnHilliard2DRHS::CahnHilliard2DRHS(CHparamsVector& chp , SimInfo& info)
     std::cout << "Initialized Cahn-Hilliard equation with spatial-field parameters" << std::endl;
   }
 
+CahnHilliard2DRHS::~CahnHilliard2DRHS() { };
+
 void CahnHilliard2DRHS_Scalar::get_ij_values(int i , int j , CHparamsScalar& ch_ij) {
   ch_ij.D        = chpS_.D;
   ch_ij.gamma    = chpS_.gamma;

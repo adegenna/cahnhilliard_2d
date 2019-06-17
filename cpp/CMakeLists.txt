@@ -31,6 +31,7 @@ add_executable( ch2d
   src/driver.cpp
   src/stochastic_euler.hpp
   src/cahnhilliard.cpp
+  src/run_ch_solver.hpp
 )
 
 
