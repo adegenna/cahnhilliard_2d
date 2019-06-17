@@ -20,7 +20,7 @@ int main()
   chparams.u        = 1.0;
   chparams.alpha    = 100.0;
   chparams.phi_star = 0.0;
-  chparams.sigma    = 10.0;
+  chparams.sigma    = 0.1;
 
   info.nx             = 128;
   info.dx             = 1./info.nx;
@@ -44,9 +44,9 @@ int main()
     info.t0 = i * info.dt_check;
     info.tf = (i+1) * info.dt_check;
     std::cout << "t0 = " << info.t0/dt_biharm << " dt_biharm , tf = " << info.tf/dt_biharm << " dt_biharm" << std::endl;
-    //CahnHilliard2DRHS_Scalar rhs_scalar = CahnHilliard2DRHS_Scalar(chparams,info);
-    //CahnHilliard2DRHS* rhs = &rhs_scalar;
-    run_ch_solver<CHparamsScalar>(chparams , info); //, rhs);
+    CahnHilliard2DRHS_Scalar rhs_scalar = CahnHilliard2DRHS_Scalar(chparams , info);
+    CahnHilliard2DRHS* rhs              = &rhs_scalar;
+    run_ch_solver<CHparamsScalar>(chparams , info , rhs);
   }
     
 }

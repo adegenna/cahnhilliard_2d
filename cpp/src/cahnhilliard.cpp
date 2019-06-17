@@ -5,7 +5,6 @@
 #include <omp.h>
 #include <boost/numeric/odeint.hpp>
 #include "cahnhilliard.h"
-//#include "stochastic_euler.hpp"
 
 
   /*
@@ -24,12 +23,14 @@
 CahnHilliard2DRHS::CahnHilliard2DRHS(CHparamsScalar& chp , SimInfo& info)
   : noise_dist_(0.0,1.0) , chpS_(chp) , info_(info)
   {
+    ch_ij_ = CHparamsScalar();
     std::cout << "Initialized Cahn-Hilliard equation with scalar parameters" << std::endl;
   }
 
 CahnHilliard2DRHS::CahnHilliard2DRHS(CHparamsVector& chp , SimInfo& info)
   : noise_dist_(0.0,1.0) , chpV_(chp) , info_(info)
   {
+    ch_ij_ = CHparamsScalar();
     std::cout << "Initialized Cahn-Hilliard equation with spatial-field parameters" << std::endl;
   }
 
@@ -222,38 +223,3 @@ void write_state(const std::vector<double> &x , const int idx , const int nx )
 
   out.close();
 };
-
-// void run_ch_solver_checkpointing(CHparams& chparams , SimInfo& info)
-// {
-//   CahnHilliard2DRHS rhs(chparams);
-
-//   std::vector<double> x;
-//   rhs.setInitialConditions(x);
-
-//   // define adaptive stepper
-//   typedef boost::numeric::odeint::runge_kutta_cash_karp54<std::vector<double>> error_stepper_type;
-
-//   // define runge kutta
-//   typedef boost::numeric::odeint::controlled_runge_kutta<error_stepper_type> controlled_stepper_type;
-
-//   controlled_stepper_type controlled_stepper;
-
-//   double time                  = 0.0;
-//   const double stability_limit = 0.5*info.dx*info.dx*info.dx*info.dx/chparams.D/chparams.gamma; // just an estimate
-//   double dt_initial            = stability_limit * 0.5;
-  
-//   const double res0            = rhs.l2residual(x);
-
-//   std::cout << "residual at initial condition: " << res0 << std::endl;
-//   write_state(x,0,chparams.nx);
-
-//   double t_steps = int( chparams.tf / chparams.dt_check );
-//   for (int i = 0; i < t_steps; ++i){
-//     integrate_adaptive(controlled_stepper, rhs, x, time, time + chparams.dt_check, dt_initial);
-//     time += chparams.dt_check;
-//     std::cout << "iter: " << i+1 << " , t = " << time << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
-//     write_state(x,i+1,chparams.nx);
-//   }
-
-// };
-

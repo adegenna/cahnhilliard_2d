@@ -89,6 +89,7 @@ class CahnHilliard2DRHS {
   void operator()(const std::vector<double> &c, std::vector<double> &dcdt, const double t);
   void setInitialConditions(std::vector<double> &x);
   double l2residual(const std::vector<double> &c);
+  double get_gamma() { return chpS_.gamma; };
   
  protected:
 
@@ -112,21 +113,28 @@ class CahnHilliard2DRHS {
 class CahnHilliard2DRHS_Scalar : public CahnHilliard2DRHS {
 
  public:
+  
   CahnHilliard2DRHS_Scalar(CHparamsScalar& chp , SimInfo& info)
     : CahnHilliard2DRHS(chp , info)
       {}
 
  private:
 
-  void get_ij_values(int i , int j , CHparamsScalar& ch_ij) ;
+  void get_ij_values(int i , int j , CHparamsScalar& ch_ij) override;
 
 };
 
 class CahnHilliard2DRHS_Vector : public CahnHilliard2DRHS {
 
+ public:
+  
+  CahnHilliard2DRHS_Vector(CHparamsVector& chp , SimInfo& info)
+    : CahnHilliard2DRHS(chp , info)
+      {}
+
  private:
 
-  void get_ij_values(int i , int j , CHparamsScalar& ch_ij) ;
+  void get_ij_values(int i , int j , CHparamsScalar& ch_ij) override;
 
 };
 
