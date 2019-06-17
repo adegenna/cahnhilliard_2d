@@ -13,9 +13,9 @@ chparams.dx       = 1./chparams.nx;
 
 chparams.m        = 1.0
 chparams.gam      = gam0
-chparams.b        = 1.0;
-chparams.u        = 1.0;
-chparams.alpha    = 100.0;
+chparams.b        = chparams.gam / chparams.dx**2
+chparams.u        = chparams.gam / chparams.dx**2
+chparams.alpha    = chparams.gam * chparams.m / chparams.dx**4 / 200.
 chparams.phi_star = 0.0;
 chparams.sigma    = 0.0;
 
@@ -39,7 +39,7 @@ biharm_dt         = (chparams.dx**4) / np.max(chparams.m_xy) / np.max(chparams.g
 diff_dt           = (chparams.dx**2) / np.max(chparams.m_xy) / np.max( [np.max(chparams.u_xy) , np.max(chparams.b_xy)] )
 lin_dt            = 1.0 / np.max(chparams.alpha_xy)
 n_tsteps          = 10
-t                 = np.linspace(0,200*biharm_dt,n_tsteps+1)
+t                 = np.linspace(0,300*biharm_dt,n_tsteps+1)
 chparams.dt_check = t[1]-t[0]
 
 print( 'Biharmonic timescale dt_biharm = ' , biharm_dt )
