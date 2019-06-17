@@ -44,7 +44,9 @@ int main()
     info.t0 = i * info.dt_check;
     info.tf = (i+1) * info.dt_check;
     std::cout << "t0 = " << info.t0/dt_biharm << " dt_biharm , tf = " << info.tf/dt_biharm << " dt_biharm" << std::endl;
-    run_ch_solver(chparams , info);
+    //CahnHilliard2DRHS_Scalar rhs_scalar = CahnHilliard2DRHS_Scalar(chparams,info);
+    //CahnHilliard2DRHS* rhs = &rhs_scalar;
+    run_ch_solver<CHparamsScalar>(chparams , info); //, rhs);
   }
     
 }
