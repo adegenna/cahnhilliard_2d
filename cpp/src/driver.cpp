@@ -13,26 +13,26 @@ int main()
   CHparams chparams;
   
   // *********  Inputs  ***********
-  chparams.m        = 1.0;
-  chparams.gam      = pow( 0.01 ,2 );
+  chparams.D        = 1.0;
+  chparams.gamma    = pow( 0.01 ,2 );
   chparams.b        = 1.0;
   chparams.u        = 1.0;
-  chparams.alpha    = 10.0;
+  chparams.alpha    = 100.0;
   chparams.phi_star = 0.0;
-  chparams.sigma    = 50.0;
+  chparams.sigma    = 10.0;
   chparams.nx       = 128;
   chparams.dx       = 1./chparams.nx;
   chparams.param_type = 0;
   chparams.t0         = 0.0;
-  int n_tsteps = 10;
-  double n_dt  = 1500.0;
+  int n_tsteps        = 10;
+  double n_dt         = 500.0;
   // ******************************
 
-  double dt_biharm  = (chparams.dx * chparams.dx * chparams.dx * chparams.dx) / chparams.m / chparams.gam;
-  double tf         = n_dt * dt_stab;
+  double dt_biharm  = (chparams.dx * chparams.dx * chparams.dx * chparams.dx) / chparams.D / chparams.gamma;
+  double tf         = n_dt * dt_biharm;
   chparams.dt_check = tf / n_tsteps;
 
-  double dt_diff    = chparams.dx * chparams.dx / chparams.m / chparams.u;
+  double dt_diff    = chparams.dx * chparams.dx / chparams.D / chparams.u;
   double dt_lin     = 1.0 / chparams.alpha;
 
   std::cout << "Biharmonic timescale dt_biharm = " << dt_biharm << std::endl;

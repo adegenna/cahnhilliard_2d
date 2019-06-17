@@ -25,8 +25,10 @@ struct CHparams
   double tf;
   int iter = 0;
   double dx;
-  double nx;
+  int nx;
   double dt_check;
+
+  std::vector<double> x;
 };
 
 class CahnHilliard2DRHS {

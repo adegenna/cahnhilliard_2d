@@ -25,7 +25,7 @@ CahnHilliard2DRHS::CahnHilliard2DRHS(CHparams& chp)
   : noise_dist_(0.0,1.0) , chp_(chp)
   {
     std::cout << "Initialized Cahn-Hilliard equation with ";
-    if (chp_.param_type_ == 0)
+    if (chp_.param_type == 0)
       std::cout << "scalar parameters" << std::endl;
     else
       std::cout << "spatial-field parameters" << std::endl;
@@ -34,7 +34,7 @@ CahnHilliard2DRHS::CahnHilliard2DRHS(CHparams& chp)
 
 CahnHilliard2DRHS::~CahnHilliard2DRHS() { };
 
-void CahnHilliard2DRHS::rhs_scalar_parameters(const state_type &c, state_type &dcdt, const double t)
+void CahnHilliard2DRHS::rhs_scalar_parameters(const std::vector<double> &c, std::vector<double> &dcdt, const double t)
   {
     dcdt.resize(chp_.nx*chp_.nx);
 
@@ -49,7 +49,7 @@ void CahnHilliard2DRHS::rhs_scalar_parameters(const state_type &c, state_type &d
         const double c_ip1 = laplace_component(c[idx2d(i + 1, j)]);
         const double c_jm1 = laplace_component(c[idx2d(i, j - 1)]);
         const double c_jp1 = laplace_component(c[idx2d(i, j + 1)]);
-        dcdt[idx2d(i, j)]  = (chp_.D / (dx_ * dx_)) * (c_im1 + c_ip1 + c_jm1 + c_jp1 - 4.0 * c_i);
+        dcdt[idx2d(i, j)]  = (chp_.D / (chp_.dx * chp_.dx)) * (c_im1 + c_ip1 + c_jm1 + c_jp1 - 4.0 * c_i);
       }
     }
 
@@ -72,15 +72,15 @@ void CahnHilliard2DRHS::rhs_scalar_parameters(const state_type &c, state_type &d
         const double c_br  = c[idx2d(i+1 , j+1)];
 
         // x-direction u_xxxx
-        dcdt[idx2d(i,j)] -= chp_.D * chp_.gamma /(dx_*dx_*dx_*dx_) * 
+        dcdt[idx2d(i,j)] -= chp_.D * chp_.gamma /(chp_.dx*chp_.dx*chp_.dx*chp_.dx) * 
           (c_ip2 - 4.0*c_ip1 + 6.0*c_i - 4.0*c_im1 + c_im2);
 
         // y-direction u_yyyy
-        dcdt[idx2d(i,j)] -= chp_.D * chp_.gamma /(dx_*dx_*dx_*dx_) * 
+        dcdt[idx2d(i,j)] -= chp_.D * chp_.gamma /(chp_.dx*chp_.dx*chp_.dx*chp_.dx) * 
           (c_jp2 - 4.0*c_jp1 + 6.0*c_i - 4.0*c_jm1 + c_jm2);
 
         // mixed term 2*u_xxyy
-        dcdt[idx2d(i,j)] -= chp_.D * chp_.gamma /(dx_*dx_*dx_*dx_) * 
+        dcdt[idx2d(i,j)] -= chp_.D * chp_.gamma /(chp_.dx*chp_.dx*chp_.dx*chp_.dx) * 
           2 * (4*c_i - 2*(c_im1 + c_ip1 + c_jm1 + c_jp1) + c_ul + c_ur + c_bl + c_br );
       }
     }
@@ -96,7 +96,7 @@ void CahnHilliard2DRHS::rhs_scalar_parameters(const state_type &c, state_type &d
     
   }
 
-void CahnHilliard2DRHS::rhs_field_parameters(const state_type &c, state_type &dcdt, const double t)
+void CahnHilliard2DRHS::rhs_field_parameters(const std::vector<double> &c, std::vector<double> &dcdt, const double t)
   {
     dcdt.resize(chp_.nx*chp_.nx);
 
@@ -111,7 +111,7 @@ void CahnHilliard2DRHS::rhs_field_parameters(const state_type &c, state_type &dc
         const double c_ip1 = laplace_component_field(c , i + 1 , j);
         const double c_jm1 = laplace_component_field(c , i     , j - 1);
         const double c_jp1 = laplace_component_field(c , i     , j + 1);
-        dcdt[idx2d(i, j)]  = (chp_.D_xy[idx2d(i, j)] / (dx_ * dx_)) * (c_im1 + c_ip1 + c_jm1 + c_jp1 - 4.0 * c_i);
+        dcdt[idx2d(i, j)]  = (chp_.D_xy[idx2d(i, j)] / (chp_.dx * chp_.dx)) * (c_im1 + c_ip1 + c_jm1 + c_jp1 - 4.0 * c_i);
       }
     }
 
@@ -134,15 +134,15 @@ void CahnHilliard2DRHS::rhs_field_parameters(const state_type &c, state_type &dc
         const double c_br  = c[idx2d(i+1 , j+1)];
 
         // x-direction u_xxxx
-        dcdt[idx2d(i,j)] -= chp_.D_xy[idx2d(i, j)] * chp_.gamma_xy[idx2d(i, j)] /(dx_*dx_*dx_*dx_) * 
+        dcdt[idx2d(i,j)] -= chp_.D_xy[idx2d(i, j)] * chp_.gamma_xy[idx2d(i, j)] /(chp_.dx*chp_.dx*chp_.dx*chp_.dx) * 
           (c_ip2 - 4.0*c_ip1 + 6.0*c_i - 4.0*c_im1 + c_im2);
 
         // y-direction u_yyyy
-        dcdt[idx2d(i,j)] -= chp_.D_xy[idx2d(i, j)] * chp_.gamma_xy[idx2d(i, j)] /(dx_*dx_*dx_*dx_) * 
+        dcdt[idx2d(i,j)] -= chp_.D_xy[idx2d(i, j)] * chp_.gamma_xy[idx2d(i, j)] /(chp_.dx*chp_.dx*chp_.dx*chp_.dx) * 
           (c_jp2 - 4.0*c_jp1 + 6.0*c_i - 4.0*c_jm1 + c_jm2);
 
         // mixed term 2*u_xxyy
-        dcdt[idx2d(i,j)] -= chp_.D_xy[idx2d(i, j)] * chp_.gamma_xy[idx2d(i, j)] /(dx_*dx_*dx_*dx_) * 
+        dcdt[idx2d(i,j)] -= chp_.D_xy[idx2d(i, j)] * chp_.gamma_xy[idx2d(i, j)] /(chp_.dx*chp_.dx*chp_.dx*chp_.dx) * 
           2 * (4*c_i - 2*(c_im1 + c_ip1 + c_jm1 + c_jp1) + c_ul + c_ur + c_bl + c_br );
       }
     }
@@ -158,15 +158,15 @@ void CahnHilliard2DRHS::rhs_field_parameters(const state_type &c, state_type &dc
     
   }
 
-void CahnHilliard2DRHS::operator()(const state_type &c, state_type &dcdt, const double t)
+void CahnHilliard2DRHS::operator()(const std::vector<double> &c, std::vector<double> &dcdt, const double t)
 {
-  if (param_type_ == 0)
+  if (chp_.param_type == 0)
     rhs_scalar_parameters(c,dcdt,t);
   else
     rhs_field_parameters(c,dcdt,t);
 }
 
-void CahnHilliard2DRHS::setInitialConditions(state_type &x)
+void CahnHilliard2DRHS::setInitialConditions(std::vector<double> &x)
   {
     x.resize(chp_.nx * chp_.nx);
 
@@ -183,9 +183,9 @@ void CahnHilliard2DRHS::setInitialConditions(state_type &x)
     }
   }
 
-double CahnHilliard2DRHS::l2residual(const state_type&c)
+double CahnHilliard2DRHS::l2residual(const std::vector<double>&c)
   {
-    state_type dcdt;
+    std::vector<double> dcdt;
     (*this)(c, dcdt, 0);
     double res = 0;
     for (int i = 0; i < chp_.nx*chp_.nx; ++i){
@@ -199,7 +199,7 @@ double CahnHilliard2DRHS::laplace_component(double c)
     return chp_.D * chp_.u * (c * c * c) - chp_.D * chp_.b * c;
   }
 
-double CahnHilliard2DRHS::laplace_component_field(const state_type& c, int i, int j)
+double CahnHilliard2DRHS::laplace_component_field(const std::vector<double>& c, int i, int j)
   {
     return chp_.D_xy[idx2d(i, j)] * chp_.u_xy[idx2d(i, j)] *
       (c[idx2d(i, j)] * c[idx2d(i, j)] * c[idx2d(i, j)]) -
@@ -233,7 +233,7 @@ struct Recorder
   Recorder( std::ofstream& out , int nx )
     : out( out ) , nx( nx ) { }
 
-  void operator()( const state_type &x , const double t )
+  void operator()( const std::vector<double> &x , const double t )
   {
     for (int i = 0; i < nx; ++i){
       for (int j = 0; j < nx; ++j){
@@ -246,7 +246,7 @@ struct Recorder
 };
 
 
-void write_state(const state_type &x , const int idx , const int nx )
+void write_state(const std::vector<double> &x , const int idx , const int nx )
 {
   std::ofstream out;
   out.open( "C_" + std::to_string(idx) + ".out" );
@@ -265,11 +265,11 @@ void run_ch_solver_checkpointing(CHparams& chparams)
 {
   CahnHilliard2DRHS rhs(chparams);
 
-  state_type x;
+  std::vector<double> x;
   rhs.setInitialConditions(x);
 
   // define adaptive stepper
-  typedef boost::numeric::odeint::runge_kutta_cash_karp54<state_type> error_stepper_type;
+  typedef boost::numeric::odeint::runge_kutta_cash_karp54<std::vector<double>> error_stepper_type;
 
   // define runge kutta
   typedef boost::numeric::odeint::controlled_runge_kutta<error_stepper_type> controlled_stepper_type;
@@ -277,7 +277,7 @@ void run_ch_solver_checkpointing(CHparams& chparams)
   controlled_stepper_type controlled_stepper;
 
   double time                  = 0.0;
-  const double stability_limit = 0.5*chparams.dx*chparams.dx*chparams.dx*chparams.dx/chparams.m/chparams.gam; // just an estimate
+  const double stability_limit = 0.5*chparams.dx*chparams.dx*chparams.dx*chparams.dx/chparams.D/chparams.gamma; // just an estimate
   double dt_initial            = stability_limit * 0.5;
   
   const double res0            = rhs.l2residual(x);
@@ -299,7 +299,7 @@ void run_ch_solver(CHparams& chparams)
 {
   CahnHilliard2DRHS rhs(chparams);
 
-  state_type x;
+  std::vector<double> x;
   if (chparams.t0 == 0) {
     rhs.setInitialConditions(x);
     int iter = 0;
@@ -310,14 +310,14 @@ void run_ch_solver(CHparams& chparams)
   }
 
   // define adaptive stepper
-  typedef boost::numeric::odeint::runge_kutta_cash_karp54<state_type> error_stepper_type;
+  typedef boost::numeric::odeint::runge_kutta_cash_karp54<std::vector<double>> error_stepper_type;
 
   // define runge kutta
   typedef boost::numeric::odeint::controlled_runge_kutta<error_stepper_type> controlled_stepper_type;
 
   controlled_stepper_type controlled_stepper;
 
-  const double stability_limit = 0.5*chparams.dx*chparams.dx*chparams.dx*chparams.dx/chparams.m/chparams.gam; // just an estimate
+  const double stability_limit = 0.5*chparams.dx*chparams.dx*chparams.dx*chparams.dx/chparams.D/chparams.gamma; // just an estimate
   double dt_initial            = stability_limit * 0.5;
   double dt_check_residual     = dt_initial * 10.0;
   

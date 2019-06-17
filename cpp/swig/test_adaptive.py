@@ -11,11 +11,11 @@ chparams.t0       = 0.0;
 chparams.nx       = 128;
 chparams.dx       = 1./chparams.nx;
 
-chparams.m        = 1.0
-chparams.gam      = gam0
-chparams.b        = chparams.gam / chparams.dx**2
-chparams.u        = chparams.gam / chparams.dx**2
-chparams.alpha    = chparams.gam * chparams.m / chparams.dx**4 / 200.
+chparams.D        = 1.0
+chparams.gamma    = gam0
+chparams.b        = chparams.gamma / chparams.dx**2
+chparams.u        = chparams.gamma / chparams.dx**2
+chparams.alpha    = chparams.gamma * chparams.D / chparams.dx**4 / 200.
 chparams.phi_star = 0.0;
 chparams.sigma    = 0.0;
 
@@ -26,8 +26,8 @@ phi_xy[nx//2-20:nx//2-20+41 , nx//2-64:nx//2+63] = misc.imread('../../data/field
 phi_xy = np.flipud(phi_xy)
 #phi_xy[nx//4:3*nx//4 , nx//4:3*nx//4] = -1
 
-chparams.m_xy        = ch.DoubleVector(chparams.m      * np.ones(nx**2))
-chparams.gam_xy      = ch.DoubleVector(chparams.gam    * np.ones(nx**2))
+chparams.D_xy        = ch.DoubleVector(chparams.D      * np.ones(nx**2))
+chparams.gamma_xy    = ch.DoubleVector(chparams.gamma  * np.ones(nx**2))
 chparams.b_xy        = ch.DoubleVector(chparams.b      * np.ones(nx**2))
 chparams.u_xy        = ch.DoubleVector(chparams.u      * np.ones(nx**2))
 chparams.alpha_xy    = ch.DoubleVector(chparams.alpha  * np.ones(nx**2))
@@ -35,8 +35,8 @@ chparams.phi_star_xy = ch.DoubleVector(phi_xy.ravel())
 chparams.sigma_xy    = ch.DoubleVector(chparams.sigma  * np.ones(nx**2))
 
 
-biharm_dt         = (chparams.dx**4) / np.max(chparams.m_xy) / np.max(chparams.gam_xy)
-diff_dt           = (chparams.dx**2) / np.max(chparams.m_xy) / np.max( [np.max(chparams.u_xy) , np.max(chparams.b_xy)] )
+biharm_dt         = (chparams.dx**4) / np.max(chparams.D_xy) / np.max(chparams.gamma_xy)
+diff_dt           = (chparams.dx**2) / np.max(chparams.D_xy) / np.max( [np.max(chparams.u_xy) , np.max(chparams.b_xy)] )
 lin_dt            = 1.0 / np.max(chparams.alpha_xy)
 n_tsteps          = 10
 t                 = np.linspace(0,300*biharm_dt,n_tsteps+1)
