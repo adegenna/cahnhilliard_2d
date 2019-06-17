@@ -21,42 +21,70 @@
   */
 
 
-CahnHilliard2DRHS::CahnHilliard2DRHS(CHparams& chp)
-  : noise_dist_(0.0,1.0) , chp_(chp)
+CahnHilliard2DRHS::CahnHilliard2DRHS(CHparamsScalar& chp , SimInfo& info)
+  : noise_dist_(0.0,1.0) , chpS_(chp) , info_(info)
   {
-    std::cout << "Initialized Cahn-Hilliard equation with ";
-    if (chp_.param_type == 0)
-      std::cout << "scalar parameters" << std::endl;
-    else
-      std::cout << "spatial-field parameters" << std::endl;
- 
+    std::cout << "Initialized Cahn-Hilliard equation with scalar parameters" << std::endl;
   }
 
-CahnHilliard2DRHS::~CahnHilliard2DRHS() { };
-
-void CahnHilliard2DRHS::rhs_scalar_parameters(const std::vector<double> &c, std::vector<double> &dcdt, const double t)
+CahnHilliard2DRHS::CahnHilliard2DRHS(CHparamsVector& chp , SimInfo& info)
+  : noise_dist_(0.0,1.0) , chpV_(chp) , info_(info)
   {
-    dcdt.resize(chp_.nx*chp_.nx);
+    std::cout << "Initialized Cahn-Hilliard equation with spatial-field parameters" << std::endl;
+  }
+
+void CahnHilliard2DRHS_Scalar::get_ij_values(int i , int j , CHparamsScalar& ch_ij) {
+  ch_ij.D        = chpS_.D;
+  ch_ij.gamma    = chpS_.gamma;
+  ch_ij.b        = chpS_.b;
+  ch_ij.u        = chpS_.u;
+  ch_ij.alpha    = chpS_.alpha;
+  ch_ij.phi_star = chpS_.phi_star;
+  ch_ij.sigma    = chpS_.sigma;
+  
+};
+
+
+void CahnHilliard2DRHS_Vector::get_ij_values(int i , int j , CHparamsScalar& ch_ij) {
+  ch_ij.D        = chpV_.D[idx2d(i, j)];
+  ch_ij.gamma    = chpV_.gamma[idx2d(i, j)];
+  ch_ij.b        = chpV_.b[idx2d(i, j)];
+  ch_ij.u        = chpV_.u[idx2d(i, j)];
+  ch_ij.alpha    = chpV_.alpha[idx2d(i, j)];
+  ch_ij.phi_star = chpV_.phi_star[idx2d(i, j)];
+  ch_ij.sigma    = chpV_.sigma;
+  
+};
+
+
+void CahnHilliard2DRHS::rhs(const std::vector<double> &c, std::vector<double> &dcdt, const double t)
+  {
+    dcdt.resize(info_.nx*info_.nx);
 
     // evaluate the second order term, 5 point central stencil
     # pragma omp parallel for
-    for (int i = 0; i < chp_.nx; ++i)
+    for (int i = 0; i < info_.nx; ++i)
     {
-      for (int j = 0; j < chp_.nx; ++j)
+      for (int j = 0; j < info_.nx; ++j)
       {
-        const double c_i   = laplace_component(c[idx2d(i, j)]);
-        const double c_im1 = laplace_component(c[idx2d(i - 1, j)]);
-        const double c_ip1 = laplace_component(c[idx2d(i + 1, j)]);
-        const double c_jm1 = laplace_component(c[idx2d(i, j - 1)]);
-        const double c_jp1 = laplace_component(c[idx2d(i, j + 1)]);
-        dcdt[idx2d(i, j)]  = (chp_.D / (chp_.dx * chp_.dx)) * (c_im1 + c_ip1 + c_jm1 + c_jp1 - 4.0 * c_i);
+        get_ij_values(i,j,ch_ij_);
+        
+        const double c_i   = laplace_component(c[idx2d(i, j)]     , ch_ij_.D , ch_ij_.u , ch_ij_.b);
+        const double c_im1 = laplace_component(c[idx2d(i - 1, j)] , ch_ij_.D , ch_ij_.u , ch_ij_.b);
+        const double c_ip1 = laplace_component(c[idx2d(i + 1, j)] , ch_ij_.D , ch_ij_.u , ch_ij_.b);
+        const double c_jm1 = laplace_component(c[idx2d(i, j - 1)] , ch_ij_.D , ch_ij_.u , ch_ij_.b);
+        const double c_jp1 = laplace_component(c[idx2d(i, j + 1)] , ch_ij_.D , ch_ij_.u , ch_ij_.b);
+        
+        dcdt[idx2d(i, j)]  = (ch_ij_.D / (info_.dx * info_.dx)) * (c_im1 + c_ip1 + c_jm1 + c_jp1 - 4.0 * c_i);
       }
     }
 
     // evaluate the 4th order term, 9 point central stencil
     # pragma omp parallel for
-    for (int i = 0; i < chp_.nx; ++i){
-      for (int j = 0; j < chp_.nx; ++j){
+    for (int i = 0; i < info_.nx; ++i){
+      for (int j = 0; j < info_.nx; ++j){
+        get_ij_values(i,j,ch_ij_);
+        
         const double c_i   = c[idx2d(i, j)];
         const double c_im1 = c[idx2d(i - 1, j)];
         const double c_ip1 = c[idx2d(i + 1, j)];
@@ -72,111 +100,50 @@ void CahnHilliard2DRHS::rhs_scalar_parameters(const std::vector<double> &c, std:
         const double c_br  = c[idx2d(i+1 , j+1)];
 
         // x-direction u_xxxx
-        dcdt[idx2d(i,j)] -= chp_.D * chp_.gamma /(chp_.dx*chp_.dx*chp_.dx*chp_.dx) * 
+        dcdt[idx2d(i,j)] -= ch_ij_.D * ch_ij_.gamma /(info_.dx*info_.dx*info_.dx*info_.dx) * 
           (c_ip2 - 4.0*c_ip1 + 6.0*c_i - 4.0*c_im1 + c_im2);
 
         // y-direction u_yyyy
-        dcdt[idx2d(i,j)] -= chp_.D * chp_.gamma /(chp_.dx*chp_.dx*chp_.dx*chp_.dx) * 
+        dcdt[idx2d(i,j)] -= ch_ij_.D * ch_ij_.gamma /(info_.dx*info_.dx*info_.dx*info_.dx) * 
           (c_jp2 - 4.0*c_jp1 + 6.0*c_i - 4.0*c_jm1 + c_jm2);
 
         // mixed term 2*u_xxyy
-        dcdt[idx2d(i,j)] -= chp_.D * chp_.gamma /(chp_.dx*chp_.dx*chp_.dx*chp_.dx) * 
+        dcdt[idx2d(i,j)] -= ch_ij_.D * ch_ij_.gamma /(info_.dx*info_.dx*info_.dx*info_.dx) * 
           2 * (4*c_i - 2*(c_im1 + c_ip1 + c_jm1 + c_jp1) + c_ul + c_ur + c_bl + c_br );
       }
     }
 
     // evaluate linear term
     # pragma omp parallel for
-    for (int i = 0; i < chp_.nx; ++i){
-      for (int j = 0; j < chp_.nx; ++j){
+    for (int i = 0; i < info_.nx; ++i){
+      for (int j = 0; j < info_.nx; ++j){
+        get_ij_values(i,j,ch_ij_);
+        
         const double c_i   = c[idx2d(i, j)];
-        dcdt[idx2d(i,j)]  -= chp_.alpha * ( c_i - chp_.phi_star );
+        
+        dcdt[idx2d(i,j)]  -= ch_ij_.alpha * ( c_i - ch_ij_.phi_star );
       }
     }
     
   }
 
-void CahnHilliard2DRHS::rhs_field_parameters(const std::vector<double> &c, std::vector<double> &dcdt, const double t)
-  {
-    dcdt.resize(chp_.nx*chp_.nx);
-
-    // evaluate the second order term, 5 point central stencil
-    # pragma omp parallel for
-    for (int i = 0; i < chp_.nx; ++i)
-    {
-      for (int j = 0; j < chp_.nx; ++j)
-      {
-        const double c_i   = laplace_component_field(c , i     , j);
-        const double c_im1 = laplace_component_field(c , i - 1 , j);
-        const double c_ip1 = laplace_component_field(c , i + 1 , j);
-        const double c_jm1 = laplace_component_field(c , i     , j - 1);
-        const double c_jp1 = laplace_component_field(c , i     , j + 1);
-        dcdt[idx2d(i, j)]  = (chp_.D_xy[idx2d(i, j)] / (chp_.dx * chp_.dx)) * (c_im1 + c_ip1 + c_jm1 + c_jp1 - 4.0 * c_i);
-      }
-    }
-
-    // evaluate the 4th order term, 9 point central stencil
-    # pragma omp parallel for
-    for (int i = 0; i < chp_.nx; ++i){
-      for (int j = 0; j < chp_.nx; ++j){
-        const double c_i   = c[idx2d(i, j)];
-        const double c_im1 = c[idx2d(i - 1, j)];
-        const double c_ip1 = c[idx2d(i + 1, j)];
-        const double c_im2 = c[idx2d(i - 2, j)];
-        const double c_ip2 = c[idx2d(i + 2, j)];
-        const double c_jm1 = c[idx2d(i, j - 1)];
-        const double c_jp1 = c[idx2d(i, j + 1)];
-        const double c_jm2 = c[idx2d(i, j - 2)];
-        const double c_jp2 = c[idx2d(i, j + 2)];
-        const double c_ul  = c[idx2d(i-1 , j-1)];
-        const double c_ur  = c[idx2d(i-1 , j+1)];
-        const double c_bl  = c[idx2d(i+1 , j-1)];
-        const double c_br  = c[idx2d(i+1 , j+1)];
-
-        // x-direction u_xxxx
-        dcdt[idx2d(i,j)] -= chp_.D_xy[idx2d(i, j)] * chp_.gamma_xy[idx2d(i, j)] /(chp_.dx*chp_.dx*chp_.dx*chp_.dx) * 
-          (c_ip2 - 4.0*c_ip1 + 6.0*c_i - 4.0*c_im1 + c_im2);
-
-        // y-direction u_yyyy
-        dcdt[idx2d(i,j)] -= chp_.D_xy[idx2d(i, j)] * chp_.gamma_xy[idx2d(i, j)] /(chp_.dx*chp_.dx*chp_.dx*chp_.dx) * 
-          (c_jp2 - 4.0*c_jp1 + 6.0*c_i - 4.0*c_jm1 + c_jm2);
-
-        // mixed term 2*u_xxyy
-        dcdt[idx2d(i,j)] -= chp_.D_xy[idx2d(i, j)] * chp_.gamma_xy[idx2d(i, j)] /(chp_.dx*chp_.dx*chp_.dx*chp_.dx) * 
-          2 * (4*c_i - 2*(c_im1 + c_ip1 + c_jm1 + c_jp1) + c_ul + c_ur + c_bl + c_br );
-      }
-    }
-
-    // evaluate linear term
-    # pragma omp parallel for
-    for (int i = 0; i < chp_.nx; ++i){
-      for (int j = 0; j < chp_.nx; ++j){
-        const double c_i   = c[idx2d(i, j)];
-        dcdt[idx2d(i,j)]  -= chp_.alpha_xy[idx2d(i, j)] * ( c_i - chp_.phi_star_xy[idx2d(i, j)] );
-      }
-    }
-    
-  }
 
 void CahnHilliard2DRHS::operator()(const std::vector<double> &c, std::vector<double> &dcdt, const double t)
 {
-  if (chp_.param_type == 0)
-    rhs_scalar_parameters(c,dcdt,t);
-  else
-    rhs_field_parameters(c,dcdt,t);
+  rhs(c,dcdt,t);
 }
 
 void CahnHilliard2DRHS::setInitialConditions(std::vector<double> &x)
   {
-    x.resize(chp_.nx * chp_.nx);
+    x.resize(info_.nx * info_.nx);
 
     std::default_random_engine generator;
     std::uniform_real_distribution<double> distribution(-1.0,1.0);
 
     // double initial_value = -1.0;
-    for (int i = 0; i < chp_.nx; ++i)
+    for (int i = 0; i < info_.nx; ++i)
     {
-      for (int j = 0; j < chp_.nx; ++j)
+      for (int j = 0; j < info_.nx; ++j)
       {
         x[idx2d(i,j)] = distribution(generator) * 0.005;
       }
@@ -188,27 +155,20 @@ double CahnHilliard2DRHS::l2residual(const std::vector<double>&c)
     std::vector<double> dcdt;
     (*this)(c, dcdt, 0);
     double res = 0;
-    for (int i = 0; i < chp_.nx*chp_.nx; ++i){
+    for (int i = 0; i < info_.nx*info_.nx; ++i){
       res += dcdt[i] * dcdt[i];
     }
     return sqrt(res);
   }
 
-double CahnHilliard2DRHS::laplace_component(double c)
+double CahnHilliard2DRHS::laplace_component(double c , double D , double u , double b)
   {
-    return chp_.D * chp_.u * (c * c * c) - chp_.D * chp_.b * c;
-  }
-
-double CahnHilliard2DRHS::laplace_component_field(const std::vector<double>& c, int i, int j)
-  {
-    return chp_.D_xy[idx2d(i, j)] * chp_.u_xy[idx2d(i, j)] *
-      (c[idx2d(i, j)] * c[idx2d(i, j)] * c[idx2d(i, j)]) -
-      chp_.D_xy[idx2d(i, j)] * chp_.b_xy[idx2d(i, j)] * c[idx2d(i, j)];
+    return D * u * (c * c * c) - D * b * c;
   }
 
 int CahnHilliard2DRHS::idx2d_impl(int i, int j)
   {
-    return i * chp_.nx + j;
+    return i * info_.nx + j;
   }
   
   // regular modulo operator gives negative values without this
@@ -219,8 +179,8 @@ int CahnHilliard2DRHS::idx2d(int i, int j)
   {
     // modify the indices to map to a periodic mesh. need two levels for the 4th order operator.
     // i coordinates:
-    i = mod(i, chp_.nx);
-    j = mod(j, chp_.nx);
+    i = mod(i, info_.nx);
+    j = mod(j, info_.nx);
 
     return idx2d_impl(i, j);
   }
@@ -261,52 +221,53 @@ void write_state(const std::vector<double> &x , const int idx , const int nx )
   out.close();
 };
 
-void run_ch_solver_checkpointing(CHparams& chparams)
-{
-  CahnHilliard2DRHS rhs(chparams);
+// void run_ch_solver_checkpointing(CHparams& chparams , SimInfo& info)
+// {
+//   CahnHilliard2DRHS rhs(chparams);
 
-  std::vector<double> x;
-  rhs.setInitialConditions(x);
+//   std::vector<double> x;
+//   rhs.setInitialConditions(x);
 
-  // define adaptive stepper
-  typedef boost::numeric::odeint::runge_kutta_cash_karp54<std::vector<double>> error_stepper_type;
+//   // define adaptive stepper
+//   typedef boost::numeric::odeint::runge_kutta_cash_karp54<std::vector<double>> error_stepper_type;
 
-  // define runge kutta
-  typedef boost::numeric::odeint::controlled_runge_kutta<error_stepper_type> controlled_stepper_type;
+//   // define runge kutta
+//   typedef boost::numeric::odeint::controlled_runge_kutta<error_stepper_type> controlled_stepper_type;
 
-  controlled_stepper_type controlled_stepper;
+//   controlled_stepper_type controlled_stepper;
 
-  double time                  = 0.0;
-  const double stability_limit = 0.5*chparams.dx*chparams.dx*chparams.dx*chparams.dx/chparams.D/chparams.gamma; // just an estimate
-  double dt_initial            = stability_limit * 0.5;
+//   double time                  = 0.0;
+//   const double stability_limit = 0.5*info.dx*info.dx*info.dx*info.dx/chparams.D/chparams.gamma; // just an estimate
+//   double dt_initial            = stability_limit * 0.5;
   
-  const double res0            = rhs.l2residual(x);
+//   const double res0            = rhs.l2residual(x);
 
-  std::cout << "residual at initial condition: " << res0 << std::endl;
-  write_state(x,0,chparams.nx);
+//   std::cout << "residual at initial condition: " << res0 << std::endl;
+//   write_state(x,0,chparams.nx);
 
-  double t_steps = int( chparams.tf / chparams.dt_check );
-  for (int i = 0; i < t_steps; ++i){
-    integrate_adaptive(controlled_stepper, rhs, x, time, time + chparams.dt_check, dt_initial);
-    time += chparams.dt_check;
-    std::cout << "iter: " << i+1 << " , t = " << time << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
-    write_state(x,i+1,chparams.nx);
-  }
+//   double t_steps = int( chparams.tf / chparams.dt_check );
+//   for (int i = 0; i < t_steps; ++i){
+//     integrate_adaptive(controlled_stepper, rhs, x, time, time + chparams.dt_check, dt_initial);
+//     time += chparams.dt_check;
+//     std::cout << "iter: " << i+1 << " , t = " << time << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
+//     write_state(x,i+1,chparams.nx);
+//   }
 
-};
+// };
 
-void run_ch_solver(CHparams& chparams)
+template<typename T>
+void run_ch_solver(T& chparams , SimInfo& info)
 {
-  CahnHilliard2DRHS rhs(chparams);
+  CahnHilliard2DRHS rhs(chparams , info);
 
   std::vector<double> x;
-  if (chparams.t0 == 0) {
+  if (info.t0 == 0) {
     rhs.setInitialConditions(x);
     int iter = 0;
   }
   else {
-    x        = chparams.x;
-    int iter = chparams.iter;
+    x        = info.x;
+    int iter = info.iter;
   }
 
   // define adaptive stepper
@@ -317,30 +278,30 @@ void run_ch_solver(CHparams& chparams)
 
   controlled_stepper_type controlled_stepper;
 
-  const double stability_limit = 0.5*chparams.dx*chparams.dx*chparams.dx*chparams.dx/chparams.D/chparams.gamma; // just an estimate
+  const double stability_limit = chparams.compute_stability_limit(info.dx); // just an estimate
   double dt_initial            = stability_limit * 0.5;
   double dt_check_residual     = dt_initial * 10.0;
   
   const double res0            = rhs.l2residual(x);
 
   std::cout << "residual at initial condition: " << res0 << std::endl;
-  if (chparams.iter == 0)
-    write_state(x,0,chparams.nx);
+  if (info.iter == 0)
+    write_state(x,0,info.nx);
 
   if (chparams.sigma < 1e-2) {
     std::cout << "Solving deterministic (noise-free) CH" << std::endl;
-    integrate_adaptive(controlled_stepper, rhs, x, chparams.t0, chparams.tf, stability_limit/2.);
+    integrate_adaptive(controlled_stepper, rhs, x, info.t0, info.tf, stability_limit/2.);
   }
   else {
     std::cout << "Solving stochastic CH" << std::endl;
     boost::mt19937 rng;
     boost::numeric::odeint::integrate_const( stochastic_euler() ,
                                              std::make_pair( rhs , ornstein_stoch( rng , chparams.sigma ) ),
-                                             x , chparams.t0 , chparams.tf , stability_limit/40. );
+                                             x , info.t0 , info.tf , stability_limit/40. );
   }
-  chparams.iter += 1;
-  std::cout << "iter: " << chparams.iter << " , t = " << chparams.tf << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
-  write_state(x,chparams.iter,chparams.nx);
-  chparams.x = x;
+  info.iter += 1;
+  std::cout << "iter: " << info.iter << " , t = " << info.tf << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
+  write_state(x,info.iter,info.nx);
+  info.x = x;
 
 };
