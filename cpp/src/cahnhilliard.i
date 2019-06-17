@@ -15,4 +15,5 @@
  namespace std {
   %template(DoubleVector) vector<double>;
  };
+ %template(CahnHilliard2DRHS_Scalar) CahnHilliard2DRHS_Scalar; 
  %include "cahnhilliard.h"
