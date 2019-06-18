@@ -8,6 +8,7 @@
  #include <omp.h>
  #include <boost/numeric/odeint.hpp>
  #include "cahnhilliard.h"
+ #include "run_ch_solver.hpp"
  %}
 
  %include <std_vector.i>
@@ -15,5 +16,7 @@
  namespace std {
   %template(DoubleVector) vector<double>;
  };
- %template(CahnHilliard2DRHS_Scalar) CahnHilliard2DRHS_Scalar; 
+   
  %include "cahnhilliard.h"
+ %include "run_ch_solver.hpp"
+ %template(run_vector) run_ch_solver<CHparamsVector>; 

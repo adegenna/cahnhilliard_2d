@@ -7,8 +7,8 @@ def dct2d(x,inverse=False):
     temp = dct(x,type=t,norm='ortho').transpose()
     return dct(temp,type=t,norm='ortho').transpose()
 
-statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/C_'
-#statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/swig/C_'
+#statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/C_'
+statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/swig/C_'
 N           = 128
 M           = N
 Tfinal      = 10

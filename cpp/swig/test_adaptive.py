@@ -10,7 +10,7 @@ info              = ch.SimInfo();
 
 info.t0       = 0.0;
 info.nx       = 128;
-info.dx       = 1./chparams.nx;
+info.dx       = 1./info.nx;
 
 D        = 1.0
 gamma    = gam0
@@ -18,7 +18,7 @@ b        = gamma / info.dx**2
 u        = gamma / info.dx**2
 alpha    = gamma * D / info.dx**4 / 200.
 phi_star = 0.0;
-sigma    = 0.0;
+sigma    = 0.1;
 
 nx     = int(info.nx)
 xx,yy  = np.meshgrid( np.ones(nx), np.ones(nx) )
@@ -53,5 +53,5 @@ for i in range(n_tsteps):
     chparams.t0        = t[i]
     chparams.tf        = t[i+1]
     print( 't0 = ', t[i]/biharm_dt, ' dt_biharm , tf = ', t[i+1]/biharm_dt, ' dt_biharm')
-    rhs_scalar = ch.CahnHilliard2DRHS_Scalar(chparams,info)
-    ch.run_ch_solver(chparams,info,rhs_scalar);
+    rhs    = ch.CahnHilliard2DRHS_Vector(chparams,info)
+    ch.run_vector(chparams,info,rhs);
