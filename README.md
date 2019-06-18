@@ -16,6 +16,6 @@ First, edit the filepaths in the visualization/plotContourState.py script to ref
 python plotContourState.py
 
 # Example Output
-Here are some example state snapshots from a simulation run with epsilon = 0.1, dt = 5e-5
+Here are some example state snapshots from 4 different simulations. The first three show the effect of increasing the biharmonic coefficient. The last snapshot is taken from the same system as that which produced the second snapshot, but with more noise added to the dynamics.
 
 <img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/ch2d.png">
