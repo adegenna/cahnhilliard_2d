@@ -38,12 +38,10 @@ public:
         system.first( x , det , t );
         system.second( x , stoch );
         for( size_t i=0 ; i<x.size() ; ++i )
-            x[i] += dt * det[i] + sqrt( dt ) * stoch[i];
+          x[i] += dt * det[i] + sqrt( dt ) * stoch[i];
     }
 };
 //]
-
-
 
 //[ stochastic_euler_ornstein_uhlenbeck_def
 //const static size_t N = 1;;

@@ -14,18 +14,19 @@ int main()
   SimInfo info;
   
   // *********  Inputs  ***********
+  info.nx             = 256;
+  info.dx             = 2./info.nx;
+  info.t0             = 0.0;
+
   chparams.D        = 1.0;
   chparams.gamma    = pow( 0.01 ,2 );
-  chparams.b        = 1.0;
-  chparams.u        = 1.0;
-  chparams.alpha    = 100.0;
+  chparams.b        = chparams.gamma / info.dx / info.dx;
+  chparams.u        = chparams.gamma / info.dx / info.dx;
+  chparams.alpha    = chparams.gamma * chparams.D / info.dx / info.dx / info.dx / info.dx / 200.0;
   chparams.phi_star = 0.0;
-  chparams.sigma    = 0.1;
-
-  info.nx             = 128;
-  info.dx             = 1./info.nx;
-  info.t0             = 0.0;
-  int n_tsteps        = 10;
+  chparams.sigma    = 1.0;
+  
+  int n_tsteps        = 25;
   double n_dt         = 500.0;
   // ******************************
 
