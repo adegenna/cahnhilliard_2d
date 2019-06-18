@@ -3,12 +3,14 @@
 #include "cahnhilliard.h"
 
 template<typename T>
-void run_ch_solver(T& chparams , SimInfo& info , CahnHilliard2DRHS* rhs)
+void run_ch_solver(T& chparams , SimInfo& info )
 {
+
+  CahnHilliard2DRHS rhs = CahnHilliard2DRHS(chparams , info);
 
   std::vector<double> x;
   if (info.t0 == 0) {
-    rhs->setInitialConditions(x);
+    rhs.setInitialConditions(x);
     int iter = 0;
   }
   else {
@@ -28,7 +30,7 @@ void run_ch_solver(T& chparams , SimInfo& info , CahnHilliard2DRHS* rhs)
   double dt_initial            = stability_limit * 0.5;
   double dt_check_residual     = dt_initial * 10.0;
   
-  const double res0            = rhs->l2residual(x);
+  const double res0            = rhs.l2residual(x);
 
   std::cout << "residual at initial condition: " << res0 << std::endl;
   if (info.iter == 0)
@@ -36,17 +38,17 @@ void run_ch_solver(T& chparams , SimInfo& info , CahnHilliard2DRHS* rhs)
 
   if (chparams.sigma < 1e-2) {
     std::cout << "Solving deterministic (noise-free) CH" << std::endl;
-    integrate_adaptive(controlled_stepper, *rhs, x, info.t0, info.tf, stability_limit/2.);
+    integrate_adaptive(controlled_stepper, rhs, x, info.t0, info.tf, stability_limit/2.);
   }
   else {
     std::cout << "Solving stochastic CH" << std::endl;
     boost::mt19937 rng;
     boost::numeric::odeint::integrate_const( stochastic_euler() ,
-                                             std::make_pair( *rhs , ornstein_stoch( rng , chparams.sigma ) ),
+                                             std::make_pair( rhs , ornstein_stoch( rng , chparams.sigma ) ),
                                              x , info.t0 , info.tf , stability_limit/40. );
   }
   info.iter += 1;
-  std::cout << "iter: " << info.iter << " , t = " << info.tf << ", relative residual: " << rhs->l2residual(x) / res0 << std::endl;
+  std::cout << "iter: " << info.iter << " , t = " << info.tf << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
   write_state(x,info.iter,info.nx);
   info.x = x;
 

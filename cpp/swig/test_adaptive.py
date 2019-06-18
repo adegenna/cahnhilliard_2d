@@ -50,8 +50,7 @@ print( 'Linear timescale dt_lin = ' , lin_dt , ' = ' , lin_dt/biharm_dt , ' dt_b
 print( 'Sampling interval = ' , chparams.dt_check / biharm_dt , ' dt_biharm' )
 
 for i in range(n_tsteps):
-    chparams.t0        = t[i]
-    chparams.tf        = t[i+1]
+    info.t0        = t[i]
+    info.tf        = t[i+1]
     print( 't0 = ', t[i]/biharm_dt, ' dt_biharm , tf = ', t[i+1]/biharm_dt, ' dt_biharm')
-    rhs    = ch.CahnHilliard2DRHS_Vector(chparams,info)
-    ch.run_vector(chparams,info,rhs);
+    ch.run_ch_vector(chparams,info);

@@ -19,4 +19,5 @@
    
  %include "cahnhilliard.h"
  %include "run_ch_solver.hpp"
- %template(run_vector) run_ch_solver<CHparamsVector>; 
+ %template(run_ch_vector) run_ch_solver<CHparamsVector>; 
+ %template(run_ch_scalar) run_ch_solver<CHparamsScalar>;
