@@ -20,18 +20,10 @@
   */
 
 
-CahnHilliard2DRHS::CahnHilliard2DRHS(CHparamsScalar& chp , SimInfo& info)
-  : noise_dist_(0.0,1.0) , chpS_(chp) , info_(info)
+CahnHilliard2DRHS::CahnHilliard2DRHS(SimInfo& info)
+  : noise_dist_(0.0,1.0) ,info_(info)
   {
-    ch_ij_ = CHparamsScalar();
-    std::cout << "Initialized Cahn-Hilliard equation with scalar parameters" << std::endl;
-  }
-
-CahnHilliard2DRHS::CahnHilliard2DRHS(CHparamsVector& chp , SimInfo& info)
-  : noise_dist_(0.0,1.0) , chpV_(chp) , info_(info)
-  {
-    ch_ij_ = CHparamsScalar();
-    std::cout << "Initialized Cahn-Hilliard equation with spatial-field parameters" << std::endl;
+    // ch_ij_ = CHparamsScalar(); // ch_ij_ would already get default constructed to this
   }
 
 CahnHilliard2DRHS::~CahnHilliard2DRHS() { };
