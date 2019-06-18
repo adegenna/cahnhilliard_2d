@@ -19,22 +19,16 @@
   need a d^4 and a d^2 operator.
   */
 
-const std::vector<double> populate_spatial_field_with_scalar_value(int size , double value) {
-  std::vector<double> field;
-  field.assign( size , value );
-  return field;
-};
-
 CahnHilliard2DRHS::CahnHilliard2DRHS(CHparamsScalar& chp , SimInfo& info)
   : noise_dist_(0.0,1.0) , info_(info)
   {
     
-    chpV_.D        = populate_spatial_field_with_scalar_value(chp.D        , info_.nx);
-    chpV_.gamma    = populate_spatial_field_with_scalar_value(chp.gamma    , info_.nx);
-    chpV_.b        = populate_spatial_field_with_scalar_value(chp.b        , info_.nx);
-    chpV_.u        = populate_spatial_field_with_scalar_value(chp.u        , info_.nx);
-    chpV_.alpha    = populate_spatial_field_with_scalar_value(chp.alpha    , info_.nx);
-    chpV_.phi_star = populate_spatial_field_with_scalar_value(chp.phi_star , info_.nx);
+    chpV_.D        = std::vector<double>( info_.nx*info_.nx , chp.D         );
+    chpV_.gamma    = std::vector<double>( info_.nx*info_.nx , chp.gamma     );
+    chpV_.b        = std::vector<double>( info_.nx*info_.nx , chp.b         );
+    chpV_.u        = std::vector<double>( info_.nx*info_.nx , chp.u         );
+    chpV_.alpha    = std::vector<double>( info_.nx*info_.nx , chp.alpha     );
+    chpV_.phi_star = std::vector<double>( info_.nx*info_.nx , chp.phi_star  );
     chpV_.sigma    = chp.sigma;
     
     std::cout << "Initialized Cahn-Hilliard equation with scalar parameters" << std::endl;
