@@ -15,7 +15,7 @@ int main()
   
   // *********  Inputs  ***********
   info.nx             = 256;
-  info.dx             = 2./info.nx;
+  info.dx             = 1.0 / info.nx;
   info.t0             = 0.0;
 
   chparams.D        = 1.0;
@@ -23,11 +23,11 @@ int main()
   chparams.b        = chparams.gamma / info.dx / info.dx;
   chparams.u        = chparams.gamma / info.dx / info.dx;
   chparams.alpha    = chparams.gamma * chparams.D / info.dx / info.dx / info.dx / info.dx / 200.0;
-  chparams.phi_star = 0.0;
-  chparams.sigma    = 1.0;
+  chparams.phi_star = 0.5;
+  chparams.sigma    = 50.0;
   
   int n_tsteps        = 25;
-  double n_dt         = 500.0;
+  double n_dt         = 600.0;
   // ******************************
 
   double dt_biharm  = (info.dx * info.dx * info.dx * info.dx) / chparams.D / chparams.gamma;
