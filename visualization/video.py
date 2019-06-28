@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 
 t0 = 0
-tf = 25
-statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/C_'
-#statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/swig/C_'
+tf = 60
+#statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/C_'
+statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/swig/C_'
 
 nx = int(np.sqrt(np.genfromtxt(statefile + '0.out' ).shape[0]))
 
