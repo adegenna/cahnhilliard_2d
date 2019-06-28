@@ -18,23 +18,25 @@ int main()
   info.dx             = 1.0 / info.nx;
   info.t0             = 0.0;
 
-  chparams.eps_2        = pow( 0.01 ,2 );
-  chparams.b            = chparams.eps_2 / info.dx / info.dx;
-  chparams.u            = chparams.eps_2 / info.dx / info.dx;
-  chparams.sigma        = chparams.eps_2 / info.dx / info.dx / info.dx / info.dx / 200.0;
-  chparams.m            = 0.5;
-  chparams.sigma_noise  = 10.0;
+  double eps_2          = pow( 0.01 ,2 );
+  chparams.eps_2        = eps_2;
+  chparams.b            = eps_2 / info.dx / info.dx;
+  chparams.u            = eps_2 / info.dx / info.dx;
+  chparams.sigma        = eps_2 / info.dx / info.dx / info.dx / info.dx / 200.0;
+  chparams.m            = 0.0;
+  chparams.sigma_noise  = 0.0;
   
   int n_tsteps        = 25;
   double n_dt         = 300.0;
   // ******************************
 
   double dt_biharm  = (info.dx * info.dx * info.dx * info.dx) / chparams.eps_2;
+  double dt_diff    = info.dx * info.dx / chparams.u;
+  double dt_lin     = 1.0 / chparams.sigma;
+
   double tf         = n_dt * dt_biharm;
   info.dt_check     = tf / n_tsteps;
 
-  double dt_diff    = info.dx * info.dx / chparams.u;
-  double dt_lin     = 1.0 / chparams.sigma;
 
   std::cout << "Biharmonic timescale dt_biharm = " << dt_biharm << std::endl;
   std::cout << "Diffusion timescale dt_diff = " << dt_diff/dt_biharm << " dt_biharm" << std::endl;
