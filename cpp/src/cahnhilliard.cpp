@@ -10,26 +10,24 @@
   /*
   Cahn-Hilliard:
   
-  dc/dt = D*laplacian( u*c^3 - b*c) - D*gamma*biharm(c)
+  dc/dt = laplacian( u*c^3 - b*c ) - eps_2*biharm(c) - sigma*(c - m) + sigma_noise * N(0,1^2)
   
   expanding out RHS into individual differentials:
-  D*laplacian( u*c^3 - b*c) - D*gamma*biharm(c)
-  assuming constant gamma.
+  D*laplacian( u*c^3 - b*c) - D*eps_2*biharm(c)
+  assuming constant eps_2.
 
   need a d^4 and a d^2 operator.
   */
 
 CahnHilliard2DRHS::CahnHilliard2DRHS(CHparamsScalar& chp , SimInfo& info)
   : noise_dist_(0.0,1.0) , info_(info)
-  {
-    
-    chpV_.D        = std::vector<double>( info_.nx*info_.nx , chp.D         );
-    chpV_.gamma    = std::vector<double>( info_.nx*info_.nx , chp.gamma     );
+  {    
+    chpV_.eps_2    = std::vector<double>( info_.nx*info_.nx , chp.eps_2     );
     chpV_.b        = std::vector<double>( info_.nx*info_.nx , chp.b         );
     chpV_.u        = std::vector<double>( info_.nx*info_.nx , chp.u         );
-    chpV_.alpha    = std::vector<double>( info_.nx*info_.nx , chp.alpha     );
-    chpV_.phi_star = std::vector<double>( info_.nx*info_.nx , chp.phi_star  );
-    chpV_.sigma    = chp.sigma;
+    chpV_.sigma    = std::vector<double>( info_.nx*info_.nx , chp.sigma     );
+    chpV_.m = std::vector<double>( info_.nx*info_.nx , chp.m  );
+    chpV_.sigma_noise    = chp.sigma_noise;
     
     std::cout << "Initialized Cahn-Hilliard equation with scalar parameters" << std::endl;
   }
@@ -51,13 +49,13 @@ void CahnHilliard2DRHS::rhs(const std::vector<double> &c, std::vector<double> &d
     for (int i = 0; i < info_.nx; ++i) {
       for (int j = 0; j < info_.nx; ++j) {
         
-        const double c_i   = laplace_component( idx2d(i, j)      , c , chpV_.D , chpV_.u , chpV_.b );
-        const double c_im1 = laplace_component( idx2d(i - 1, j)  , c , chpV_.D , chpV_.u , chpV_.b );
-        const double c_ip1 = laplace_component( idx2d(i + 1, j)  , c , chpV_.D , chpV_.u , chpV_.b );
-        const double c_jm1 = laplace_component( idx2d(i, j - 1)  , c , chpV_.D , chpV_.u , chpV_.b );
-        const double c_jp1 = laplace_component( idx2d(i, j + 1)  , c , chpV_.D , chpV_.u , chpV_.b );
+        const double c_i   = laplace_component( idx2d(i, j)      , c , chpV_.u , chpV_.b );
+        const double c_im1 = laplace_component( idx2d(i - 1, j)  , c , chpV_.u , chpV_.b );
+        const double c_ip1 = laplace_component( idx2d(i + 1, j)  , c , chpV_.u , chpV_.b );
+        const double c_jm1 = laplace_component( idx2d(i, j - 1)  , c , chpV_.u , chpV_.b );
+        const double c_jp1 = laplace_component( idx2d(i, j + 1)  , c , chpV_.u , chpV_.b );
         
-        dcdt[idx2d(i, j)]  = (chpV_.D[idx2d(i,j)] / (info_.dx * info_.dx)) * (c_im1 + c_ip1 + c_jm1 + c_jp1 - 4.0 * c_i);
+        dcdt[idx2d(i, j)]  = (1.0 / (info_.dx * info_.dx)) * (c_im1 + c_ip1 + c_jm1 + c_jp1 - 4.0 * c_i);
       }
     }
 
@@ -81,15 +79,15 @@ void CahnHilliard2DRHS::rhs(const std::vector<double> &c, std::vector<double> &d
         const double c_br  = c[idx2d(i+1 , j+1)];
 
         // x-direction u_xxxx
-        dcdt[idx2d(i,j)] -= chpV_.D[idx2d(i,j)] * chpV_.gamma[idx2d(i,j)] /(info_.dx*info_.dx*info_.dx*info_.dx) * 
+        dcdt[idx2d(i,j)] -= chpV_.eps_2[idx2d(i,j)] /(info_.dx*info_.dx*info_.dx*info_.dx) * 
           (c_ip2 - 4.0*c_ip1 + 6.0*c_i - 4.0*c_im1 + c_im2);
 
         // y-direction u_yyyy
-        dcdt[idx2d(i,j)] -= chpV_.D[idx2d(i,j)] * chpV_.gamma[idx2d(i,j)] /(info_.dx*info_.dx*info_.dx*info_.dx) * 
+        dcdt[idx2d(i,j)] -= chpV_.eps_2[idx2d(i,j)] /(info_.dx*info_.dx*info_.dx*info_.dx) * 
           (c_jp2 - 4.0*c_jp1 + 6.0*c_i - 4.0*c_jm1 + c_jm2);
 
         // mixed term 2*u_xxyy
-        dcdt[idx2d(i,j)] -= chpV_.D[idx2d(i,j)] * chpV_.gamma[idx2d(i,j)] /(info_.dx*info_.dx*info_.dx*info_.dx) * 
+        dcdt[idx2d(i,j)] -= chpV_.eps_2[idx2d(i,j)] /(info_.dx*info_.dx*info_.dx*info_.dx) * 
           2 * (4*c_i - 2*(c_im1 + c_ip1 + c_jm1 + c_jp1) + c_ul + c_ur + c_bl + c_br );
       }
     }
@@ -101,7 +99,7 @@ void CahnHilliard2DRHS::rhs(const std::vector<double> &c, std::vector<double> &d
         
         const double c_i   = c[idx2d(i, j)];
         
-        dcdt[idx2d(i,j)]  -= chpV_.alpha[idx2d(i,j)] * ( c_i - chpV_.phi_star[idx2d(i,j)] );
+        dcdt[idx2d(i,j)]  -= chpV_.sigma[idx2d(i,j)] * ( c_i - chpV_.m[idx2d(i,j)] );
       }
     }
     
@@ -143,11 +141,10 @@ double CahnHilliard2DRHS::l2residual(const std::vector<double>&c)
 
 double CahnHilliard2DRHS::laplace_component(int i ,
                            const std::vector<double>& c ,
-			   const std::vector<double>& D ,
 			   const std::vector<double>& u ,
                            const std::vector<double>& b )
   {
-    return D[i] * u[i] * (c[i] * c[i] * c[i]) - D[i] * b[i] * c[i];
+    return u[i] * (c[i] * c[i] * c[i]) - b[i] * c[i];
   }
 
 int CahnHilliard2DRHS::idx2d_impl(int i, int j)

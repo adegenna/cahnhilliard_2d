@@ -36,7 +36,7 @@ void run_ch_solver(T& chparams , SimInfo& info )
   if (info.iter == 0)
     write_state(x,0,info.nx);
 
-  if (chparams.sigma < 1e-2) {
+  if (chparams.sigma_noise < 1e-2) {
     std::cout << "Solving deterministic (noise-free) CH" << std::endl;
     integrate_adaptive(controlled_stepper, rhs, x, info.t0, info.tf, stability_limit/2.);
   }
@@ -44,7 +44,7 @@ void run_ch_solver(T& chparams , SimInfo& info )
     std::cout << "Solving stochastic CH" << std::endl;
     boost::mt19937 rng;
     boost::numeric::odeint::integrate_const( stochastic_euler() ,
-                                             std::make_pair( rhs , ornstein_stoch( rng , chparams.sigma ) ),
+                                             std::make_pair( rhs , ornstein_stoch( rng , chparams.sigma_noise ) ),
                                              x , info.t0 , info.tf , stability_limit/40. );
   }
   info.iter += 1;

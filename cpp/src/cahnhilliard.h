@@ -35,17 +35,16 @@ class CHparamsScalar
   CHparamsScalar()  { };
   ~CHparamsScalar() { };
 
-  double D;
-  double gamma;
+  double eps_2;
   double b;
   double u;
-  double alpha;
-  double phi_star;
   double sigma;
+  double m;
+  double sigma_noise;
 
   double compute_stability_limit(double dx)
   {
-    return 0.5 * dx * dx * dx * dx / D / gamma;
+    return 0.5 * dx * dx * dx * dx / eps_2;
   };
   
 };
@@ -58,21 +57,18 @@ class CHparamsVector
   CHparamsVector()  { };
   ~CHparamsVector() { };
   
-  std::vector<double> D;
-  std::vector<double> gamma;
+  std::vector<double> eps_2;
   std::vector<double> b;
   std::vector<double> u;
-  std::vector<double> alpha;
-  std::vector<double> phi_star;
-  double sigma;
+  std::vector<double> sigma;
+  std::vector<double> m;
+  double sigma_noise;
 
   double compute_stability_limit(double dx)
   {
-    int idx_dmax = std::distance( D.begin()     , std::max_element( D.begin()     , D.end()     , abs_compare ) );
-    int idx_gmax = std::distance( gamma.begin() , std::max_element( gamma.begin() , gamma.end() , abs_compare ) );
-    double dmax = D[     idx_dmax ];
-    double gmax = gamma[ idx_gmax ];
-    return 0.5 * dx * dx * dx * dx / dmax / gmax;
+    int idx_gmax = std::distance( eps_2.begin() , std::max_element( eps_2.begin() , eps_2.end() , abs_compare ) );
+    double gmax = eps_2[ idx_gmax ];
+    return 0.5 * dx * dx * dx * dx / gmax;
   };
 
   
@@ -100,7 +96,6 @@ class CahnHilliard2DRHS {
   
   double laplace_component(int i ,
 			   const std::vector<double>& c ,
-			   const std::vector<double>& D ,
 			   const std::vector<double>& u ,
 			   const std::vector<double>& b);
   int idx2d_impl(int i, int j);

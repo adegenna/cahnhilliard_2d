@@ -59,7 +59,7 @@ struct ornstein_stoch
     boost::mt19937 &m_rng;
     boost::normal_distribution<> m_dist;
 
-  ornstein_stoch( boost::mt19937 &rng , double sigma ) : m_rng( rng ) , m_dist( 0.0 , sigma ) { }
+  ornstein_stoch( boost::mt19937 &rng , double sigma_noise ) : m_rng( rng ) , m_dist( 0.0 , sigma_noise ) { }
 
   void operator()( const std::vector< double > &x , std::vector< double > &dxdt )
     {
