@@ -6,6 +6,11 @@ import cahnhilliard as ch
 def generate_gaussian_field(xx,yy,A,xy0,sigma):
     return A * np.exp( -0.5 * ((xx-xy0[0])**2 + (yy-xy0[1])**2) / sigma**2 )
 
+def generate_square_field(xx,yy,A,xy0,sigma):
+    zz    = np.zeros_like(xx)
+    zz[ (xx > xy0[0]-sigma/2) & (xx < xy0[0]+sigma/2) & (yy > xy0[1]-sigma/2) & (yy < xy0[1]+sigma/2) ] = A
+    return zz
+    
 def convert_temperature_to_ch_coeffs(tt,eps_range,sigma_range,temp_range):
     deps2_dtemp  = (eps_range[1]   - eps_range[0])   / (temp_range[1] - temp_range[0])
     dsigma_dtemp = (sigma_range[1] - sigma_range[0]) / (temp_range[1] - temp_range[0])
@@ -27,7 +32,7 @@ b            = eps_2 / info.dx**2
 u            = eps_2 / info.dx**2
 m            = 0.0;
 sigma_noise  = 0.0;
-DT           = eps_2 / info.dx**2
+DT           = 0.5*eps_2 / info.dx**2
 
 # Set up grid for spatial-field quantities
 nx                = int(info.nx)
@@ -60,7 +65,7 @@ t                 = np.linspace(0 , n_dt * biharm_dt , n_tsteps+1)
 chparams.dt_check = t[1]-t[0]
 
 # Define control profile for temperature
-A          = 1./info.dx * np.ones(n_tsteps)
+A          = 5./info.dx * np.ones(n_tsteps)
 xy0        = np.vstack( [np.linspace(0,1.0,n_tsteps) , 0.5*np.ones(n_tsteps)] ).T
 sigma_temp = nx/10 * info.dx
 eps_range    = [1./10*eps_2 , 10*eps_2]
@@ -76,7 +81,7 @@ print( 'Sampling interval = ' , chparams.dt_check / biharm_dt , ' dt_biharm' )
 for i in range(n_tsteps):
     info.t0        = t[i]
     info.tf        = t[i+1]
-    tt             = generate_gaussian_field(xx,yy,A[i],xy0[i],sigma_temp)
+    tt             = generate_square_field(xx,yy,A[i],xy0[i],sigma_temp)
     chparams.f_T   = ch.DoubleVector( tt.ravel() )
     rhs            = ch.CahnHilliard2DRHS_thermal(chparams , info)
     print( 't0 = ', t[i]/biharm_dt, ' dt_biharm , tf = ', t[i+1]/biharm_dt, ' dt_biharm')
