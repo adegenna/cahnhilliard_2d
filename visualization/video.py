@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 
 t0 = 0
-tf = 1
+tf = 60
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/C_'
-statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/swig/T_'
+statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/swig/C_'
 
 nx = int(np.sqrt(np.genfromtxt(statefile + '0.out' ).shape[0]))
 
@@ -23,6 +23,7 @@ def animate(i):
     w = w.reshape([nx,nx]);
     ax.cla()
     contour = ax.contourf(xx,yy,w,30,vmin=-0.7,vmax=0.7)
+    #contour = ax.contourf(xx,yy,w,30,vmin=0.5,vmax=1)
     return contour
 
 anim = animation.FuncAnimation(fig, animate,

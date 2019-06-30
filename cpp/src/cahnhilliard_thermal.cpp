@@ -164,7 +164,7 @@ void CahnHilliard2DRHS_thermal::setInitialConditions(std::vector<double> &x)
     for (int i = 0; i < info_.nx; ++i) {
       for (int j = 0; j < info_.nx; ++j) {
         x[idx2d(i,j)]                     = distribution(generator) * 0.005;
-	x[idx2d(i,j) + info_.nx*info_.nx] = (distribution(generator) + 1)/2.0 * (chpV_.T_max - chpV_.T_min) + chpV_.T_min;
+	x[idx2d(i,j) + info_.nx*info_.nx] = chpV_.T_min;
       }
     }
   }
