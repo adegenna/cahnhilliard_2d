@@ -38,12 +38,12 @@ void run_ch_solver( T_params& chparams , SimInfo& info , T_rhs& rhs )
   if (chparams.sigma_noise < 1e-2) {
     std::cout << "Solving deterministic (noise-free) CH" << std::endl;
     //integrate_adaptive(controlled_stepper, rhs, x, info.t0, info.tf, stability_limit/2.);
-    integrate_const(controlled_stepper, rhs, x, info.t0, info.tf, stability_limit/2.);
+    boost::numeric::odeint::integrate_const(controlled_stepper, rhs, x, info.t0, info.tf, stability_limit/2.);
   }
   else {
     std::cout << "Solving stochastic CH" << std::endl;
     boost::mt19937 rng;
-    integrate_const( stochastic_euler() ,
+    boost::numeric::odeint::integrate_const( stochastic_euler() ,
 		     std::make_pair( rhs , ornstein_stoch( rng , chparams.sigma_noise ) ),
 		     x , info.t0 , info.tf , stability_limit/40. );
   }
