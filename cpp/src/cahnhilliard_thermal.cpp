@@ -69,6 +69,15 @@ void CahnHilliard2DRHS_thermal::rhs(const std::vector<double> &ct, std::vector<d
     std::vector<double> c = std::vector<double>( ct.begin() , ct.begin() + info_.nx*info_.nx );
     std::vector<double> T = std::vector<double>( ct.begin() + info_.nx*info_.nx , ct.end() );
 
+    // enforce thermal BC: dT/dnormal = 0
+    # pragma omp parallel for
+    for (int i = 0; i < info_.nx; ++i) {
+      T[idx2d(i,0)]          = T[idx2d(i,1)];
+      T[idx2d(i,info_.nx-1)] = T[idx2d(i,info_.nx-2)];
+      T[idx2d(0,i)]          = T[idx2d(1,i)];
+      T[idx2d(info_.nx-1,i)] = T[idx2d(info_.nx-2,i)];
+    }
+
     // evaluate CH parameter dependencies on temperature
     chpV_ = compute_chparams_using_temperature( chpV_ , T );
 
@@ -131,15 +140,6 @@ void CahnHilliard2DRHS_thermal::rhs(const std::vector<double> &ct, std::vector<d
       }
     }
 
-    // enforce thermal BC: dT/dnormal = 0
-    # pragma omp parallel for
-    for (int i = 0; i < info_.nx; ++i) {
-      T[idx2d(i,0)]          = T[idx2d(i,1)];
-      T[idx2d(i,info_.nx-1)] = T[idx2d(i,info_.nx-2)];
-      T[idx2d(0,i)]          = T[idx2d(1,i)];
-      T[idx2d(info_.nx-1,i)] = T[idx2d(info_.nx-2,i)];
-    }
-
     // evaluate thermal diffusion
     # pragma omp parallel for
     for (int i = 0; i < info_.nx; ++i) {
@@ -154,6 +154,16 @@ void CahnHilliard2DRHS_thermal::rhs(const std::vector<double> &ct, std::vector<d
         dcTdt[idx2d(i, j) + info_.nx*info_.nx]  = (chpV_.DT[idx2d(i, j)] / (info_.dx * info_.dx)) * (T_im1 + T_ip1 + T_jm1 + T_jp1 - 4.0 * T_i) + chpV_.f_T[idx2d(i, j)];
       }
     }
+
+    // enforce thermal BC: dT/dnormal = 0
+    # pragma omp parallel for
+    for (int i = 0; i < info_.nx; ++i) {
+      dcTdt[idx2d(i,0) + info_.nx*info_.nx]          = 0;
+      dcTdt[idx2d(i,info_.nx-1) + info_.nx*info_.nx] = 0;
+      dcTdt[idx2d(0,i) + info_.nx*info_.nx]          = 0;
+      dcTdt[idx2d(info_.nx-1,i) + info_.nx*info_.nx] = 0;
+    }
+
     
   }
 

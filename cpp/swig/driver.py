@@ -66,7 +66,7 @@ chparams.dt_check = t[1]-t[0]
 
 # Define control profile for temperature
 A          = 5./info.dx * np.ones(n_tsteps)
-xy0        = np.vstack( [np.linspace(0,1.0,n_tsteps) , 0.5*np.ones(n_tsteps)] ).T
+xy0        = np.vstack( [np.linspace(0,2.0,n_tsteps) , 0.5*np.ones(n_tsteps)] ).T
 sigma_temp = nx/10 * info.dx
 eps_range    = [1./10*eps_2 , 10*eps_2]
 sigma_range  = [1./10*sigma , 10*sigma]
