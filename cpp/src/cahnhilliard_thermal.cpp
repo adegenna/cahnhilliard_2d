@@ -131,13 +131,13 @@ void CahnHilliard2DRHS_thermal::rhs(const std::vector<double> &ct, std::vector<d
       }
     }
 
-    // enforce thermal BC: T_boundary = T_min
+    // enforce thermal BC: dT/dnormal = 0
     # pragma omp parallel for
     for (int i = 0; i < info_.nx; ++i) {
-      T[idx2d(i,0)]          = chpV_.T_min;
-      T[idx2d(i,info_.nx-1)] = chpV_.T_min;
-      T[idx2d(0,i)]          = chpV_.T_min;
-      T[idx2d(info_.nx-1,0)] = chpV_.T_min;
+      T[idx2d(i,0)]          = T[idx2d(i,1)];
+      T[idx2d(i,info_.nx-1)] = T[idx2d(i,info_.nx-2)];
+      T[idx2d(0,i)]          = T[idx2d(1,i)];
+      T[idx2d(info_.nx-1,i)] = T[idx2d(info_.nx-2,i)];
     }
 
     // evaluate thermal diffusion
