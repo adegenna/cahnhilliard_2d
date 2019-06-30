@@ -187,7 +187,7 @@ struct Recorder
 };
 
 
-void write_state(const std::vector<double> &x , const int idx , const int nx )
+void CahnHilliard2DRHS::write_state(const std::vector<double> &x , const int idx , const int nx )
 {
   std::ofstream out;
   out.open( "C_" + std::to_string(idx) + ".out" );

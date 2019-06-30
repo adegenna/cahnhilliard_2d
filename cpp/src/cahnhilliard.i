@@ -8,6 +8,8 @@
  #include <omp.h>
  #include <boost/numeric/odeint.hpp>
  #include "cahnhilliard.h"
+ #include "cahnhilliard_thermal.h"
+ #include "chparams.h"
  #include "run_ch_solver.hpp"
  %}
 
@@ -18,6 +20,10 @@
  };
    
  %include "cahnhilliard.h"
+ %include "cahnhilliard_thermal.h"
+ %include "chparams.h"
  %include "run_ch_solver.hpp"
- %template(run_ch_vector) run_ch_solver<CHparamsVector>; 
- %template(run_ch_scalar) run_ch_solver<CHparamsScalar>;
+ %template(run_ch_vector_nonthermal) run_ch_solver<CHparamsVector , CahnHilliard2DRHS>; 
+ %template(run_ch_scalar_nonthermal) run_ch_solver<CHparamsScalar , CahnHilliard2DRHS>;
+ %template(run_ch_vector_thermal) run_ch_solver<CHparamsVector , CahnHilliard2DRHS_thermal>; 
+ %template(run_ch_scalar_thermal) run_ch_solver<CHparamsScalar , CahnHilliard2DRHS_thermal>;

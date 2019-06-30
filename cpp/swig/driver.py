@@ -21,12 +21,13 @@ info.t0       = 0.0;
 info.nx       = 128;
 info.dx       = 1./info.nx;
 
-eps_2   = 0.01**2
+eps_2        = 0.01**2
 sigma        = eps_2 / info.dx**4 / 200.
 b            = eps_2 / info.dx**2
 u            = eps_2 / info.dx**2
 m            = 0.0;
 sigma_noise  = 0.0;
+DT           = eps_2 / info.dx**2
 
 # Set up grid for spatial-field quantities
 nx                = int(info.nx)
@@ -37,7 +38,15 @@ chparams.b            = ch.DoubleVector(b      * np.ones(nx**2))
 chparams.u            = ch.DoubleVector(u      * np.ones(nx**2))
 chparams.sigma        = ch.DoubleVector(sigma  * np.ones(nx**2))
 chparams.m            = ch.DoubleVector(m      * np.ones(nx**2))
+chparams.DT           = ch.DoubleVector(DT      * np.ones(nx**2))
 chparams.sigma_noise  = sigma_noise
+chparams.temperature_dependence = True
+chparams.eps2_min     = 1./10*eps_2
+chparams.eps2_max     =    10*eps_2
+chparams.sigma_min    = 1./10*sigma
+chparams.sigma_max    =    10*sigma
+chparams.T_min        = 0.0
+chparams.T_max        = 1.0
 
 n_dt = 600
 # ******************************
@@ -51,7 +60,7 @@ t                 = np.linspace(0 , n_dt * biharm_dt , n_tsteps+1)
 chparams.dt_check = t[1]-t[0]
 
 # Define control profile for temperature
-A          = np.ones(n_tsteps)
+A          = 1./info.dx * np.ones(n_tsteps)
 xy0        = np.vstack( [np.linspace(0,1.0,n_tsteps) , 0.5*np.ones(n_tsteps)] ).T
 sigma_temp = nx/10 * info.dx
 eps_range    = [1./10*eps_2 , 10*eps_2]
@@ -68,6 +77,7 @@ for i in range(n_tsteps):
     info.t0        = t[i]
     info.tf        = t[i+1]
     tt             = generate_gaussian_field(xx,yy,A[i],xy0[i],sigma_temp)
-    chparams.eps_2 , chparams.sigma = convert_temperature_to_ch_coeffs(tt,eps_range,sigma_range,temp_range)
+    chparams.f_T   = ch.DoubleVector( tt.ravel() )
+    rhs            = ch.CahnHilliard2DRHS_thermal(chparams , info)
     print( 't0 = ', t[i]/biharm_dt, ' dt_biharm , tf = ', t[i+1]/biharm_dt, ' dt_biharm')
-    ch.run_ch_vector(chparams,info);
+    ch.run_ch_vector_thermal(chparams,info,rhs);

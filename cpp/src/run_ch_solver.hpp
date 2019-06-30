@@ -1,13 +1,12 @@
 #include <boost/numeric/odeint.hpp>
 #include "stochastic_euler.hpp"
 #include "cahnhilliard.h"
+#include "cahnhilliard_thermal.h"
 
-template<typename T>
-void run_ch_solver(T& chparams , SimInfo& info )
+template<typename T_params , typename T_rhs>
+void run_ch_solver( T_params& chparams , SimInfo& info , T_rhs& rhs )
 {
-
-  CahnHilliard2DRHS rhs = CahnHilliard2DRHS(chparams , info);
-
+  
   std::vector<double> x;
   if (info.t0 == 0) {
     rhs.setInitialConditions(x);
@@ -34,7 +33,7 @@ void run_ch_solver(T& chparams , SimInfo& info )
 
   std::cout << "residual at initial condition: " << res0 << std::endl;
   if (info.iter == 0)
-    write_state(x,0,info.nx);
+    rhs.write_state(x,0,info.nx);
 
   if (chparams.sigma_noise < 1e-2) {
     std::cout << "Solving deterministic (noise-free) CH" << std::endl;
@@ -49,7 +48,7 @@ void run_ch_solver(T& chparams , SimInfo& info )
   }
   info.iter += 1;
   std::cout << "iter: " << info.iter << " , t = " << info.tf << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
-  write_state(x,info.iter,info.nx);
+  rhs.write_state(x,info.iter,info.nx);
   info.x = x;
 
 };
