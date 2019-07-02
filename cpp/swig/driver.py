@@ -1,3 +1,4 @@
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import misc
@@ -26,13 +27,16 @@ info.t0       = 0.0;
 info.nx       = 128;
 info.dx       = 1./info.nx;
 
-eps_2        = 0.01**2
-sigma        = eps_2 / info.dx**4 / 200.
-b            = eps_2 / info.dx**2
-u            = eps_2 / info.dx**2
+nx_ref        = 128;
+dx_ref        = 1./nx_ref
+
+eps_2        = 0.05**2
+sigma        = eps_2 / dx_ref**4 / 200.
+b            = eps_2 / dx_ref**2
+u            = eps_2 / dx_ref**2
 m            = 0.0;
 sigma_noise  = 0.0;
-DT           = 0.5*eps_2 / info.dx**2
+DT           = 0.1*eps_2 / dx_ref**2
 
 # Set up grid for spatial-field quantities
 nx                = int(info.nx)
@@ -47,30 +51,36 @@ chparams.DT           = ch.DoubleVector(DT      * np.ones(nx**2))
 chparams.sigma_noise  = sigma_noise
 chparams.temperature_dependence = True
 chparams.eps2_min     = 1./10*eps_2
-chparams.eps2_max     =    10*eps_2
+chparams.eps2_max     =     1*eps_2
 chparams.sigma_min    = 1./10*sigma
-chparams.sigma_max    =    10*sigma
+chparams.sigma_max    =    1*sigma
 chparams.T_min        = 0.0
 chparams.T_max        = 1.0
 
-n_dt = 600
+n_dt = 1500
 # ******************************
 
 # Define timescales
 biharm_dt         = (info.dx**4) / np.max(chparams.eps_2)
 diff_dt           = (info.dx**2) / np.max( [np.max(chparams.u) , np.max(chparams.b)] )
 lin_dt            = 1.0 / np.max(chparams.sigma)
-n_tsteps          = 60
-t                 = np.linspace(0 , n_dt * biharm_dt , n_tsteps+1)
+biharm_dt_ref     = (dx_ref**4) / np.max(chparams.eps_2)
+diff_dt_ref       = (dx_ref**2) / np.max( [np.max(chparams.u) , np.max(chparams.b)] )
+lin_dt_ref        = 1.0 / np.max(chparams.sigma)
+
+n_tsteps          = 150
+t                 = np.linspace(0 , n_dt * biharm_dt_ref , n_tsteps+1)
 chparams.dt_check = t[1]-t[0]
 
 # Define control profile for temperature
-A          = 5./info.dx * np.ones(n_tsteps)
-xy0        = np.vstack( [np.linspace(0,2.0,n_tsteps) , 0.5*np.ones(n_tsteps)] ).T
-sigma_temp = nx/10 * info.dx
-eps_range    = [1./10*eps_2 , 10*eps_2]
-sigma_range  = [1./10*sigma , 10*sigma]
-temp_range   = [0 , np.max(A)]
+A               = 100./dx_ref * np.ones(n_tsteps)
+A[25:50]        = -100./dx_ref
+A[50:]          = 0
+xy0             = np.vstack( [0.5 + 0*np.linspace(0,2.0,n_tsteps) , 0.5*np.ones(n_tsteps)] ).T
+sigma_temp   = nx/10 * info.dx
+#eps_range    = [1./10*eps_2 , 1*eps_2]
+#sigma_range  = [1./10*sigma , 1*sigma]
+#temp_range   = [0 , np.max(A)]
 
 # Run solver
 print( 'Biharmonic timescale dt_biharm = ' , biharm_dt )

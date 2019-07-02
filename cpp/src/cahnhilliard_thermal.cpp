@@ -53,8 +53,10 @@ CHparamsVector CahnHilliard2DRHS_thermal::compute_chparams_using_temperature( CH
     for (int j = 0; j < info_.nx; ++j) {
 
       const double dT         = T[idx2d(i, j)] - chpV.T_min;
-      chpV.eps_2[idx2d(i, j)] = deps2_dT  * dT + chpV.eps2_min;
-      chpV.sigma[idx2d(i, j)] = dsigma_dT * dT + chpV.sigma_min;
+      const double eps2_fit   = deps2_dT  * dT + chpV.eps2_min;
+      const double sigma_fit  = dsigma_dT * dT + chpV.sigma_min;
+      chpV.eps_2[idx2d(i, j)] = std::min( std::max( eps2_fit  , chpV.eps2_min )  , chpV.eps2_max );
+      chpV.sigma[idx2d(i, j)] = std::min( std::max( sigma_fit , chpV.sigma_min ) , chpV.sigma_max );
 
     }
   }
