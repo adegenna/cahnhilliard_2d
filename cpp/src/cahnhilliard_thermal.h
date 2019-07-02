@@ -26,15 +26,7 @@ class CahnHilliard2DRHS_thermal {
 
   std::default_random_engine generator_;
   std::normal_distribution<double> noise_dist_;
-  
-  double laplace_component(int i ,
-			   const std::vector<double>& c ,
-			   const std::vector<double>& u ,
-			   const std::vector<double>& b);
-  int idx2d_impl(int i, int j);
-  int mod(int a, int b);
-  int idx2d(int i, int j);
-  
+    
 };
 
 

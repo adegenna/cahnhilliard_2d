@@ -25,6 +25,12 @@ class SimInfo
   double dt_check;
   std::vector<double> x;
 
+  int idx2d(int i, int j);
+
+ private:
+  int idx2d_impl(int i, int j);
+  int mod(int a, int b);
+  
 };
 
 class CHparamsScalar

@@ -11,6 +11,7 @@
  #include "cahnhilliard_thermal.h"
  #include "chparams.h"
  #include "run_ch_solver.hpp"
+ #include "cahnhilliard_nonlocal.h"
  %}
 
  %include <std_vector.i>

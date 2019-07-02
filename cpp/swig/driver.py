@@ -1,4 +1,3 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import misc
@@ -78,9 +77,6 @@ A[25:50]        = -100./dx_ref
 A[50:]          = 0
 xy0             = np.vstack( [0.5 + 0*np.linspace(0,2.0,n_tsteps) , 0.5*np.ones(n_tsteps)] ).T
 sigma_temp   = nx/10 * info.dx
-#eps_range    = [1./10*eps_2 , 1*eps_2]
-#sigma_range  = [1./10*sigma , 1*sigma]
-#temp_range   = [0 , np.max(A)]
 
 # Run solver
 print( 'Biharmonic timescale dt_biharm = ' , biharm_dt )
