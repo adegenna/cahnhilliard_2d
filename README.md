@@ -1,9 +1,17 @@
 # Introduction
 Solver for the 2D Cahn Hilliard equation:
 
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/cheqn.gif">
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/cheqn.gif">
 
-Zero flux boundary conditions, square domain.
+Periodic boundary conditions, square domain.
+
+Some of the coefficients of this equation are functions of temperature, which evolves independently (one-way coupling) through a thermal diffusion equation:
+
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/thermal_eqn.gif">
+
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/eps2_thermal.gif">
+
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/sigma_thermal.gif">
 
 # Solver
 First, edit the filepaths in src/input_driver.dat to reflect what is on your machine. Then, run:
