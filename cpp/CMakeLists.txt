@@ -34,6 +34,7 @@ add_executable( ch2d
   src/cahnhilliard_nonlocal.cpp
   src/cahnhilliard.cpp
   src/cahnhilliard_thermal.cpp
+  src/cahnhilliard_thermal_nodiffusion.cpp
   src/run_ch_solver.hpp
 )
 

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <string>
 
 static bool abs_compare(int a, int b)
 {
@@ -24,6 +25,8 @@ class SimInfo
   int nx;
   double dt_check;
   std::vector<double> x;
+  std::string bc = "periodic";
+  double BC_dirichlet_ch;
 
   int idx2d(int i, int j);
 
@@ -48,7 +51,7 @@ class CHparamsScalar
   double m;
   double DT;
   double f_T;
-  double eps2_min, eps2_max, sigma_min, sigma_max, T_min, T_max;
+  double eps2_min, eps2_max, sigma_min, sigma_max, T_min, T_max, T_const;
   double sigma_noise;
   bool temperature_dependence = false;
 
@@ -71,6 +74,7 @@ class CHparamsVector
   std::vector<double> m;
   std::vector<double> DT;
   std::vector<double> f_T;
+  std::vector<double> T_const;
   double eps2_min, eps2_max, sigma_min, sigma_max, T_min, T_max;
   bool temperature_dependence = false;
 

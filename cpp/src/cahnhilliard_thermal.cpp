@@ -42,29 +42,6 @@ CahnHilliard2DRHS_thermal::CahnHilliard2DRHS_thermal(CHparamsVector& chp , SimIn
 
 CahnHilliard2DRHS_thermal::~CahnHilliard2DRHS_thermal() { };
 
-CHparamsVector CahnHilliard2DRHS_thermal::compute_chparams_using_temperature( CHparamsVector& chpV0 , std::vector<double> T ) {
-
-  CHparamsVector chpV = chpV0;
-  double deps2_dT     = ( chpV.eps2_max  - chpV.eps2_min )  / ( chpV.T_max - chpV.T_min );
-  double dsigma_dT    = ( chpV.sigma_max - chpV.sigma_min ) / ( chpV.T_max - chpV.T_min );
-  
-  # pragma omp parallel for
-  for (int i = 0; i < info_.nx; ++i) {
-    for (int j = 0; j < info_.nx; ++j) {
-
-      const double dT         = T[info_.idx2d(i, j)] - chpV.T_min;
-      const double eps2_fit   = deps2_dT  * dT + chpV.eps2_min;
-      const double sigma_fit  = dsigma_dT * dT + chpV.sigma_min;
-      chpV.eps_2[info_.idx2d(i, j)] = std::min( std::max( eps2_fit  , chpV.eps2_min )  , chpV.eps2_max );
-      chpV.sigma[info_.idx2d(i, j)] = std::min( std::max( sigma_fit , chpV.sigma_min ) , chpV.sigma_max );
-
-    }
-  }
-  
-  return chpV;
-
-}
-
 void CahnHilliard2DRHS_thermal::rhs(const std::vector<double> &ct, std::vector<double> &dcTdt, const double t)
   {
     dcTdt.resize(2*info_.nx*info_.nx);
@@ -81,7 +58,7 @@ void CahnHilliard2DRHS_thermal::rhs(const std::vector<double> &ct, std::vector<d
     }
 
     // evaluate CH parameter dependencies on temperature
-    chpV_ = compute_chparams_using_temperature( chpV_ , T );
+    chpV_ = compute_chparams_using_temperature( chpV_ , info_ , T );
 
     // evaluate deterministic nonlocal dynamics
     compute_ch_nonlocal(c, dcTdt, t, chpV_, info_);

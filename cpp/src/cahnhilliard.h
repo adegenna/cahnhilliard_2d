@@ -22,6 +22,7 @@ class CahnHilliard2DRHS {
 
   CHparamsVector chpV_;
   SimInfo& info_;
+  void (*ch_rhs_) (const std::vector<double>&, std::vector<double>&, double, CHparamsVector&, SimInfo&);
 
   std::default_random_engine generator_;
   std::normal_distribution<double> noise_dist_;

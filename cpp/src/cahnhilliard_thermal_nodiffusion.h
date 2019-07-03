@@ -1,17 +1,17 @@
-#ifndef __CAHNHILLIARD_THERMAL_H__
-#define __CAHNHILLIARD_THERMAL_H__
+#ifndef __CAHNHILLIARD_THERMAL_NODIFFUSION_H__
+#define __CAHNHILLIARD_THERMAL_NODIFFUSION_H__
 
 #include <vector>
 #include <algorithm>
 #include "chparams.h"
 
-class CahnHilliard2DRHS_thermal {
+class CahnHilliard2DRHS_thermal_nodiffusion {
 
  public:
 
-  CahnHilliard2DRHS_thermal(CHparamsScalar& chp , SimInfo& info);
-  CahnHilliard2DRHS_thermal(CHparamsVector& chp , SimInfo& info);
-  ~CahnHilliard2DRHS_thermal();
+  CahnHilliard2DRHS_thermal_nodiffusion(CHparamsScalar& chp , SimInfo& info);
+  CahnHilliard2DRHS_thermal_nodiffusion(CHparamsVector& chp , SimInfo& info);
+  ~CahnHilliard2DRHS_thermal_nodiffusion();
   void rhs(const std::vector<double> &c, std::vector<double> &dcdt, const double t);
   void operator()(const std::vector<double> &c, std::vector<double> &dcdt, const double t);
   void setInitialConditions(std::vector<double> &x);

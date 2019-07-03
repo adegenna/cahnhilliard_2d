@@ -4,6 +4,7 @@
 #include <fstream>
 #include <omp.h>
 #include <boost/numeric/odeint.hpp>
+#include <string>
 #include "cahnhilliard.h"
 #include "cahnhilliard_nonlocal.h"
 
@@ -29,8 +30,11 @@ CahnHilliard2DRHS::CahnHilliard2DRHS(CHparamsScalar& chp , SimInfo& info)
     chpV_.sigma    = std::vector<double>( info_.nx*info_.nx , chp.sigma     );
     chpV_.m = std::vector<double>( info_.nx*info_.nx , chp.m  );
     chpV_.sigma_noise    = chp.sigma_noise;
-    
-    std::cout << "Initialized Cahn-Hilliard equation with scalar parameters" << std::endl;
+
+    if ( info.bc.compare("periodic") == 0) {
+      ch_rhs_ = &compute_ch_nonlocal;
+      std::cout << "Initialized Cahn-Hilliard equation with scalar parameters, periodic BCs" << std::endl;
+    }
   }
 
 CahnHilliard2DRHS::CahnHilliard2DRHS(CHparamsVector& chp , SimInfo& info)
@@ -44,7 +48,7 @@ CahnHilliard2DRHS::~CahnHilliard2DRHS() { };
 void CahnHilliard2DRHS::rhs(const std::vector<double> &c, std::vector<double> &dcdt, const double t)
   {
     dcdt.resize(info_.nx*info_.nx);
-    compute_ch_nonlocal(c, dcdt, t, chpV_, info_);
+    (*ch_rhs_)(c, dcdt, t, chpV_, info_);
   }
 
 

@@ -25,6 +25,7 @@ info              = ch.SimInfo();
 info.t0       = 0.0;
 info.nx       = 128;
 info.dx       = 1./info.nx;
+info.bc       = 'periodic'
 
 nx_ref        = 128;
 dx_ref        = 1./nx_ref
@@ -46,7 +47,7 @@ chparams.b            = ch.DoubleVector(b      * np.ones(nx**2))
 chparams.u            = ch.DoubleVector(u      * np.ones(nx**2))
 chparams.sigma        = ch.DoubleVector(sigma  * np.ones(nx**2))
 chparams.m            = ch.DoubleVector(m      * np.ones(nx**2))
-chparams.DT           = ch.DoubleVector(DT      * np.ones(nx**2))
+chparams.DT           = ch.DoubleVector(DT     * np.ones(nx**2))
 chparams.sigma_noise  = sigma_noise
 chparams.temperature_dependence = True
 chparams.eps2_min     = 1./10*eps_2
@@ -55,6 +56,7 @@ chparams.sigma_min    = 1./10*sigma
 chparams.sigma_max    =    1*sigma
 chparams.T_min        = 0.0
 chparams.T_max        = 1.0
+chparams.T_const      = ch.DoubleVector(0.  * np.ones(nx**2))
 
 n_dt = 1500
 # ******************************
@@ -89,6 +91,8 @@ for i in range(n_tsteps):
     info.tf        = t[i+1]
     tt             = generate_square_field(xx,yy,A[i],xy0[i],sigma_temp)
     chparams.f_T   = ch.DoubleVector( tt.ravel() )
-    rhs            = ch.CahnHilliard2DRHS_thermal(chparams , info)
+    #rhs            = ch.CahnHilliard2DRHS_thermal(chparams , info)
+    rhs            = ch.CahnHilliard2DRHS_thermal_nodiffusion(chparams , info)
     print( 't0 = ', t[i]/biharm_dt, ' dt_biharm , tf = ', t[i+1]/biharm_dt, ' dt_biharm')
-    ch.run_ch_vector_thermal(chparams,info,rhs);
+    #ch.run_ch_vector_thermal(chparams,info,rhs);
+    ch.run_ch_vector_thermal_nodiffusion(chparams,info,rhs);

@@ -3,7 +3,7 @@
 void compute_ch_nonlocal(const std::vector<double> &c,
 			 std::vector<double> &dcdt,
 			 const double t,
-			 CHparamsVector chpV,
+			 CHparamsVector& chpV,
 			 SimInfo& info) {
 
   // Computes deterministic nonlocal CH dynamics
@@ -71,10 +71,86 @@ void compute_ch_nonlocal(const std::vector<double> &c,
 
 }
 
+
+
+void compute_ch_nonlocal_dirichletBC(std::vector<double> &c,
+                                     std::vector<double> &dcdt,
+                                     const double t,
+                                     CHparamsVector& chpV,
+                                     SimInfo& info) {
+
+  // Computes deterministic nonlocal CH dynamics
+  // dc/dt = laplacian( u*c^3 - b*c ) - eps_2*biharm(c) - sigma*(c - m)
+
+  // set two rows of ghost cells
+  # pragma omp parallel for
+  for (int i = 0; i < info.nx; ++i) {
+
+    c[info.idx2d(i, 0)]         = info.BC_dirichlet_ch;
+    c[info.idx2d(i, 1)]         = info.BC_dirichlet_ch;
+    c[info.idx2d(i, info.nx-1)] = info.BC_dirichlet_ch;
+    c[info.idx2d(i, info.nx-2)] = info.BC_dirichlet_ch;
+    
+    c[info.idx2d(0, i)]         = info.BC_dirichlet_ch;
+    c[info.idx2d(1, i)]         = info.BC_dirichlet_ch;
+    c[info.idx2d(info.nx-1, i)] = info.BC_dirichlet_ch;
+    c[info.idx2d(info.nx-2, i)] = info.BC_dirichlet_ch;
+
+  }
+
+  // compute ch dynamics
+  compute_ch_nonlocal(c, dcdt, t, chpV, info);
+
+  // reset boundary dc/dt = 0
+  # pragma omp parallel for
+  for (int i = 0; i < info.nx; ++i) {
+
+    dcdt[info.idx2d(i, 0)]         = info.BC_dirichlet_ch;
+    dcdt[info.idx2d(i, 1)]         = info.BC_dirichlet_ch;
+    dcdt[info.idx2d(i, info.nx-1)] = info.BC_dirichlet_ch;
+    dcdt[info.idx2d(i, info.nx-2)] = info.BC_dirichlet_ch;
+    
+    dcdt[info.idx2d(0, i)]         = info.BC_dirichlet_ch;
+    dcdt[info.idx2d(1, i)]         = info.BC_dirichlet_ch;
+    dcdt[info.idx2d(info.nx-1, i)] = info.BC_dirichlet_ch;
+    dcdt[info.idx2d(info.nx-2, i)] = info.BC_dirichlet_ch;
+
+  }
+
+}
+
+
+
+
 double laplace_component(int i ,
                          const std::vector<double>& c ,
                          const std::vector<double>& u ,
                          const std::vector<double>& b ) {
 
   return u[i] * (c[i] * c[i] * c[i]) - b[i] * c[i];
+}
+
+CHparamsVector compute_chparams_using_temperature( CHparamsVector& chpV0,
+                                                   SimInfo& info,
+                                                   std::vector<double> T ) {
+
+  CHparamsVector chpV = chpV0;
+  double deps2_dT     = ( chpV.eps2_max  - chpV.eps2_min )  / ( chpV.T_max - chpV.T_min );
+  double dsigma_dT    = ( chpV.sigma_max - chpV.sigma_min ) / ( chpV.T_max - chpV.T_min );
+  
+  # pragma omp parallel for
+  for (int i = 0; i < info.nx; ++i) {
+    for (int j = 0; j < info.nx; ++j) {
+
+      const double dT         = T[info.idx2d(i, j)] - chpV.T_min;
+      const double eps2_fit   = deps2_dT  * dT + chpV.eps2_min;
+      const double sigma_fit  = dsigma_dT * dT + chpV.sigma_min;
+      chpV.eps_2[info.idx2d(i, j)] = std::min( std::max( eps2_fit  , chpV.eps2_min )  , chpV.eps2_max );
+      chpV.sigma[info.idx2d(i, j)] = std::min( std::max( sigma_fit , chpV.sigma_min ) , chpV.sigma_max );
+
+    }
+  }
+  
+  return chpV;
+
 }
