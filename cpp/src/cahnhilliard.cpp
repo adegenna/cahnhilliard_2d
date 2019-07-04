@@ -31,9 +31,13 @@ CahnHilliard2DRHS::CahnHilliard2DRHS(CHparamsScalar& chp , SimInfo& info)
     chpV_.m        = std::vector<double>( info_.nx*info_.nx , chp.m  );
     chpV_.sigma_noise    = chp.sigma_noise;
 
-    if ( info.bc.compare("dirichlet") == 0) {
+    if ( info.bc.compare("dirichlet") == 0 ) {
       ch_rhs_ = &compute_ch_nonlocal_stationary_boundaries;
       std::cout << "Initialized Cahn-Hilliard equation: scalar parameters, dirichlet BCs, no thermal dependence" << std::endl;
+    }
+    else if ( info.bc.compare("neumann") == 0 ) {
+      ch_rhs_ = &compute_ch_nonlocal_stationary_boundaries;
+      std::cout << "Initialized Cahn-Hilliard equation: scalar parameters, neumann BCs, no thermal dependence" << std::endl;
     }
     else {
       ch_rhs_ = &compute_ch_nonlocal;
@@ -48,6 +52,10 @@ CahnHilliard2DRHS::CahnHilliard2DRHS(CHparamsVector& chp , SimInfo& info)
     if ( info.bc.compare("dirichlet") == 0) {
       ch_rhs_ = &compute_ch_nonlocal_stationary_boundaries;
       std::cout << "Initialized Cahn-Hilliard equation with spatial-field parameters, dirichlet BCs, no thermal dependence" << std::endl;
+    }
+    else if ( info.bc.compare("neumann") == 0) {
+      ch_rhs_ = &compute_ch_nonlocal_stationary_boundaries;
+      std::cout << "Initialized Cahn-Hilliard equation with spatial-field parameters, neumann BCs, no thermal dependence" << std::endl;
     }
     else {
       ch_rhs_ = &compute_ch_nonlocal;

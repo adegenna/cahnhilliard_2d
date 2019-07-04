@@ -35,6 +35,10 @@ CahnHilliard2DRHS_thermal::CahnHilliard2DRHS_thermal(CHparamsScalar& chp , SimIn
       ch_rhs_ = &compute_ch_nonlocal_stationary_boundaries;
       std::cout << "Initialized Cahn-Hilliard equation: scalar parameters, dirichlet BCs, thermal coefficient dependence, thermal diffusion" << std::endl;
     }
+    else if ( info.bc.compare("neumann") == 0) {
+      ch_rhs_ = &compute_ch_nonlocal_stationary_boundaries;
+      std::cout << "Initialized Cahn-Hilliard equation: scalar parameters, neumann BCs, thermal coefficient dependence, thermal diffusion" << std::endl;
+    }
     else {
       ch_rhs_ = &compute_ch_nonlocal;
       std::cout << "Initialized Cahn-Hilliard equation: scalar parameters, periodic BCs, thermal coefficient dependence, thermal diffusion" << std::endl;
@@ -49,6 +53,10 @@ CahnHilliard2DRHS_thermal::CahnHilliard2DRHS_thermal(CHparamsVector& chp , SimIn
     if ( info.bc.compare("dirichlet") == 0) {
       ch_rhs_ = &compute_ch_nonlocal_stationary_boundaries;
       std::cout << "Initialized Cahn-Hilliard equation: spatial-field parameters, dirichlet BCs, thermal coefficient dependence, thermal diffusion" << std::endl;
+    }
+    if ( info.bc.compare("neumann") == 0) {
+      ch_rhs_ = &compute_ch_nonlocal_stationary_boundaries;
+      std::cout << "Initialized Cahn-Hilliard equation: spatial-field parameters, neumann BCs, thermal coefficient dependence, thermal diffusion" << std::endl;
     }
     else {
       ch_rhs_ = &compute_ch_nonlocal;
