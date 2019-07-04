@@ -112,7 +112,7 @@ std::vector<double>& apply_neumann_bc( std::vector<double>& c ,
     c[info.idx2d(info.nx-2, i)] = c[info.idx2d(info.nx-4, i)];
 
   }
-
+  
   return c;
 
 }
@@ -170,6 +170,12 @@ void compute_ch_nonlocal_neumannBC(const std::vector<double> &c,
 
   // reset boundary dc/dt for neumann bc
   dcdt = apply_neumann_bc( dcdt , info );
+
+  // freeze corners, which don't matter at all
+  dcdt[info.idx2d(0,0)] = 0;         dcdt[info.idx2d(0,1)] = 0;         dcdt[info.idx2d(0,info.nx-2)] = 0;         dcdt[info.idx2d(0,info.nx-1)] = 0;
+  dcdt[info.idx2d(1,0)] = 0;         dcdt[info.idx2d(1,1)] = 0;         dcdt[info.idx2d(1,info.nx-2)] = 0;         dcdt[info.idx2d(1,info.nx-1)] = 0;
+  dcdt[info.idx2d(info.nx-2,0)] = 0; dcdt[info.idx2d(info.nx-2,1)] = 0; dcdt[info.idx2d(info.nx-2,info.nx-2)] = 0; dcdt[info.idx2d(info.nx-2,info.nx-1)] = 0;
+  dcdt[info.idx2d(info.nx-1,0)] = 0; dcdt[info.idx2d(info.nx-1,1)] = 0; dcdt[info.idx2d(info.nx-1,info.nx-2)] = 0; dcdt[info.idx2d(info.nx-1,info.nx-1)] = 0;
 
 }
 
