@@ -33,7 +33,7 @@ CahnHilliard2DRHS_thermal_nodiffusion::CahnHilliard2DRHS_thermal_nodiffusion(CHp
     chpV_.T_const        = std::vector<double>( info_.nx*info_.nx , chp.T_const  );
 
     if ( info.bc.compare("dirichlet") == 0) {
-      ch_rhs_ = &compute_ch_nonlocal_dirichletBC;
+      ch_rhs_ = &compute_ch_nonlocal_stationary_boundaries;
       std::cout << "Initialized Cahn-Hilliard equation: scalar parameters, dirichlet BCs, thermal coefficient dependence, no thermal diffusion" << std::endl;
     }
     else {
@@ -48,7 +48,7 @@ CahnHilliard2DRHS_thermal_nodiffusion::CahnHilliard2DRHS_thermal_nodiffusion(CHp
   {
 
     if ( info.bc.compare("dirichlet") == 0) {
-      ch_rhs_ = &compute_ch_nonlocal_dirichletBC;
+      ch_rhs_ = &compute_ch_nonlocal_stationary_boundaries;
       std::cout << "Initialized Cahn-Hilliard equation: spatial-field parameters, dirichlet BCs, thermal coefficient dependence, no thermal diffusion" << std::endl;
     }
     else {

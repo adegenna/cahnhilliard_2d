@@ -71,7 +71,8 @@ void compute_ch_nonlocal(const std::vector<double> &c,
 
 }
 
-std::vector<double>& apply_dirichlet_bc( std::vector<double>& c , double bc_value , SimInfo& info ) {
+std::vector<double>& apply_dirichlet_bc( std::vector<double>& c ,
+					 SimInfo& info ) {
 
   // set two rows of ghost cells
   # pragma omp parallel for
@@ -93,19 +94,32 @@ std::vector<double>& apply_dirichlet_bc( std::vector<double>& c , double bc_valu
 
 }
 
-void compute_ch_nonlocal_dirichletBC(const std::vector<double> &c,
-                                     std::vector<double> &dcdt,
-                                     const double t,
-                                     CHparamsVector& chpV,
-                                     SimInfo& info) {
+std::vector<double>& apply_neumann_bc( std::vector<double>& c ,
+				       SimInfo& info ) {
 
-  // Computes deterministic nonlocal CH dynamics
-  // dc/dt = laplacian( u*c^3 - b*c ) - eps_2*biharm(c) - sigma*(c - m)
+  // set two rows of ghost cells
+  # pragma omp parallel for
+  for (int i = 0; i < info.nx; ++i) {
 
-  // compute ch dynamics
-  compute_ch_nonlocal(c, dcdt, t, chpV, info);
+    c[info.idx2d(i, 0)]         = c[info.idx2d(i, 4)];
+    c[info.idx2d(i, 1)]         = c[info.idx2d(i, 3)];
+    c[info.idx2d(i, info.nx-1)] = c[info.idx2d(i, info.nx-5)];
+    c[info.idx2d(i, info.nx-2)] = c[info.idx2d(i, info.nx-4)];
+    
+    c[info.idx2d(0, i)]         = c[info.idx2d(4, i)];
+    c[info.idx2d(1, i)]         = c[info.idx2d(3, i)];
+    c[info.idx2d(info.nx-1, i)] = c[info.idx2d(info.nx-5, i)];
+    c[info.idx2d(info.nx-2, i)] = c[info.idx2d(info.nx-4, i)];
 
-  // reset boundary dc/dt = 0
+  }
+
+  return c;
+
+}
+
+std::vector<double>& set_boundary_values_to_zero( std::vector<double> &dcdt ,
+						  SimInfo& info ) {
+
   # pragma omp parallel for
   for (int i = 0; i < info.nx; ++i) {
 
@@ -121,10 +135,26 @@ void compute_ch_nonlocal_dirichletBC(const std::vector<double> &c,
 
   }
 
+  return dcdt;
+  
 }
 
+void compute_ch_nonlocal_stationary_boundaries(const std::vector<double> &c,
+					       std::vector<double> &dcdt,
+					       const double t,
+					       CHparamsVector& chpV,
+					       SimInfo& info) {
 
+  // Computes deterministic nonlocal CH dynamics
+  // dc/dt = laplacian( u*c^3 - b*c ) - eps_2*biharm(c) - sigma*(c - m)
 
+  // compute ch dynamics
+  compute_ch_nonlocal(c, dcdt, t, chpV, info);
+
+  // reset boundary dc/dt = 0
+  dcdt = set_boundary_values_to_zero( dcdt , info );
+
+}
 
 double laplace_component(int i ,
                          const std::vector<double>& c ,

@@ -32,7 +32,7 @@ CahnHilliard2DRHS_thermal::CahnHilliard2DRHS_thermal(CHparamsScalar& chp , SimIn
     chpV_.sigma_noise    = chp.sigma_noise;
 
     if ( info.bc.compare("dirichlet") == 0) {
-      ch_rhs_ = &compute_ch_nonlocal_dirichletBC;
+      ch_rhs_ = &compute_ch_nonlocal_stationary_boundaries;
       std::cout << "Initialized Cahn-Hilliard equation: scalar parameters, dirichlet BCs, thermal coefficient dependence, thermal diffusion" << std::endl;
     }
     else {
@@ -47,7 +47,7 @@ CahnHilliard2DRHS_thermal::CahnHilliard2DRHS_thermal(CHparamsVector& chp , SimIn
   {
 
     if ( info.bc.compare("dirichlet") == 0) {
-      ch_rhs_ = &compute_ch_nonlocal_dirichletBC;
+      ch_rhs_ = &compute_ch_nonlocal_stationary_boundaries;
       std::cout << "Initialized Cahn-Hilliard equation: spatial-field parameters, dirichlet BCs, thermal coefficient dependence, thermal diffusion" << std::endl;
     }
     else {

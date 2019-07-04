@@ -12,7 +12,7 @@ nx = int(np.sqrt(np.genfromtxt(statefile + '0.out' ).shape[0]))
 x     = np.arange(nx)
 xx,yy = np.meshgrid(x,x)
 
-tstep = 2
+tstep = 5
 fig   = plt.figure(10,figsize=(8,8))
 ax    = fig.gca()
 
