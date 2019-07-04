@@ -16,6 +16,13 @@ void compute_ch_nonlocal_stationary_boundaries(const std::vector<double> &c,
 					       CHparamsVector& chpV,
 					       SimInfo& info);
 
+void compute_ch_nonlocal_neumannBC(const std::vector<double> &c,
+				   std::vector<double> &dcdt,
+				   const double t,
+				   CHparamsVector& chpV,
+				   SimInfo& info);
+
+
 std::vector<double>& set_boundary_values_to_zero( std::vector<double> &dcdt ,
 						  SimInfo& info );
 

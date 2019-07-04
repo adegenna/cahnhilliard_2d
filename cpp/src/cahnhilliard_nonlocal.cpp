@@ -156,6 +156,23 @@ void compute_ch_nonlocal_stationary_boundaries(const std::vector<double> &c,
 
 }
 
+void compute_ch_nonlocal_neumannBC(const std::vector<double> &c,
+                                   std::vector<double> &dcdt,
+                                   const double t,
+                                   CHparamsVector& chpV,
+                                   SimInfo& info) {
+
+  // Computes deterministic nonlocal CH dynamics
+  // dc/dt = laplacian( u*c^3 - b*c ) - eps_2*biharm(c) - sigma*(c - m)
+
+  // compute ch dynamics
+  compute_ch_nonlocal(c, dcdt, t, chpV, info);
+
+  // reset boundary dc/dt for neumann bc
+  dcdt = apply_neumann_bc( dcdt , info );
+
+}
+
 double laplace_component(int i ,
                          const std::vector<double>& c ,
                          const std::vector<double>& u ,

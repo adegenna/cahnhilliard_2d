@@ -25,7 +25,7 @@ info              = ch.SimInfo();
 info.t0       = 0.0;
 info.nx       = 128;
 info.dx       = 1./info.nx;
-info.bc       = 'dirichlet'
+info.bc       = 'neumann'
 info.BC_dirichlet_ch = 0.0
 
 nx_ref        = 128;
@@ -35,7 +35,7 @@ eps_2        = 0.05**2
 sigma        = eps_2 / dx_ref**4 / 200.
 b            = eps_2 / dx_ref**2
 u            = eps_2 / dx_ref**2
-m            = 0.0;
+m            = 0.5;
 sigma_noise  = 0.0;
 DT           = 0.1*eps_2 / dx_ref**2
 
@@ -59,7 +59,7 @@ chparams.T_min        = 0.0
 chparams.T_max        = 1.0
 chparams.T_const      = ch.DoubleVector(0.  * np.ones(nx**2))
 
-n_dt = 20000
+n_dt = 10000
 # ******************************
 
 # Define timescales
@@ -72,8 +72,8 @@ lin_dt_ref        = 1.0 / np.max(chparams.sigma)
 
 # Reset from saved state
 n_tsteps          = 100
-info.x            = ch.DoubleVector( np.genfromtxt('C_100.out') )
-info.iter         = 100
+#info.x            = ch.DoubleVector( np.genfromtxt('C_100.out') )
+info.iter         = 0
 info.t0           = info.iter * n_dt/n_tsteps * biharm_dt_ref
 t                 = np.linspace(info.t0 , info.t0 + n_dt * biharm_dt_ref , n_tsteps+1)
 chparams.dt_check = t[1]-t[0]
