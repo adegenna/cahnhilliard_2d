@@ -28,19 +28,31 @@ CahnHilliard2DRHS::CahnHilliard2DRHS(CHparamsScalar& chp , SimInfo& info)
     chpV_.b        = std::vector<double>( info_.nx*info_.nx , chp.b         );
     chpV_.u        = std::vector<double>( info_.nx*info_.nx , chp.u         );
     chpV_.sigma    = std::vector<double>( info_.nx*info_.nx , chp.sigma     );
-    chpV_.m = std::vector<double>( info_.nx*info_.nx , chp.m  );
+    chpV_.m        = std::vector<double>( info_.nx*info_.nx , chp.m  );
     chpV_.sigma_noise    = chp.sigma_noise;
 
-    if ( info.bc.compare("periodic") == 0) {
-      ch_rhs_ = &compute_ch_nonlocal;
-      std::cout << "Initialized Cahn-Hilliard equation with scalar parameters, periodic BCs" << std::endl;
+    if ( info.bc.compare("dirichlet") == 0) {
+      ch_rhs_ = &compute_ch_nonlocal_dirichletBC;
+      std::cout << "Initialized Cahn-Hilliard equation: scalar parameters, dirichlet BCs, no thermal dependence" << std::endl;
     }
+    else {
+      ch_rhs_ = &compute_ch_nonlocal;
+      std::cout << "Initialized Cahn-Hilliard equation: scalar parameters, periodic BCs, no thermal dependence" << std::endl;
+    }
+    
   }
 
 CahnHilliard2DRHS::CahnHilliard2DRHS(CHparamsVector& chp , SimInfo& info)
   : noise_dist_(0.0,1.0) , chpV_(chp) , info_(info)
   {
-    std::cout << "Initialized Cahn-Hilliard equation with spatial-field parameters" << std::endl;
+    if ( info.bc.compare("dirichlet") == 0) {
+      ch_rhs_ = &compute_ch_nonlocal_dirichletBC;
+      std::cout << "Initialized Cahn-Hilliard equation with spatial-field parameters, dirichlet BCs, no thermal dependence" << std::endl;
+    }
+    else {
+      ch_rhs_ = &compute_ch_nonlocal;
+      std::cout << "Initialized Cahn-Hilliard equation: scalar parameters, periodic BCs, no thermal dependence" << std::endl;
+    }
   }
 
 CahnHilliard2DRHS::~CahnHilliard2DRHS() { };
@@ -65,13 +77,16 @@ void CahnHilliard2DRHS::setInitialConditions(std::vector<double> &x)
     std::uniform_real_distribution<double> distribution(-1.0,1.0);
 
     // double initial_value = -1.0;
-    for (int i = 0; i < info_.nx; ++i)
-    {
-      for (int j = 0; j < info_.nx; ++j)
-      {
+    for (int i = 0; i < info_.nx; ++i) {
+      for (int j = 0; j < info_.nx; ++j) {
         x[info_.idx2d(i,j)] = distribution(generator) * 0.005;
       }
     }
+    // Set BCs if needed
+    if ( info_.bc.compare("dirichlet") == 0) {
+      x = apply_dirichlet_bc( x , info_.BC_dirichlet_ch , info_ );
+    }
+    
   }
 
 double CahnHilliard2DRHS::l2residual(const std::vector<double>&c)

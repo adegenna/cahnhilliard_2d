@@ -25,7 +25,8 @@ info              = ch.SimInfo();
 info.t0       = 0.0;
 info.nx       = 128;
 info.dx       = 1./info.nx;
-info.bc       = 'periodic'
+info.bc       = 'dirichlet'
+info.BC_dirichlet_ch = 0.0
 
 nx_ref        = 128;
 dx_ref        = 1./nx_ref
@@ -58,7 +59,7 @@ chparams.T_min        = 0.0
 chparams.T_max        = 1.0
 chparams.T_const      = ch.DoubleVector(0.  * np.ones(nx**2))
 
-n_dt = 1500
+n_dt = 20000
 # ******************************
 
 # Define timescales
@@ -69,8 +70,12 @@ biharm_dt_ref     = (dx_ref**4) / np.max(chparams.eps_2)
 diff_dt_ref       = (dx_ref**2) / np.max( [np.max(chparams.u) , np.max(chparams.b)] )
 lin_dt_ref        = 1.0 / np.max(chparams.sigma)
 
-n_tsteps          = 150
-t                 = np.linspace(0 , n_dt * biharm_dt_ref , n_tsteps+1)
+# Reset from saved state
+n_tsteps          = 100
+info.x            = ch.DoubleVector( np.genfromtxt('C_100.out') )
+info.iter         = 100
+info.t0           = info.iter * n_dt/n_tsteps * biharm_dt_ref
+t                 = np.linspace(info.t0 , info.t0 + n_dt * biharm_dt_ref , n_tsteps+1)
 chparams.dt_check = t[1]-t[0]
 
 # Define control profile for temperature
@@ -92,7 +97,9 @@ for i in range(n_tsteps):
     tt             = generate_square_field(xx,yy,A[i],xy0[i],sigma_temp)
     chparams.f_T   = ch.DoubleVector( tt.ravel() )
     #rhs            = ch.CahnHilliard2DRHS_thermal(chparams , info)
-    rhs            = ch.CahnHilliard2DRHS_thermal_nodiffusion(chparams , info)
+    #rhs            = ch.CahnHilliard2DRHS_thermal_nodiffusion(chparams , info)
+    rhs            = ch.CahnHilliard2DRHS(chparams , info)
     print( 't0 = ', t[i]/biharm_dt, ' dt_biharm , tf = ', t[i+1]/biharm_dt, ' dt_biharm')
     #ch.run_ch_vector_thermal(chparams,info,rhs);
-    ch.run_ch_vector_thermal_nodiffusion(chparams,info,rhs);
+    #ch.run_ch_vector_thermal_nodiffusion(chparams,info,rhs);
+    ch.run_ch_vector_nonthermal(chparams,info,rhs);

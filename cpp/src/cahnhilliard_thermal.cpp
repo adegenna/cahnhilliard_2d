@@ -30,14 +30,31 @@ CahnHilliard2DRHS_thermal::CahnHilliard2DRHS_thermal(CHparamsScalar& chp , SimIn
     chpV_.DT       = std::vector<double>( info_.nx*info_.nx , chp.DT  );
     chpV_.f_T      = std::vector<double>( info_.nx*info_.nx , chp.f_T  );
     chpV_.sigma_noise    = chp.sigma_noise;
+
+    if ( info.bc.compare("dirichlet") == 0) {
+      ch_rhs_ = &compute_ch_nonlocal_dirichletBC;
+      std::cout << "Initialized Cahn-Hilliard equation: scalar parameters, dirichlet BCs, thermal coefficient dependence, thermal diffusion" << std::endl;
+    }
+    else {
+      ch_rhs_ = &compute_ch_nonlocal;
+      std::cout << "Initialized Cahn-Hilliard equation: scalar parameters, periodic BCs, thermal coefficient dependence, thermal diffusion" << std::endl;
+    }
     
-    std::cout << "Initialized thermal Cahn-Hilliard equation with scalar parameters" << std::endl;
   }
 
 CahnHilliard2DRHS_thermal::CahnHilliard2DRHS_thermal(CHparamsVector& chp , SimInfo& info)
   : noise_dist_(0.0,1.0) , chpV_(chp) , info_(info)
   {
-    std::cout << "Initialized thermal Cahn-Hilliard equation with spatial-field parameters" << std::endl;
+
+    if ( info.bc.compare("dirichlet") == 0) {
+      ch_rhs_ = &compute_ch_nonlocal_dirichletBC;
+      std::cout << "Initialized Cahn-Hilliard equation: spatial-field parameters, dirichlet BCs, thermal coefficient dependence, thermal diffusion" << std::endl;
+    }
+    else {
+      ch_rhs_ = &compute_ch_nonlocal;
+      std::cout << "Initialized Cahn-Hilliard equation: spatial-field parameters, periodic BCs, thermal coefficient dependence, thermal diffusion" << std::endl;
+    }
+    
   }
 
 CahnHilliard2DRHS_thermal::~CahnHilliard2DRHS_thermal() { };

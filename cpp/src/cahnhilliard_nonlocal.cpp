@@ -71,16 +71,7 @@ void compute_ch_nonlocal(const std::vector<double> &c,
 
 }
 
-
-
-void compute_ch_nonlocal_dirichletBC(std::vector<double> &c,
-                                     std::vector<double> &dcdt,
-                                     const double t,
-                                     CHparamsVector& chpV,
-                                     SimInfo& info) {
-
-  // Computes deterministic nonlocal CH dynamics
-  // dc/dt = laplacian( u*c^3 - b*c ) - eps_2*biharm(c) - sigma*(c - m)
+std::vector<double>& apply_dirichlet_bc( std::vector<double>& c , double bc_value , SimInfo& info ) {
 
   // set two rows of ghost cells
   # pragma omp parallel for
@@ -98,6 +89,19 @@ void compute_ch_nonlocal_dirichletBC(std::vector<double> &c,
 
   }
 
+  return c;
+
+}
+
+void compute_ch_nonlocal_dirichletBC(const std::vector<double> &c,
+                                     std::vector<double> &dcdt,
+                                     const double t,
+                                     CHparamsVector& chpV,
+                                     SimInfo& info) {
+
+  // Computes deterministic nonlocal CH dynamics
+  // dc/dt = laplacian( u*c^3 - b*c ) - eps_2*biharm(c) - sigma*(c - m)
+
   // compute ch dynamics
   compute_ch_nonlocal(c, dcdt, t, chpV, info);
 
@@ -105,15 +109,15 @@ void compute_ch_nonlocal_dirichletBC(std::vector<double> &c,
   # pragma omp parallel for
   for (int i = 0; i < info.nx; ++i) {
 
-    dcdt[info.idx2d(i, 0)]         = info.BC_dirichlet_ch;
-    dcdt[info.idx2d(i, 1)]         = info.BC_dirichlet_ch;
-    dcdt[info.idx2d(i, info.nx-1)] = info.BC_dirichlet_ch;
-    dcdt[info.idx2d(i, info.nx-2)] = info.BC_dirichlet_ch;
+    dcdt[info.idx2d(i, 0)]         = 0;
+    dcdt[info.idx2d(i, 1)]         = 0;
+    dcdt[info.idx2d(i, info.nx-1)] = 0;
+    dcdt[info.idx2d(i, info.nx-2)] = 0;
     
-    dcdt[info.idx2d(0, i)]         = info.BC_dirichlet_ch;
-    dcdt[info.idx2d(1, i)]         = info.BC_dirichlet_ch;
-    dcdt[info.idx2d(info.nx-1, i)] = info.BC_dirichlet_ch;
-    dcdt[info.idx2d(info.nx-2, i)] = info.BC_dirichlet_ch;
+    dcdt[info.idx2d(0, i)]         = 0;
+    dcdt[info.idx2d(1, i)]         = 0;
+    dcdt[info.idx2d(info.nx-1, i)] = 0;
+    dcdt[info.idx2d(info.nx-2, i)] = 0;
 
   }
 

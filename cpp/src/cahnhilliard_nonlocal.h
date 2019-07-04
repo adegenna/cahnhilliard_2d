@@ -10,11 +10,15 @@ void compute_ch_nonlocal(const std::vector<double> &c,
 			 CHparamsVector& chpV,
 			 SimInfo& info);
 
-void compute_ch_nonlocal_dirichletBC(std::vector<double> &c,
-			 std::vector<double> &dcdt,
-			 const double t,
-			 CHparamsVector& chpV,
-			 SimInfo& info);
+void compute_ch_nonlocal_dirichletBC(const std::vector<double> &c,
+				     std::vector<double> &dcdt,
+				     const double t,
+				     CHparamsVector& chpV,
+				     SimInfo& info);
+
+std::vector<double>& apply_dirichlet_bc( std::vector<double>& c ,
+					 double bc_value ,
+					 SimInfo& info );
 
 double laplace_component(int i ,
                          const std::vector<double>& c ,

@@ -17,6 +17,7 @@
 
  %include <std_vector.i>
  %include typemaps.i
+ %include std_string.i
  namespace std {
   %template(DoubleVector) vector<double>;
  };
