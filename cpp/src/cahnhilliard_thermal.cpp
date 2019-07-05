@@ -5,7 +5,7 @@
 #include <omp.h>
 #include <boost/numeric/odeint.hpp>
 #include "cahnhilliard_thermal.h"
-#include "cahnhilliard_nonlocal.h"
+#include "utils_ch.h"
 
   /*
   Cahn-Hilliard:

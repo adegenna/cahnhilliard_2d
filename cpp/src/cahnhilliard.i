@@ -12,7 +12,7 @@
  #include "cahnhilliard_thermal_nodiffusion.h"
  #include "chparams.h"
  #include "run_ch_solver.hpp"
- #include "cahnhilliard_nonlocal.h"
+ #include "utils_ch.h"
  %}
 
  %include <std_vector.i>

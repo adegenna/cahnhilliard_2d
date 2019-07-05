@@ -1,4 +1,4 @@
-#include "cahnhilliard_nonlocal.h"
+#include "utils_ch.h"
 
 void compute_ch_nonlocal(const std::vector<double> &c,
 			 std::vector<double> &dcdt,
@@ -74,7 +74,6 @@ void compute_ch_nonlocal(const std::vector<double> &c,
 std::vector<double>& apply_dirichlet_bc( std::vector<double>& c ,
 					 SimInfo& info ) {
 
-  // set two rows of ghost cells
   # pragma omp parallel for
   for (int i = 0; i < info.nx; ++i) {
 
@@ -97,7 +96,6 @@ std::vector<double>& apply_dirichlet_bc( std::vector<double>& c ,
 std::vector<double>& apply_neumann_bc( std::vector<double>& c ,
 				       SimInfo& info ) {
 
-  // set two rows of ghost cells
   # pragma omp parallel for
   for (int i = 0; i < info.nx; ++i) {
 
@@ -115,6 +113,40 @@ std::vector<double>& apply_neumann_bc( std::vector<double>& c ,
   
   return c;
 
+}
+
+std::vector<double>& apply_mixed_bc_neumann_with_top_dirichlet( std::vector<double>& c ,
+                                                                SimInfo& info ) {
+
+  c = apply_neumann_bc( c , info );
+  
+  # pragma omp parallel for
+  for (int i = 0; i < info.nx; ++i) {
+
+    c[info.idx2d(info.nx-2, i)] = info.BC_dirichlet_ch;
+    c[info.idx2d(info.nx-1, i)] = info.BC_dirichlet_ch;
+
+  }
+
+  return c;
+  
+}
+
+std::vector<double>& apply_mixed_bc_neumann_with_bottom_dirichlet( std::vector<double>& c ,
+								   SimInfo& info ) {
+
+  c = apply_neumann_bc( c , info );
+  
+  # pragma omp parallel for
+  for (int i = 0; i < info.nx; ++i) {
+    
+    c[info.idx2d(0, i)] = info.BC_dirichlet_ch;
+    c[info.idx2d(1, i)] = info.BC_dirichlet_ch;
+
+  }
+
+  return c;
+  
 }
 
 std::vector<double>& set_boundary_values_to_zero( std::vector<double> &dcdt ,
@@ -145,15 +177,20 @@ void compute_ch_nonlocal_stationary_boundaries(const std::vector<double> &c,
 					       CHparamsVector& chpV,
 					       SimInfo& info) {
 
-  // Computes deterministic nonlocal CH dynamics
-  // dc/dt = laplacian( u*c^3 - b*c ) - eps_2*biharm(c) - sigma*(c - m)
-
-  // compute ch dynamics
   compute_ch_nonlocal(c, dcdt, t, chpV, info);
-
-  // reset boundary dc/dt = 0
   dcdt = set_boundary_values_to_zero( dcdt , info );
 
+}
+
+std::vector<double>& freeze_corners( std::vector<double>& dcdt , SimInfo& info ) {
+
+  dcdt[info.idx2d(0,0)] = 0;         dcdt[info.idx2d(0,1)] = 0;         dcdt[info.idx2d(0,info.nx-2)] = 0;         dcdt[info.idx2d(0,info.nx-1)] = 0;
+  dcdt[info.idx2d(1,0)] = 0;         dcdt[info.idx2d(1,1)] = 0;         dcdt[info.idx2d(1,info.nx-2)] = 0;         dcdt[info.idx2d(1,info.nx-1)] = 0;
+  dcdt[info.idx2d(info.nx-2,0)] = 0; dcdt[info.idx2d(info.nx-2,1)] = 0; dcdt[info.idx2d(info.nx-2,info.nx-2)] = 0; dcdt[info.idx2d(info.nx-2,info.nx-1)] = 0;
+  dcdt[info.idx2d(info.nx-1,0)] = 0; dcdt[info.idx2d(info.nx-1,1)] = 0; dcdt[info.idx2d(info.nx-1,info.nx-2)] = 0; dcdt[info.idx2d(info.nx-1,info.nx-1)] = 0;
+
+  return dcdt;
+  
 }
 
 void compute_ch_nonlocal_neumannBC(const std::vector<double> &c,
@@ -162,21 +199,34 @@ void compute_ch_nonlocal_neumannBC(const std::vector<double> &c,
                                    CHparamsVector& chpV,
                                    SimInfo& info) {
 
-  // Computes deterministic nonlocal CH dynamics
-  // dc/dt = laplacian( u*c^3 - b*c ) - eps_2*biharm(c) - sigma*(c - m)
-
-  // compute ch dynamics
   compute_ch_nonlocal(c, dcdt, t, chpV, info);
-
-  // reset boundary dc/dt for neumann bc
   dcdt = apply_neumann_bc( dcdt , info );
+  dcdt = freeze_corners( dcdt , info ); // 4 corners don't affect dynamics
+  
+}
 
-  // freeze corners, which don't matter at all
-  dcdt[info.idx2d(0,0)] = 0;         dcdt[info.idx2d(0,1)] = 0;         dcdt[info.idx2d(0,info.nx-2)] = 0;         dcdt[info.idx2d(0,info.nx-1)] = 0;
-  dcdt[info.idx2d(1,0)] = 0;         dcdt[info.idx2d(1,1)] = 0;         dcdt[info.idx2d(1,info.nx-2)] = 0;         dcdt[info.idx2d(1,info.nx-1)] = 0;
-  dcdt[info.idx2d(info.nx-2,0)] = 0; dcdt[info.idx2d(info.nx-2,1)] = 0; dcdt[info.idx2d(info.nx-2,info.nx-2)] = 0; dcdt[info.idx2d(info.nx-2,info.nx-1)] = 0;
-  dcdt[info.idx2d(info.nx-1,0)] = 0; dcdt[info.idx2d(info.nx-1,1)] = 0; dcdt[info.idx2d(info.nx-1,info.nx-2)] = 0; dcdt[info.idx2d(info.nx-1,info.nx-1)] = 0;
+void compute_ch_nonlocal_mixedBC_neumann_with_bottom_dirichlet(const std::vector<double> &c,
+                                                               std::vector<double> &dcdt,
+                                                               const double t,
+                                                               CHparamsVector& chpV,
+                                                               SimInfo& info) {
 
+  compute_ch_nonlocal(c, dcdt, t, chpV, info);
+  dcdt = apply_mixed_bc_neumann_with_bottom_dirichlet( dcdt , info );
+  dcdt = freeze_corners( dcdt , info );
+  
+}
+
+void compute_ch_nonlocal_mixedBC_neumann_with_top_dirichlet(const std::vector<double> &c,
+                                                            std::vector<double> &dcdt,
+                                                            const double t,
+                                                            CHparamsVector& chpV,
+                                                            SimInfo& info) {
+
+  compute_ch_nonlocal(c, dcdt, t, chpV, info);
+  dcdt = apply_mixed_bc_neumann_with_top_dirichlet( dcdt , info );
+  dcdt = freeze_corners( dcdt , info );
+  
 }
 
 double laplace_component(int i ,

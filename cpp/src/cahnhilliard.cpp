@@ -6,7 +6,7 @@
 #include <boost/numeric/odeint.hpp>
 #include <string>
 #include "cahnhilliard.h"
-#include "cahnhilliard_nonlocal.h"
+#include "utils_ch.h"
 
 
   /*
@@ -39,6 +39,10 @@ CahnHilliard2DRHS::CahnHilliard2DRHS(CHparamsScalar& chp , SimInfo& info)
       ch_rhs_ = &compute_ch_nonlocal_neumannBC;
       std::cout << "Initialized Cahn-Hilliard equation: scalar parameters, neumann BCs, no thermal dependence" << std::endl;
     }
+    else if ( info.bc.compare("mixed_neumann_bottom_dirichlet") == 0 ) {
+      ch_rhs_ = &compute_ch_nonlocal_mixedBC_neumann_with_bottom_dirichlet;
+      std::cout << "Initialized Cahn-Hilliard equation: scalar parameters, mixed BC (neumann + bottom dirichlet), no thermal dependence" << std::endl;
+    }
     else {
       ch_rhs_ = &compute_ch_nonlocal;
       std::cout << "Initialized Cahn-Hilliard equation: scalar parameters, periodic BCs, no thermal dependence" << std::endl;
@@ -56,6 +60,10 @@ CahnHilliard2DRHS::CahnHilliard2DRHS(CHparamsVector& chp , SimInfo& info)
     else if ( info.bc.compare("neumann") == 0) {
       ch_rhs_ = &compute_ch_nonlocal_neumannBC;
       std::cout << "Initialized Cahn-Hilliard equation with spatial-field parameters, neumann BCs, no thermal dependence" << std::endl;
+    }
+    else if ( info.bc.compare("mixed_neumann_bottom_dirichlet") == 0 ) {
+      ch_rhs_ = &compute_ch_nonlocal_mixedBC_neumann_with_bottom_dirichlet;
+      std::cout << "Initialized Cahn-Hilliard equation: scalar parameters, mixed BC (neumann + bottom dirichlet), no thermal dependence" << std::endl;
     }
     else {
       ch_rhs_ = &compute_ch_nonlocal;
@@ -93,6 +101,9 @@ void CahnHilliard2DRHS::setInitialConditions(std::vector<double> &x)
     // Set BCs if needed
     if ( info_.bc.compare("dirichlet") == 0) {
       x = apply_dirichlet_bc( x , info_ );
+    }
+    else if ( info_.bc.compare("mixed_neumann_bottom_dirichlet") == 0 ) {
+      x = apply_mixed_bc_neumann_with_bottom_dirichlet( x , info_ );
     }
     else if ( info_.bc.compare("neumann") == 0 ) {
       x = apply_neumann_bc( x , info_ );

@@ -3,7 +3,7 @@ CPP_NONTHERMAL   = cahnhilliard
 CPP_THERMAL      = cahnhilliard_thermal
 CPP_THERMAL_NODIFF = cahnhilliard_thermal_nodiffusion
 CPP_PARAMS       = chparams
-CPP_CHBASE       = cahnhilliard_nonlocal
+CPP_CHBASE       = utils_ch
 DIR              = swig
 
 all : ch_nonthermal
