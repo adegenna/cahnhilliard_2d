@@ -27,7 +27,7 @@ info.nx       = 128;
 info.ny       = 64;
 info.dx       = 1./info.nx;
 info.dy       = 0.5/info.ny;
-info.bc       = 'mixed_neumann_bottom_dirichlet'
+info.bc       = 'mixed_neumann_top_dirichlet'
 info.BC_dirichlet_ch = 1.0
 
 nx_ref        = 128;
