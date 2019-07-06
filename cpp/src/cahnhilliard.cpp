@@ -24,11 +24,11 @@
 CahnHilliard2DRHS::CahnHilliard2DRHS(CHparamsScalar& chp , SimInfo& info)
   : noise_dist_(0.0,1.0) , info_(info)
   {    
-    chpV_.eps_2    = std::vector<double>( info_.nx*info_.nx , chp.eps_2     );
-    chpV_.b        = std::vector<double>( info_.nx*info_.nx , chp.b         );
-    chpV_.u        = std::vector<double>( info_.nx*info_.nx , chp.u         );
-    chpV_.sigma    = std::vector<double>( info_.nx*info_.nx , chp.sigma     );
-    chpV_.m        = std::vector<double>( info_.nx*info_.nx , chp.m  );
+    chpV_.eps_2    = std::vector<double>( info_.nx*info_.ny , chp.eps_2     );
+    chpV_.b        = std::vector<double>( info_.nx*info_.ny , chp.b         );
+    chpV_.u        = std::vector<double>( info_.nx*info_.ny , chp.u         );
+    chpV_.sigma    = std::vector<double>( info_.nx*info_.ny , chp.sigma     );
+    chpV_.m        = std::vector<double>( info_.nx*info_.ny , chp.m  );
     chpV_.sigma_noise    = chp.sigma_noise;
 
     if ( info.bc.compare("dirichlet") == 0 ) {
@@ -75,7 +75,7 @@ CahnHilliard2DRHS::~CahnHilliard2DRHS() { };
 
 void CahnHilliard2DRHS::rhs(const std::vector<double> &c, std::vector<double> &dcdt, const double t)
   {
-    dcdt.resize(info_.nx*info_.nx);
+    dcdt.resize(info_.nx * info_.ny);
     (*ch_rhs_)(c, dcdt, t, chpV_, info_);
   }
 
@@ -87,13 +87,13 @@ void CahnHilliard2DRHS::operator()(const std::vector<double> &c, std::vector<dou
 
 void CahnHilliard2DRHS::setInitialConditions(std::vector<double> &x)
   {
-    x.resize(info_.nx * info_.nx);
+    x.resize(info_.nx * info_.ny);
 
     std::default_random_engine generator;
     std::uniform_real_distribution<double> distribution(-1.0,1.0);
 
     // double initial_value = -1.0;
-    for (int i = 0; i < info_.nx; ++i) {
+    for (int i = 0; i < info_.ny; ++i) {
       for (int j = 0; j < info_.nx; ++j) {
         x[info_.idx2d(i,j)] = distribution(generator) * 0.005;
       }
@@ -116,42 +116,21 @@ double CahnHilliard2DRHS::l2residual(const std::vector<double>&c)
     std::vector<double> dcdt;
     (*this)(c, dcdt, 0);
     double res = 0;
-    for (int i = 0; i < info_.nx*info_.nx; ++i){
+    for (int i = 0; i < info_.nx * info_.ny; ++i){
       res += dcdt[i] * dcdt[i];
     }
     return sqrt(res);
   }
 
-struct Recorder
-{
-  int nx;
-  std::ofstream& out;
-  
-  Recorder( std::ofstream& out , int nx )
-    : out( out ) , nx( nx ) { }
-
-  void operator()( const std::vector<double> &x , const double t )
-  {
-    for (int i = 0; i < nx; ++i){
-      for (int j = 0; j < nx; ++j){
-        out << x[i * nx + j] << " ";
-      }
-      out << std::endl;
-    }
-  }
-  
-};
-
-
-void CahnHilliard2DRHS::write_state(const std::vector<double> &x , const int idx , const int nx )
+void CahnHilliard2DRHS::write_state(const std::vector<double> &x , const int idx , const int nx , const int ny)
 {
   std::ofstream out;
   out.open( "C_" + std::to_string(idx) + ".out" );
   out.precision(16);
   
   for (int i = 0; i < nx; ++i){
-    for (int j = 0; j < nx; ++j){
-      out << x[i * nx + j] << " ";
+    for (int j = 0; j < ny; ++j){
+      out << x[i * ny + j] << " ";
     }
   }
 

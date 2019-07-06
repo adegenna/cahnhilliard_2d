@@ -11,7 +11,7 @@ void compute_ch_nonlocal(const std::vector<double> &c,
 
   // evaluate the second order term, 5 point central stencil
   # pragma omp parallel for
-  for (int i = 0; i < info.nx; ++i) {
+  for (int i = 0; i < info.ny; ++i) {
     for (int j = 0; j < info.nx; ++j) {
         
       const double c_i   = laplace_component( info.idx2d(i, j)      , c , chpV.u , chpV.b );
@@ -19,16 +19,19 @@ void compute_ch_nonlocal(const std::vector<double> &c,
       const double c_ip1 = laplace_component( info.idx2d(i + 1, j)  , c , chpV.u , chpV.b );
       const double c_jm1 = laplace_component( info.idx2d(i, j - 1)  , c , chpV.u , chpV.b );
       const double c_jp1 = laplace_component( info.idx2d(i, j + 1)  , c , chpV.u , chpV.b );
-        
-      dcdt[info.idx2d(i, j)]  = (1.0 / (info.dx * info.dx)) * (c_im1 + c_ip1 + c_jm1 + c_jp1 - 4.0 * c_i);
+
+      double dxx = (1.0 / (info.dx * info.dx)) * ( c_jp1 + c_jm1 - 2.0 * c_i );
+      double dyy = (1.0 / (info.dy * info.dy)) * ( c_ip1 + c_im1 - 2.0 * c_i );
+      dcdt[info.idx2d(i, j)] = dxx + dyy;
+      
     }
   }
 
   // evaluate the 4th order term, 9 point central stencil
   # pragma omp parallel for
-  for (int i = 0; i < info.nx; ++i) {
+  for (int i = 0; i < info.ny; ++i) {
     for (int j = 0; j < info.nx; ++j) {
-        
+      
       const double c_i   = c[info.idx2d(i, j)];
       const double c_im1 = c[info.idx2d(i - 1, j)];
       const double c_ip1 = c[info.idx2d(i + 1, j)];
@@ -43,28 +46,31 @@ void compute_ch_nonlocal(const std::vector<double> &c,
       const double c_bl  = c[info.idx2d(i+1 , j-1)];
       const double c_br  = c[info.idx2d(i+1 , j+1)];
 
-      // x-direction u_xxxx
-      dcdt[info.idx2d(i,j)] -= chpV.eps_2[info.idx2d(i,j)] /(info.dx*info.dx*info.dx*info.dx) * 
+      // y-direction u_yyyy
+      double dyyyy = 1.0 / (info.dy * info.dy * info.dy * info.dy) * 
         (c_ip2 - 4.0*c_ip1 + 6.0*c_i - 4.0*c_im1 + c_im2);
 
-      // y-direction u_yyyy
-      dcdt[info.idx2d(i,j)] -= chpV.eps_2[info.idx2d(i,j)] /(info.dx*info.dx*info.dx*info.dx) * 
+      // x-direction u_xxxx
+      double dxxxx = 1.0 / (info.dx * info.dx * info.dx * info.dx) * 
         (c_jp2 - 4.0*c_jp1 + 6.0*c_i - 4.0*c_jm1 + c_jm2);
 
       // mixed term 2*u_xxyy
-      dcdt[info.idx2d(i,j)] -= chpV.eps_2[info.idx2d(i,j)] /(info.dx*info.dx*info.dx*info.dx) * 
+      double dxxyy = 1.0 / (info.dx * info.dx * info.dy * info.dy) * 
         2 * (4*c_i - 2*(c_im1 + c_ip1 + c_jm1 + c_jp1) + c_ul + c_ur + c_bl + c_br );
+
+      dcdt[info.idx2d(i,j)] += -chpV.eps_2[info.idx2d(i,j)] * ( dxxxx + dyyyy + dxxyy );
+      
     }
   }
 
   // evaluate linear term
   # pragma omp parallel for
-  for (int i = 0; i < info.nx; ++i){
+  for (int i = 0; i < info.ny; ++i){
     for (int j = 0; j < info.nx; ++j){
         
-      const double c_i   = c[info.idx2d(i, j)];
-        
-      dcdt[info.idx2d(i,j)]  -= chpV.sigma[info.idx2d(i,j)] * ( c_i - chpV.m[info.idx2d(i,j)] );
+      const double c_i        = c[info.idx2d(i, j)];
+      dcdt[info.idx2d(i,j)]  += -chpV.sigma[info.idx2d(i,j)] * ( c_i - chpV.m[info.idx2d(i,j)] );
+
     }
   }
 
@@ -76,17 +82,22 @@ std::vector<double>& apply_dirichlet_bc( std::vector<double>& c ,
 
   # pragma omp parallel for
   for (int i = 0; i < info.nx; ++i) {
+    
+    c[info.idx2d(0, i)]         = info.BC_dirichlet_ch;
+    c[info.idx2d(1, i)]         = info.BC_dirichlet_ch;
+    c[info.idx2d(info.ny-1, i)] = info.BC_dirichlet_ch;
+    c[info.idx2d(info.ny-2, i)] = info.BC_dirichlet_ch;
+
+  }
+
+  # pragma omp parallel for
+  for (int i = 0; i < info.ny; ++i) {
 
     c[info.idx2d(i, 0)]         = info.BC_dirichlet_ch;
     c[info.idx2d(i, 1)]         = info.BC_dirichlet_ch;
     c[info.idx2d(i, info.nx-1)] = info.BC_dirichlet_ch;
     c[info.idx2d(i, info.nx-2)] = info.BC_dirichlet_ch;
     
-    c[info.idx2d(0, i)]         = info.BC_dirichlet_ch;
-    c[info.idx2d(1, i)]         = info.BC_dirichlet_ch;
-    c[info.idx2d(info.nx-1, i)] = info.BC_dirichlet_ch;
-    c[info.idx2d(info.nx-2, i)] = info.BC_dirichlet_ch;
-
   }
 
   return c;
@@ -98,16 +109,21 @@ std::vector<double>& apply_neumann_bc( std::vector<double>& c ,
 
   # pragma omp parallel for
   for (int i = 0; i < info.nx; ++i) {
+    
+    c[info.idx2d(0, i)]         = c[info.idx2d(4, i)];
+    c[info.idx2d(1, i)]         = c[info.idx2d(3, i)];
+    c[info.idx2d(info.ny-1, i)] = c[info.idx2d(info.ny-5, i)];
+    c[info.idx2d(info.ny-2, i)] = c[info.idx2d(info.ny-4, i)];
+
+  }
+  
+  # pragma omp parallel for
+  for (int i = 0; i < info.ny; ++i) {
 
     c[info.idx2d(i, 0)]         = c[info.idx2d(i, 4)];
     c[info.idx2d(i, 1)]         = c[info.idx2d(i, 3)];
     c[info.idx2d(i, info.nx-1)] = c[info.idx2d(i, info.nx-5)];
     c[info.idx2d(i, info.nx-2)] = c[info.idx2d(i, info.nx-4)];
-    
-    c[info.idx2d(0, i)]         = c[info.idx2d(4, i)];
-    c[info.idx2d(1, i)]         = c[info.idx2d(3, i)];
-    c[info.idx2d(info.nx-1, i)] = c[info.idx2d(info.nx-5, i)];
-    c[info.idx2d(info.nx-2, i)] = c[info.idx2d(info.nx-4, i)];
 
   }
   
@@ -121,10 +137,10 @@ std::vector<double>& apply_mixed_bc_neumann_with_top_dirichlet( std::vector<doub
   c = apply_neumann_bc( c , info );
   
   # pragma omp parallel for
-  for (int i = 0; i < info.nx; ++i) {
+  for (int i = 0; i < info.ny; ++i) {
 
-    c[info.idx2d(info.nx-2, i)] = info.BC_dirichlet_ch;
-    c[info.idx2d(info.nx-1, i)] = info.BC_dirichlet_ch;
+    c[info.idx2d(info.ny-2, i)] = info.BC_dirichlet_ch;
+    c[info.idx2d(info.ny-1, i)] = info.BC_dirichlet_ch;
 
   }
 
@@ -138,7 +154,7 @@ std::vector<double>& apply_mixed_bc_neumann_with_bottom_dirichlet( std::vector<d
   c = apply_neumann_bc( c , info );
   
   # pragma omp parallel for
-  for (int i = 0; i < info.nx; ++i) {
+  for (int i = 0; i < info.ny; ++i) {
     
     c[info.idx2d(0, i)] = info.BC_dirichlet_ch;
     c[info.idx2d(1, i)] = info.BC_dirichlet_ch;
@@ -154,16 +170,21 @@ std::vector<double>& set_boundary_values_to_zero( std::vector<double> &dcdt ,
 
   # pragma omp parallel for
   for (int i = 0; i < info.nx; ++i) {
+    
+    dcdt[info.idx2d(0, i)]         = 0;
+    dcdt[info.idx2d(1, i)]         = 0;
+    dcdt[info.idx2d(info.ny-1, i)] = 0;
+    dcdt[info.idx2d(info.ny-2, i)] = 0;
+
+  }
+
+  # pragma omp parallel for
+  for (int i = 0; i < info.ny; ++i) {
 
     dcdt[info.idx2d(i, 0)]         = 0;
     dcdt[info.idx2d(i, 1)]         = 0;
     dcdt[info.idx2d(i, info.nx-1)] = 0;
     dcdt[info.idx2d(i, info.nx-2)] = 0;
-    
-    dcdt[info.idx2d(0, i)]         = 0;
-    dcdt[info.idx2d(1, i)]         = 0;
-    dcdt[info.idx2d(info.nx-1, i)] = 0;
-    dcdt[info.idx2d(info.nx-2, i)] = 0;
 
   }
 
@@ -186,8 +207,8 @@ std::vector<double>& freeze_corners( std::vector<double>& dcdt , SimInfo& info )
 
   dcdt[info.idx2d(0,0)] = 0;         dcdt[info.idx2d(0,1)] = 0;         dcdt[info.idx2d(0,info.nx-2)] = 0;         dcdt[info.idx2d(0,info.nx-1)] = 0;
   dcdt[info.idx2d(1,0)] = 0;         dcdt[info.idx2d(1,1)] = 0;         dcdt[info.idx2d(1,info.nx-2)] = 0;         dcdt[info.idx2d(1,info.nx-1)] = 0;
-  dcdt[info.idx2d(info.nx-2,0)] = 0; dcdt[info.idx2d(info.nx-2,1)] = 0; dcdt[info.idx2d(info.nx-2,info.nx-2)] = 0; dcdt[info.idx2d(info.nx-2,info.nx-1)] = 0;
-  dcdt[info.idx2d(info.nx-1,0)] = 0; dcdt[info.idx2d(info.nx-1,1)] = 0; dcdt[info.idx2d(info.nx-1,info.nx-2)] = 0; dcdt[info.idx2d(info.nx-1,info.nx-1)] = 0;
+  dcdt[info.idx2d(info.ny-2,0)] = 0; dcdt[info.idx2d(info.ny-2,1)] = 0; dcdt[info.idx2d(info.ny-2,info.nx-2)] = 0; dcdt[info.idx2d(info.ny-2,info.nx-1)] = 0;
+  dcdt[info.idx2d(info.ny-1,0)] = 0; dcdt[info.idx2d(info.ny-1,1)] = 0; dcdt[info.idx2d(info.ny-1,info.nx-2)] = 0; dcdt[info.idx2d(info.ny-1,info.nx-1)] = 0;
 
   return dcdt;
   
@@ -246,7 +267,7 @@ CHparamsVector compute_chparams_using_temperature( CHparamsVector& chpV0,
   double dsigma_dT    = ( chpV.sigma_max - chpV.sigma_min ) / ( chpV.T_max - chpV.T_min );
   
   # pragma omp parallel for
-  for (int i = 0; i < info.nx; ++i) {
+  for (int i = 0; i < info.ny; ++i) {
     for (int j = 0; j < info.nx; ++j) {
 
       const double dT         = T[info.idx2d(i, j)] - chpV.T_min;

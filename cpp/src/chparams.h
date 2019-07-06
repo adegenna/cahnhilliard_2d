@@ -21,8 +21,8 @@ class SimInfo
   double t0;
   double tf;
   int iter = 0;
-  double dx;
-  int nx;
+  double dx, dy;
+  int nx, ny;
   double dt_check;
   std::vector<double> x;
   std::string bc = "periodic";
@@ -55,7 +55,7 @@ class CHparamsScalar
   double sigma_noise;
   bool temperature_dependence = false;
 
-  double compute_stability_limit(double dx);
+  double compute_stability_limit(double dx , double dy);
   
 };
 
@@ -80,7 +80,7 @@ class CHparamsVector
 
   double sigma_noise;
 
-  double compute_stability_limit(double dx);
+  double compute_stability_limit(double dx , double dy);
   
 };
 

@@ -25,15 +25,12 @@ void run_ch_solver( T_params& chparams , SimInfo& info , T_rhs& rhs )
 
   controlled_stepper_type controlled_stepper;
 
-  const double stability_limit = chparams.compute_stability_limit(info.dx); // just an estimate
-  double dt_initial            = stability_limit * 0.5;
-  double dt_check_residual     = dt_initial * 10.0;
-  
+  const double stability_limit = chparams.compute_stability_limit(info.dx , info.dy); // just an estimate
   const double res0            = rhs.l2residual(x);
 
   std::cout << "residual at initial condition: " << res0 << std::endl;
   if (info.iter == 0)
-    rhs.write_state(x,0,info.nx);
+    rhs.write_state(x,0,info.nx,info.ny);
 
   if (chparams.sigma_noise < 1e-2) {
     std::cout << "Solving deterministic (noise-free) CH" << std::endl;
@@ -49,7 +46,7 @@ void run_ch_solver( T_params& chparams , SimInfo& info , T_rhs& rhs )
   }
   info.iter += 1;
   std::cout << "iter: " << info.iter << " , t = " << info.tf << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
-  rhs.write_state(x,info.iter,info.nx);
+  rhs.write_state(x,info.iter,info.nx,info.ny);
   info.x = x;
 
 };

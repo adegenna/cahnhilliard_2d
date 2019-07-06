@@ -16,7 +16,7 @@ class CahnHilliard2DRHS_thermal_nodiffusion {
   void operator()(const std::vector<double> &c, std::vector<double> &dcdt, const double t);
   void setInitialConditions(std::vector<double> &x);
   double l2residual(const std::vector<double> &c);
-  void write_state( const std::vector<double> &x , const int idx , const int nx );
+  void write_state( const std::vector<double> &x , const int idx , const int nx , const int ny);
   
  private:
 

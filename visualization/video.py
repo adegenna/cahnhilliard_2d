@@ -3,16 +3,18 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 
 t0 = 0
-tf = 85
+tf = 8
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/C_'
 statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/swig/C_'
 
-nx = int(np.sqrt(np.genfromtxt(statefile + '0.out' ).shape[0]))
+nx = 128
+ny = 64
 
 x     = np.arange(nx)
-xx,yy = np.meshgrid(x,x)
+y     = np.arange(ny)
+xx,yy = np.meshgrid(y,x)
 
-tstep = 5
+tstep = 1
 fig   = plt.figure(10,figsize=(8,8))
 ax    = fig.gca()
 
@@ -20,10 +22,10 @@ ax    = fig.gca()
 def animate(i):
     print(i*tstep)
     w = np.genfromtxt(statefile + str(int(i*tstep)) + '.out' )
-    w = w.reshape([nx,nx]);
-    w[0:2,0:2] = 0
+    w = w.reshape([nx,ny]);
     ax.cla()
     contour = ax.contourf(xx,yy,w,30,vmin=-0.7,vmax=0.7)
+    ax.set_aspect('equal')
     #contour = ax.contourf(xx,yy,w,30,vmin=0.,vmax=1)
     return contour
 
