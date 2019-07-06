@@ -137,7 +137,7 @@ std::vector<double>& apply_mixed_bc_neumann_with_top_dirichlet( std::vector<doub
   c = apply_neumann_bc( c , info );
   
   # pragma omp parallel for
-  for (int i = 0; i < info.ny; ++i) {
+  for (int i = 0; i < info.nx; ++i) {
 
     c[info.idx2d(info.ny-2, i)] = info.BC_dirichlet_ch;
     c[info.idx2d(info.ny-1, i)] = info.BC_dirichlet_ch;
@@ -154,7 +154,7 @@ std::vector<double>& apply_mixed_bc_neumann_with_bottom_dirichlet( std::vector<d
   c = apply_neumann_bc( c , info );
   
   # pragma omp parallel for
-  for (int i = 0; i < info.ny; ++i) {
+  for (int i = 0; i < info.nx; ++i) {
     
     c[info.idx2d(0, i)] = info.BC_dirichlet_ch;
     c[info.idx2d(1, i)] = info.BC_dirichlet_ch;

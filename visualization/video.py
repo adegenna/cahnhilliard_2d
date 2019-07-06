@@ -12,7 +12,8 @@ ny = 64
 
 x     = np.arange(nx)
 y     = np.arange(ny)
-xx,yy = np.meshgrid(y,x)
+xx,yy = np.meshgrid(x,y)
+xx = xx.T; yy = yy.T
 
 tstep = 1
 fig   = plt.figure(10,figsize=(8,8))
@@ -22,7 +23,7 @@ ax    = fig.gca()
 def animate(i):
     print(i*tstep)
     w = np.genfromtxt(statefile + str(int(i*tstep)) + '.out' )
-    w = w.reshape([nx,ny]);
+    w = w.reshape([nx,ny],order='C');
     ax.cla()
     contour = ax.contourf(xx,yy,w,30,vmin=-0.7,vmax=0.7)
     ax.set_aspect('equal')
