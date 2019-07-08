@@ -9,13 +9,13 @@ Boundary Conditions: periodic, Neumann, Dirichlet, or mixed
 
 Some of the coefficients of this equation are functions of temperature:
 
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/thermal_eqn.gif">
-
 <img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/eps2_thermal.gif">
+
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/sigma_thermal.gif">
 
 Temperature itself can be evolved as a spatial field through a thermal diffusion equation that is one-way coupled to the Cahn-Hilliard dynamics:
 
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/sigma_thermal.gif">
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/thermal_eqn.gif">
 
 # python/
 This subdirectory contains earlier prototyping code in pure Python, but support for it has been discontinued in favor of the C++/Swig solution.
