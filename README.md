@@ -1,5 +1,7 @@
 # Introduction
-Solver for the 2D Cahn Hilliard equation:
+
+## Concentration dynamics
+The main field that evolves is relative concentration of the A phase at the mesoscale of a block copolymer, which occurs through a modified 2D Cahn Hilliard equation:
 
 <img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/cheqn.gif">
 
@@ -7,7 +9,9 @@ Domain: 2D rectangular
 
 Boundary Conditions: periodic, Neumann, Dirichlet, or mixed
 
-Some of the coefficients of this equation are functions of temperature:
+## Thermal dynamics
+
+Some of the coefficients of this equation may be chosen to be a function of temperature, based on scaling arguments:
 
 <img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/eps2_thermal.gif">
 
@@ -16,6 +20,10 @@ Some of the coefficients of this equation are functions of temperature:
 Temperature itself can be evolved as a spatial field through a thermal diffusion equation that is one-way coupled to the Cahn-Hilliard dynamics:
 
 <img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/thermal_eqn.gif">
+
+## Numerical method
+
+Spatial discretization is uniform finite difference. Temporal evolution is handled by the `boost::numeric::odeint` library. A variety of explicit marching options are possible (e.g., RK4, with or without adaptive steps). The explicit timestep is set with reference to the biharmonic timescale of the problem (which should be the stiffest linear timescale present).
 
 # cpp/
 This subdirectory contains all C++ source (in `src/`) as well as Python Swig wrappers (in `swig`).
