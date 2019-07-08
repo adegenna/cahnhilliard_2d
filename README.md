@@ -1,7 +1,7 @@
 # Introduction
 Solver for the 2D Cahn Hilliard equation:
 
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/cheqn.gif">
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/cheqn.gif">
 
 Domain: 2D rectangular
 
@@ -9,13 +9,13 @@ Boundary Conditions: periodic, Neumann, Dirichlet, or mixed
 
 Some of the coefficients of this equation are functions of temperature:
 
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/eps2_thermal.gif">
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/eps2_thermal.gif">
 
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/sigma_thermal.gif">
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/sigma_thermal.gif">
 
 Temperature itself can be evolved as a spatial field through a thermal diffusion equation that is one-way coupled to the Cahn-Hilliard dynamics:
 
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/thermal_eqn.gif">
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/thermal_eqn.gif">
 
 # cpp/
 This subdirectory contains all C++ source (in `src/`) as well as Python Swig wrappers (in `swig`).
@@ -64,8 +64,8 @@ Here are some example state snapshots from 4 different simulations. The first th
 
 These are two steady-states achieved with differing values of `m` (the left has `m = 0.5`; the right has `m = 0`):
 
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/ch_nonthermal.png" width="200" height="200"> <img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/ch_nonthermal_2.png" width="200" height="200">
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/ch_nonthermal.png" width="200" height="200"> <img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/ch_nonthermal_2.png" width="200" height="200">
 
 This is a temperature-dependent simulation with thermal diffusion present (the top is the concentration field; the bottom is the temperature field):
 
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/ch_thermal.png" width="200" height="400">
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/ch_thermal.png" width="200" height="400">
