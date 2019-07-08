@@ -3,6 +3,12 @@ import matplotlib.pyplot as plt
 from scipy import misc
 import cahnhilliard as ch
 
+def combine_lower_and_upper_fields(fname_lower,fname_upper,nxy_lower,nxy_upper):
+    clower = np.genfromtxt(fname_lower).reshape(nxy_lower)
+    cupper = np.genfromtxt(fname_upper).reshape(nxy_upper)
+    c      = np.hstack( [clower , cupper] ).ravel(order='F')
+    return ch.DoubleVector( c )
+
 def generate_gaussian_field(xx,yy,A,xy0,sigma):
     return A * np.exp( -0.5 * ((xx-xy0[0])**2 + (yy-xy0[1])**2) / sigma**2 )
 
@@ -24,10 +30,10 @@ info              = ch.SimInfo();
 # *********** INPUTS ***********
 info.t0       = 0.0;
 info.nx       = 128;
-info.ny       = 64;
+info.ny       = 128;
 info.dx       = 1./info.nx;
-info.dy       = 0.5/info.ny;
-info.bc       = 'mixed_neumann_top_dirichlet'
+info.dy       = 1./info.ny;
+info.bc       = 'neumann'
 info.BC_dirichlet_ch = 1.0
 
 nx_ref        = 128;
@@ -37,7 +43,7 @@ eps_2        = 0.05**2
 sigma        = eps_2 / dx_ref**4 / 200.
 b            = eps_2 / dx_ref**2
 u            = eps_2 / dx_ref**2
-m            = 0.5;
+m            = 0.25;
 sigma_noise  = 0.0;
 DT           = 0.1*eps_2 / dx_ref**2
 
@@ -74,8 +80,10 @@ lin_dt_ref        = 1.0 / np.max(chparams.sigma)
 
 # Reset from saved state
 n_tsteps          = 200
-#info.x            = ch.DoubleVector( np.genfromtxt('C_100.out') )
-info.iter         = 0
+info.x            = ch.DoubleVector( np.genfromtxt('C_200.out') )
+#info.x            = combine_lower_and_upper_fields('../data/C_steady_m0p5.out','../data/C_steady_m0.out',
+#                                                   [128,64],[128,64])
+info.iter         = 202
 info.t0           = info.iter * n_dt/n_tsteps * biharm_dt_ref
 t                 = np.linspace(info.t0 , info.t0 + n_dt * biharm_dt_ref , n_tsteps+1)
 chparams.dt_check = t[1]-t[0]
