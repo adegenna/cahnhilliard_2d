@@ -62,7 +62,7 @@ Here are some example state snapshots from 4 different simulations. The first th
 
 <img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/ch2d.png">
 
-These are two steady-states achieved with differing values of `m` (the left has `m = 0`; the right has `m = 0.5`):
+These are two steady-states achieved with differing values of `m` (the left has `m = 0.5`; the right has `m = 0`):
 
 <img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/ch_nonthermal.png" width="200" height="200"> <img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/ch_nonthermal_2.png" width="200" height="200">
 
