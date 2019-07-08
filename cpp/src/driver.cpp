@@ -5,6 +5,7 @@
 #include <omp.h>
 #include <boost/numeric/odeint.hpp>
 #include "cahnhilliard.h"
+#include "cahnhilliard_thermal.h"
 #include "run_ch_solver.hpp"
 
 int main()
@@ -25,6 +26,7 @@ int main()
   chparams.sigma        = eps_2 / info.dx / info.dx / info.dx / info.dx / 200.0;
   chparams.m            = 0.0;
   chparams.sigma_noise  = 0.0;
+  chparams.temperature_dependence = false;
   
   int n_tsteps        = 25;
   double n_dt         = 300.0;
@@ -46,7 +48,8 @@ int main()
     info.t0 = i * info.dt_check;
     info.tf = (i+1) * info.dt_check;
     std::cout << "t0 = " << info.t0/dt_biharm << " dt_biharm , tf = " << info.tf/dt_biharm << " dt_biharm" << std::endl;
-    run_ch_solver<CHparamsScalar>(chparams , info);
+    CahnHilliard2DRHS rhs = CahnHilliard2DRHS(chparams , info);
+    run_ch_solver<CHparamsScalar , CahnHilliard2DRHS>(chparams , info , rhs);
   }
     
 }
