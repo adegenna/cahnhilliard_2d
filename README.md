@@ -17,9 +17,6 @@ Temperature itself can be evolved as a spatial field through a thermal diffusion
 
 <img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/thermal_eqn.gif">
 
-# python/
-This subdirectory contains earlier prototyping code in pure Python, but support for it has been discontinued in favor of the C++/Swig solution.
-
 # cpp/
 This subdirectory contains all C++ source (in `src/`) as well as Python Swig wrappers (in `swig`).
 
@@ -54,6 +51,9 @@ cd [/PATH/TO]/cahnhilliard_2d/cpp/swig
 python driver.py
 ```
 
+# python/
+This subdirectory contains earlier prototyping code in pure Python, but support for it has been discontinued in favor of the C++/Swig solution.
+
 # Visualization
 Some lightweight Python scripts are provided in `visualization/` for convenience. You will have to edit the necessary options/filepaths to be consistent with the state files you are trying to read/display.
 
@@ -61,3 +61,12 @@ Some lightweight Python scripts are provided in `visualization/` for convenience
 Here are some example state snapshots from 4 different simulations. The first three show the effect of increasing the biharmonic coefficient. The last snapshot is taken from the same system as that which produced the second snapshot, but with more noise added to the dynamics.
 
 <img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/ch2d.png">
+
+These are two steady-states achieved with differing values of `m` (the left has `m = 0`; the right has `m = 0.5`):
+
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/ch_nonthermal.png">
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/ch_nonthermal_2.png">
+
+This is a temperature-dependent simulation with thermal diffusion present (the top is the concentration field; the bottom is the temperature field):
+
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/thermal/ch_thermal.png">
