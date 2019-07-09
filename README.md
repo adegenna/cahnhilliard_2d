@@ -65,6 +65,40 @@ This subdirectory contains earlier prototyping code in pure Python, but support 
 # Visualization
 Some lightweight Python scripts are provided in `visualization/` for convenience. You will have to edit the necessary options/filepaths to be consistent with the state files you are trying to read/display.
 
+# Parallel Scaling
+The solver is parallelized using shared memory with OpenMP. Here are some small scaling studies, using no thermal behavior and constant CH coefficients. In what follows:
+
+* `nx` = spatial resolution
+* `epsilon` = value of biharmonic coefficient
+* `n_dtbiharm` = temporal length of total simulation, referenced to the length of the biharmonic timescale
+* `n_core` = number of CPU cores
+* `time (sec)` = total execution time, in seconds
+
+## BloodMeridian (6 cores, Intel(R) Core(TM) i7-6800K CPU @ 3.40GHz)
+
+### Pure C++
+| `nx`          | `epsilon`     | `n_dtbiharm`  | `n_core`      | `time (sec)`  |
+| ------------- |:-------------:| -------------:| ------------- |:-------------:|
+| 128           | 0.01          | 300           | 1             | 305           |
+| 128           | 0.01          | 300           | 3             | 41            |
+| 128           | 0.01          | 300           | 6             | 36            |
+
+### C++/Swig
+| `nx`          | `epsilon`     | `n_dtbiharm`  | `n_core`      | `time (sec)`  |
+| ------------- |:-------------:| -------------:| ------------- |:-------------:|
+| 128           | 0.01          | 300           | 1             | 255           |
+| 128           | 0.01          | 300           | 3             | 54            |
+| 128           | 0.01          | 300           | 6             | 51            |
+
+## HPC1 (8 cores, Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz)
+
+### Pure C++
+| `nx`          | `epsilon`     | `n_dtbiharm`  | `n_core`      | `time (sec)`  |
+| ------------- |:-------------:| -------------:| ------------- |:-------------:|
+| 128           | 0.01          | 300           | 1             | 309           |
+| 128           | 0.01          | 300           | 4             | 52            |
+| 128           | 0.01          | 300           | 8             | 34            |
+
 # Example Output
 Here are some example state snapshots from 4 different simulations. The first three show the effect of increasing the biharmonic coefficient. The last snapshot is taken from the same system as that which produced the second snapshot, but with more noise added to the dynamics.
 
