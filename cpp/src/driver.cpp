@@ -16,7 +16,9 @@ int main()
   
   // *********  Inputs  ***********
   info.nx             = 128;
+  info.ny             = 128;
   info.dx             = 1.0 / info.nx;
+  info.dy             = 1.0 / info.ny;
   info.t0             = 0.0;
 
   double eps_2          = pow( 0.01 ,2 );
