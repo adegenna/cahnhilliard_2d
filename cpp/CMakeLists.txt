@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.6)
 project(ch2d)
 
+include(ExternalProject)
+
 find_package(Boost COMPONENTS program_options REQUIRED)
 find_package(Threads)
 
@@ -22,6 +24,14 @@ add_definitions( -DSRCDIR=\"${CMAKE_SOURCE_DIR}/\")
 
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Werror=reorder")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -DBOOST_LOG_DYN_LINK -DNDEBUG")
+
+
+#############################################
+# Build external dependencies
+#############################################
+
+set( EXTERNAL_INSTALL_DIR ${CMAKE_BINARY_DIR}/external_install )
+add_subdirectory(external)
 
 include_directories( ${CMAKE_SOURCE_DIR}
                      ${Boost_INCLUDE_DIRS}
