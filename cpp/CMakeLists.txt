@@ -52,6 +52,8 @@ add_executable( ch2d
   src/run_ch_solver.hpp
 )
 
+add_dependencies(ch2d petsc_external)
+
 
 target_link_libraries( ch2d
   ${Boost_LIBRARIES}   
