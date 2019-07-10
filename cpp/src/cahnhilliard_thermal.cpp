@@ -132,11 +132,6 @@ void CahnHilliard2DRHS_thermal::rhs(const std::vector<double> &ct, std::vector<d
   }
 
 
-void CahnHilliard2DRHS_thermal::operator()(const std::vector<double> &c, std::vector<double> &dcdt, const double t)
-{
-  rhs(c,dcdt,t);
-}
-
 void CahnHilliard2DRHS_thermal::setInitialConditions(std::vector<double> &x)
   {
     x.resize(2 * info_.nx * info_.ny);

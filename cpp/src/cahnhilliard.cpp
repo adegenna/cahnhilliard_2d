@@ -88,11 +88,6 @@ void CahnHilliard2DRHS::rhs(const std::vector<double> &c, std::vector<double> &d
   }
 
 
-void CahnHilliard2DRHS::operator()(const std::vector<double> &c, std::vector<double> &dcdt, const double t)
-{
-  rhs(c,dcdt,t);
-}
-
 void CahnHilliard2DRHS::setInitialConditions(std::vector<double> &x)
   {
     x.resize(info_.nx * info_.ny);

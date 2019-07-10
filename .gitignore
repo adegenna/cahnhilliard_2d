@@ -10,3 +10,6 @@ cpp/swig/*.so
 cpp/swig/*.cxx
 cpp/swig/cahnhilliard.py
 cpp/swig/*.out
+.vscode/*
+.vscode*
+.vscode/settings.json
