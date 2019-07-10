@@ -156,16 +156,6 @@ void CahnHilliard2DRHS_thermal::setInitialConditions(std::vector<double> &x)
 
   }
 
-double CahnHilliard2DRHS_thermal::l2residual(const std::vector<double>&cT)
-  {
-    std::vector<double> dcTdt;
-    (*this)(cT, dcTdt, 0);
-    double res = 0;
-    for (int i = 0; i < 2*info_.nx*info_.ny; ++i){
-      res += dcTdt[i] * dcTdt[i];
-    }
-    return sqrt(res);
-  }
 
 void CahnHilliard2DRHS_thermal::write_state(const std::vector<double> &x , const int idx , const int nx , const int ny)
 {

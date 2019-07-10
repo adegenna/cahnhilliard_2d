@@ -13,6 +13,8 @@ public:
   {
     rhs(c,dcdt,t);
   }
+
+  double l2residual(const std::vector<double> &c);
 };
 
 #endif

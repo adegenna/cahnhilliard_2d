@@ -117,17 +117,6 @@ void CahnHilliard2DRHS::setInitialConditions(std::vector<double> &x)
     
   }
 
-double CahnHilliard2DRHS::l2residual(const std::vector<double>&c)
-  {
-    std::vector<double> dcdt;
-    (*this)(c, dcdt, 0);
-    double res = 0;
-    for (int i = 0; i < info_.nx * info_.ny; ++i){
-      res += dcdt[i] * dcdt[i];
-    }
-    return sqrt(res);
-  }
-
 void CahnHilliard2DRHS::write_state(const std::vector<double> &x , const int idx , const int nx , const int ny)
 {
   std::ofstream out;
