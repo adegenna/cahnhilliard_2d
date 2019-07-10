@@ -17,8 +17,14 @@ class CahnHilliard2DRHS_thermal {
   void setInitialConditions(std::vector<double> &x);
   double l2residual(const std::vector<double> &c);
   void write_state( const std::vector<double> &x , const int idx , const int nx , const int ny );
-  
- private:
+
+  struct PetscContext {
+    PetscContext(CahnHilliard2DRHS_thermal &outer) : instance_(outer) {}
+
+    CahnHilliard2DRHS_thermal &instance_;
+  };
+
+private:
 
   CHparamsVector chpV_;
   SimInfo& info_;
@@ -26,7 +32,8 @@ class CahnHilliard2DRHS_thermal {
 
   std::default_random_engine generator_;
   std::normal_distribution<double> noise_dist_;
-    
+
+  PetscContext petsc_context_;    
 };
 
 
