@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.6)
 project(ch2d)
 
+include(ExternalProject)
+
 find_package(Boost COMPONENTS program_options REQUIRED)
 find_package(Threads)
 
@@ -23,8 +25,20 @@ add_definitions( -DSRCDIR=\"${CMAKE_SOURCE_DIR}/\")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Werror=reorder")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -DBOOST_LOG_DYN_LINK -DNDEBUG")
 
+
+#############################################
+# Build external dependencies
+#############################################
+
+set( EXTERNAL_INSTALL_DIR ${CMAKE_BINARY_DIR}/external_install )
+add_subdirectory(external)
+
+message( STATUS "PETSC_INCLUDES ${PETSC_INCLUDES}")
+
 include_directories( ${CMAKE_SOURCE_DIR}
                      ${Boost_INCLUDE_DIRS}
+                     ${PETSC_INCLUDES}
+                     ${CMAKE_BINARY_DIR}/external/petsc/include/petsc/mpiuni # needed for non-mpi petsc version
 )
 
 add_executable( ch2d
@@ -36,9 +50,13 @@ add_executable( ch2d
   src/cahnhilliard_thermal.cpp
   src/cahnhilliard_thermal_nodiffusion.cpp
   src/run_ch_solver.hpp
+  src/right_hand_side.cpp
 )
+
+add_dependencies(ch2d petsc_external)
 
 
 target_link_libraries( ch2d
   ${Boost_LIBRARIES}   
+  ${PETSC_LIBRARIES}
 )

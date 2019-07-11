@@ -88,11 +88,6 @@ void CahnHilliard2DRHS::rhs(const std::vector<double> &c, std::vector<double> &d
   }
 
 
-void CahnHilliard2DRHS::operator()(const std::vector<double> &c, std::vector<double> &dcdt, const double t)
-{
-  rhs(c,dcdt,t);
-}
-
 void CahnHilliard2DRHS::setInitialConditions(std::vector<double> &x)
   {
     x.resize(info_.nx * info_.ny);
@@ -120,17 +115,6 @@ void CahnHilliard2DRHS::setInitialConditions(std::vector<double> &x)
       x = apply_neumann_bc( x , info_ );
     }
     
-  }
-
-double CahnHilliard2DRHS::l2residual(const std::vector<double>&c)
-  {
-    std::vector<double> dcdt;
-    (*this)(c, dcdt, 0);
-    double res = 0;
-    for (int i = 0; i < info_.nx * info_.ny; ++i){
-      res += dcdt[i] * dcdt[i];
-    }
-    return sqrt(res);
   }
 
 void CahnHilliard2DRHS::write_state(const std::vector<double> &x , const int idx , const int nx , const int ny)

@@ -81,11 +81,6 @@ void CahnHilliard2DRHS_thermal_nodiffusion::rhs(const std::vector<double> &c, st
   }
 
 
-void CahnHilliard2DRHS_thermal_nodiffusion::operator()(const std::vector<double> &c, std::vector<double> &dcdt, const double t)
-{
-  rhs(c,dcdt,t);
-}
-
 void CahnHilliard2DRHS_thermal_nodiffusion::setInitialConditions(std::vector<double> &x)
   {
     x.resize(info_.nx * info_.ny);
@@ -109,16 +104,6 @@ void CahnHilliard2DRHS_thermal_nodiffusion::setInitialConditions(std::vector<dou
 
   }
 
-double CahnHilliard2DRHS_thermal_nodiffusion::l2residual(const std::vector<double>&c)
-  {
-    std::vector<double> dcdt;
-    (*this)(c, dcdt, 0);
-    double res = 0;
-    for (int i = 0; i < info_.nx*info_.ny; ++i){
-      res += dcdt[i] * dcdt[i];
-    }
-    return sqrt(res);
-  }
 
 void CahnHilliard2DRHS_thermal_nodiffusion::write_state(const std::vector<double> &x , const int idx , const int nx , const int ny)
 {
