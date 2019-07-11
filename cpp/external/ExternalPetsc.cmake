@@ -10,6 +10,7 @@ else()
     set(PETSC_DEBUGGING "yes")
 endif()
 
+find_package( PythonInterp 2.7 REQUIRED )
 
 ExternalProject_Add(
         petsc_external
@@ -24,7 +25,7 @@ ExternalProject_Add(
         SOURCE_DIR ${CMAKE_BINARY_DIR}/external/petsc/
 
         CONFIGURE_COMMAND
-        ${CMAKE_BINARY_DIR}/external/petsc/configure
+        ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/external/petsc/configure
         PETSC_DIR=${CMAKE_BINARY_DIR}/external/petsc
         PETSC_ARCH=arch-linux2-c-opt
         --with-cc=${CMAKE_C_COMPILER} --with-cxx=${CMAKE_CXX_COMPILER} --with-fc=0  --with-pic=1 --with-debugging=${PETSC_DEBUGGING} COPTFLAGS=${PETSC_OPT_FLAGS} CXXOPTFLAGS=${PETSC_OPT_FLAGS} --with-shared-libraries=1 MAKEFLAGS=$MAKEFLAGS --with-mpi=0
