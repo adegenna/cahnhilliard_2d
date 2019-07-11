@@ -7,6 +7,7 @@
  #include <fstream>
  #include <omp.h>
  #include <boost/numeric/odeint.hpp>
+ #include "right_hand_side.h"
  #include "cahnhilliard.h"
  #include "cahnhilliard_thermal.h"
  #include "cahnhilliard_thermal_nodiffusion.h"
@@ -21,7 +22,8 @@
  namespace std {
   %template(DoubleVector) vector<double>;
  };
-   
+
+ %include "right_hand_side.h"
  %include "cahnhilliard.h"
  %include "cahnhilliard_thermal.h"
  %include "cahnhilliard_thermal_nodiffusion.h"

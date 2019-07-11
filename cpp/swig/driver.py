@@ -49,7 +49,7 @@ DT           = 0.1*eps_2 / dx_ref**2
 
 # Set up grid for spatial-field quantities
 nx                = int(info.nx)
-xx,yy             = np.meshgrid( np.arange(0,1,1/info.nx), np.arange(0,1,1/info.nx) )
+xx,yy             = np.meshgrid( np.arange(0,1,1./info.nx), np.arange(0,1,1./info.nx) )
 
 chparams.eps_2        = ch.DoubleVector(eps_2  * np.ones(nx**2))
 chparams.b            = ch.DoubleVector(b      * np.ones(nx**2))
@@ -80,10 +80,10 @@ lin_dt_ref        = 1.0 / np.max(chparams.sigma)
 
 # Reset from saved state
 n_tsteps          = 200
-info.x            = ch.DoubleVector( np.genfromtxt('C_200.out') )
+#info.x            = ch.DoubleVector( np.genfromtxt('C_200.out') )
 #info.x            = combine_lower_and_upper_fields('../data/C_steady_m0p5.out','../data/C_steady_m0.out',
 #                                                   [128,64],[128,64])
-info.iter         = 202
+info.iter         = 0
 info.t0           = info.iter * n_dt/n_tsteps * biharm_dt_ref
 t                 = np.linspace(info.t0 , info.t0 + n_dt * biharm_dt_ref , n_tsteps+1)
 chparams.dt_check = t[1]-t[0]
@@ -93,7 +93,7 @@ A               = 100./dx_ref * np.ones(n_tsteps)
 A[25:50]        = -100./dx_ref
 A[50:]          = 0
 xy0             = np.vstack( [0.5 + 0*np.linspace(0,2.0,n_tsteps) , 0.5*np.ones(n_tsteps)] ).T
-sigma_temp   = nx/10 * info.dx
+sigma_temp      = nx/10. * info.dx
 
 # Run solver
 print( 'Biharmonic timescale dt_biharm = ' , biharm_dt )
