@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 from scipy import misc
 import cahnhilliard as ch
 
+def convert_temperature_to_flory_huggins( T , Tmin , Tmax , Xmin , Xmax ):
+    assert( (T > 1e-5) & (Tmin > 1e-5) )
+    return (Xmax - Xmin) / (1./Tmin - 1./Tmax) * (1./T - 1./Tmax) + Xmin
+
 def compute_dimensionless_ch_params_from_polymer_params( L_kuhn , m , X , N , L_omega ):
     m_scaled = (1 - m) / 2.
     eps_2    = L_kuhn**2 / ( 3 * m_scaled * (1 - m_scaled) * X * L_omega**2 )
@@ -10,7 +14,7 @@ def compute_dimensionless_ch_params_from_polymer_params( L_kuhn , m , X , N , L_
     return eps_2 , sigma
 
 # ********* POLYMER PARAMETERS *********
-X        =      np.mean([ 0.08 , 0.3 ])
+Xmin = 0.05; Xmax = 0.5;
 N        =      np.mean([ 200  , 2000])
 L_repeat =      (10**-9) * np.mean([ 20   , 80  ]) # meters
 n_repeat = 15
@@ -19,16 +23,19 @@ L_kuhn   =      (10**-9) * np.mean([ 0.5 , 3.0  ]) # meters
 m        = 0.0
 # **************************************
 
+Tmin = 0.1; Tmax = 1;
+T    = 0.95
+X                      = convert_temperature_to_flory_huggins( T , Tmin , Tmax , Xmin , Xmax )
 eps2_base , sigma_base = compute_dimensionless_ch_params_from_polymer_params( L_kuhn , m , X , N , L_omega )
-print( eps2_base**0.5 , sigma_base )
+print( "X = " + str(X) + "\nXN = " + str(X*N) + "\nepsilon = " + str(eps2_base**0.5) + "\nsigma = " + str(sigma_base) + "\nsigma/eps^2 = " + str(sigma_base/eps2_base) )
 
 chparams          = ch.CHparamsVector();
 info              = ch.SimInfo();
 
 # *********** INPUTS ***********
 info.t0       = 0.0
-info.nx       = 192
-info.ny       = 192
+info.nx       = 64
+info.ny       = 64
 info.dx       = 1./info.nx
 info.dy       = 1./info.ny
 info.bc       = 'neumann'
@@ -50,7 +57,7 @@ chparams.sigma        = ch.DoubleVector(sigma  * np.ones(nx**2))
 chparams.m            = ch.DoubleVector(m      * np.ones(nx**2))
 chparams.sigma_noise  = sigma_noise
 
-n_dt = 500
+n_dt = 10000
 # ******************************
 
 # Define timescales
