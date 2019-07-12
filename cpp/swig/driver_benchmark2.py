@@ -57,7 +57,7 @@ chparams.sigma        = ch.DoubleVector(sigma  * np.ones(nx**2))
 chparams.m            = ch.DoubleVector(m      * np.ones(nx**2))
 chparams.sigma_noise  = sigma_noise
 
-n_dt = 10000
+n_dt = 2000
 # ******************************
 
 # Define timescales
@@ -82,6 +82,5 @@ print( 'Sampling interval = ' , chparams.dt_check / stiff_dt , ' dt_stiff' )
 for i in range(n_tsteps):
     info.t0        = t[i]
     info.tf        = t[i+1]
-    rhs            = ch.CahnHilliard2DRHS(chparams , info)
     print( 't0 = ', t[i]/lin_dt, ' dt_lin , tf = ', t[i+1]/lin_dt, ' dt_lin')
-    ch.run_ch_vector_nonthermal(chparams,info,rhs);
+    ch.run_ch_solver_vector(chparams,info);

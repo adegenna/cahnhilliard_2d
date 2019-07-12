@@ -3,10 +3,7 @@
 #include <random>
 #include <fstream>
 #include <omp.h>
-#include <boost/numeric/odeint.hpp>
-#include "cahnhilliard.h"
-#include "cahnhilliard_thermal.h"
-#include "run_ch_solver.hpp"
+#include "run_ch_solver.h"
 
 int main()
 {
@@ -50,8 +47,7 @@ int main()
     info.t0 = i * info.dt_check;
     info.tf = (i+1) * info.dt_check;
     std::cout << "t0 = " << info.t0/dt_biharm << " dt_biharm , tf = " << info.tf/dt_biharm << " dt_biharm" << std::endl;
-    CahnHilliard2DRHS rhs = CahnHilliard2DRHS(chparams , info);
-    run_ch_solver<CHparamsScalar , CahnHilliard2DRHS>(chparams , info , rhs);
+    run_ch_solver_scalar(chparams , info);
   }
     
 }

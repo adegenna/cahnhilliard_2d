@@ -69,7 +69,7 @@ biharm_dt         = (info.dx**4) / np.max(chparams.eps_2)
 diff_dt           = (info.dx**2) / np.max( [np.max(chparams.u) , np.max(chparams.b)] )
 lin_dt            = 1.0 / np.max(chparams.sigma)
 
-n_tsteps          = 25
+n_tsteps          = 20
 info.t0           = 0
 stiff_dt          = np.min([ biharm_dt , diff_dt , lin_dt ])
 t                 = np.linspace(info.t0 , info.t0 + n_dt * stiff_dt , n_tsteps+1)

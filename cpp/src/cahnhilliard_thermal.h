@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <random>
 #include "chparams.h"
 #include "right_hand_side.h"
 
@@ -14,12 +15,12 @@ class CahnHilliard2DRHS_thermal : public RightHandSide {
   CahnHilliard2DRHS_thermal(CHparamsVector& chp , SimInfo& info);
   ~CahnHilliard2DRHS_thermal();
   void rhs(const std::vector<double> &c, std::vector<double> &dcdt, const double t) override;
+  void write_state( const std::vector<double> &x , const int idx , const int nx , const int ny ) override;
   void setInitialConditions(std::vector<double> &x);
-  void write_state( const std::vector<double> &x , const int idx , const int nx , const int ny );
 
   struct PetscContext {
     PetscContext(CahnHilliard2DRHS_thermal &outer) : instance_(outer) {}
-
+    
     CahnHilliard2DRHS_thermal &instance_;
   };
 
@@ -34,8 +35,6 @@ private:
 
   PetscContext petsc_context_;    
 };
-
-
 
 
 

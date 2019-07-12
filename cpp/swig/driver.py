@@ -106,10 +106,7 @@ for i in range(n_tsteps):
     info.tf        = t[i+1]
     tt             = generate_square_field(xx,yy,A[i],xy0[i],sigma_temp)
     chparams.f_T   = ch.DoubleVector( tt.ravel() )
-    #rhs            = ch.CahnHilliard2DRHS_thermal(chparams , info)
-    #rhs            = ch.CahnHilliard2DRHS_thermal_nodiffusion(chparams , info)
-    rhs            = ch.CahnHilliard2DRHS(chparams , info)
     print( 't0 = ', t[i]/biharm_dt, ' dt_biharm , tf = ', t[i+1]/biharm_dt, ' dt_biharm')
-    #ch.run_ch_vector_thermal(chparams,info,rhs);
-    #ch.run_ch_vector_thermal_nodiffusion(chparams,info,rhs);
-    ch.run_ch_vector_nonthermal(chparams,info,rhs);
+    ch.run_ch_solver_thermal_with_diffusion(chparams,info);
+    #ch.run_ch_solver_thermal_no_diffusion(chparams,info);
+    #ch.run_ch_solver_vector(chparams,info);

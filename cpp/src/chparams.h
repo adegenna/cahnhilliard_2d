@@ -26,6 +26,7 @@ class SimInfo
   double dt_check;
   std::vector<double> x;
   std::string bc = "periodic";
+  std::string rhs_type = "ch_non_thermal";
   double BC_dirichlet_ch;
 
   int idx2d(int i, int j);
@@ -54,6 +55,7 @@ class CHparamsScalar
   double eps2_min, eps2_max, sigma_min, sigma_max, T_min, T_max, T_const;
   double sigma_noise;
   bool temperature_dependence = false;
+  
 
   double compute_stability_limit(double dx , double dy);
   
