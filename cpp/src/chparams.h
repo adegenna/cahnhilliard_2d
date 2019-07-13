@@ -53,6 +53,7 @@ class CHparamsScalar
   double DT;
   double f_T;
   double eps2_min, eps2_max, sigma_min, sigma_max, T_min, T_max, T_const;
+  double L_kuhn, N, L_omega, X_min, X_max; // Polymer parameters
   double sigma_noise;
   bool temperature_dependence = false;
   
@@ -78,6 +79,7 @@ class CHparamsVector
   std::vector<double> f_T;
   std::vector<double> T_const;
   double eps2_min, eps2_max, sigma_min, sigma_max, T_min, T_max;
+  double L_kuhn, N, L_omega, X_min, X_max; // Polymer parameters
   bool temperature_dependence = false;
 
   double sigma_noise;

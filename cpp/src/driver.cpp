@@ -47,7 +47,7 @@ int main()
     info.t0 = i * info.dt_check;
     info.tf = (i+1) * info.dt_check;
     std::cout << "t0 = " << info.t0/dt_biharm << " dt_biharm , tf = " << info.tf/dt_biharm << " dt_biharm" << std::endl;
-    run_ch_solver_scalar(chparams , info);
+    run_ch_solver(chparams , info);
   }
     
 }

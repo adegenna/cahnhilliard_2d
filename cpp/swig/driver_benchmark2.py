@@ -39,6 +39,7 @@ info.ny       = 64
 info.dx       = 1./info.nx
 info.dy       = 1./info.ny
 info.bc       = 'neumann'
+info.rhs_type = 'ch_non_thermal'
 
 eps_2        = eps2_base
 sigma        = sigma_base
@@ -83,4 +84,4 @@ for i in range(n_tsteps):
     info.t0        = t[i]
     info.tf        = t[i+1]
     print( 't0 = ', t[i]/lin_dt, ' dt_lin , tf = ', t[i+1]/lin_dt, ' dt_lin')
-    ch.run_ch_solver_vector(chparams,info);
+    ch.run_ch_solver(chparams,info);

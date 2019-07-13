@@ -59,7 +59,16 @@ double laplace_component(int i ,
 
 CHparamsVector compute_chparams_using_temperature( CHparamsVector& chpV0 ,
 						   SimInfo& info,
-						   std::vector<double> T );
+						   std::vector<double>& T );
+
+double convert_temperature_to_flory_huggins( CHparamsVector& chpV ,
+					     SimInfo& info,
+					     const double T );
+
+CHparamsVector compute_eps2_and_sigma_from_polymer_params( CHparamsVector& chpV0 ,
+							   SimInfo& info,
+							   std::vector<double>& T );
+
 
 
 #endif

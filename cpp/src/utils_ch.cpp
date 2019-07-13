@@ -260,7 +260,7 @@ double laplace_component(int i ,
 
 CHparamsVector compute_chparams_using_temperature( CHparamsVector& chpV0,
                                                    SimInfo& info,
-                                                   std::vector<double> T ) {
+                                                   std::vector<double>& T ) {
 
   CHparamsVector chpV = chpV0;
   double deps2_dT     = ( chpV.eps2_max  - chpV.eps2_min )  / ( chpV.T_max - chpV.T_min );
@@ -280,5 +280,44 @@ CHparamsVector compute_chparams_using_temperature( CHparamsVector& chpV0,
   }
   
   return chpV;
+
+}
+
+
+CHparamsVector compute_eps2_and_sigma_from_polymer_params( CHparamsVector& chpV0,
+                                                           SimInfo& info,
+                                                           std::vector<double>& T ) {
+
+  CHparamsVector chpV = chpV0;
+  
+  # pragma omp parallel for
+  for (int i = 0; i < info.ny; ++i) {
+    for (int j = 0; j < info.nx; ++j) {
+      
+      const int idx_ij        = info.idx2d(i, j);
+      const double X          = convert_temperature_to_flory_huggins( chpV , info , T[idx_ij] );
+      const double m_scaled   = 0.5 * ( 1.0 - chpV.m[idx_ij] );
+      const double eps_2      = chpV.L_kuhn * chpV.L_kuhn / ( 3.0 * m_scaled * (1.0 - m_scaled) * (1.0 - m_scaled) * chpV.L_kuhn * chpV.L_kuhn * X * chpV.N * chpV.N );
+      const double sigma      = 36.0 * chpV.L_omega * chpV.L_omega / ( m_scaled * m_scaled * (1.0 - m_scaled) * (1.0 - m_scaled) * chpV.L_kuhn * chpV.L_kuhn * X * chpV.N * chpV.N );
+      
+      chpV.eps_2[idx_ij] = std::min( std::max( eps_2 , chpV.eps2_min )  , chpV.eps2_max );
+      chpV.sigma[idx_ij] = std::min( std::max( sigma , chpV.sigma_min ) , chpV.sigma_max );
+
+    }
+  }
+  
+  return chpV;
+
+}
+
+double convert_temperature_to_flory_huggins( CHparamsVector& chpV,
+                                             SimInfo& info,
+                                             const double T ) {
+
+  const double dX_dTinv   = ( chpV.X_max  - chpV.X_min ) / ( 1.0 / chpV.T_min - 1.0 / chpV.T_max );  
+  const double dTinv      = 1.0 / T - 1.0 / chpV.T_max;
+  const double X          = dX_dTinv * dTinv + chpV.X_min;
+
+  return X;
 
 }
