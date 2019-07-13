@@ -65,6 +65,11 @@ chparams.T_min        = 0.0
 chparams.T_max        = 1.0
 chparams.T_const      = ch.DoubleVector(0.  * np.ones(nx**2))
 
+chparams.L_kuhn       = L_kuhn
+chparams.N            = N
+chparams.L_omega      = L_omega
+chparams.X_min        = Xmin
+chparams.X_max        = Xmax
 
 n_dt = 2000
 # ******************************
@@ -75,12 +80,15 @@ diff_dt           = (info.dx**2) / np.max( [np.max(chparams.u) , np.max(chparams
 lin_dt            = 1.0 / np.max(chparams.sigma)
 
 # Reset from saved state
-n_tsteps          = 25
+n_tsteps          = 10
 info.t0           = 0
 stiff_dt          = np.min([ biharm_dt , diff_dt , lin_dt ])
 t                 = np.linspace(info.t0 , info.t0 + n_dt * stiff_dt , n_tsteps+1)
-
 chparams.dt_check = t[1]-t[0]
+
+T                 = np.zeros(n_tsteps)
+T[0:n_tsteps//2]  = np.linspace( chparams.T_min , chparams.T_max , n_tsteps//2 )
+T[n_tsteps//2:]   = np.linspace( chparams.T_max , chparams.T_min , n_tsteps//2 )
 
 # Run solver
 print( 'Biharmonic timescale dt_biharm = ' , biharm_dt )
@@ -91,6 +99,6 @@ print( 'Sampling interval = ' , chparams.dt_check / stiff_dt , ' dt_stiff' )
 for i in range(n_tsteps):
     info.t0        = t[i]
     info.tf        = t[i+1]
-    
+    chparams.T_const = ch.DoubleVector(T[i] * np.ones(nx**2))
     print( 't0 = ', t[i]/lin_dt, ' dt_lin , tf = ', t[i+1]/lin_dt, ' dt_lin')
     ch.run_ch_solver(chparams,info);
