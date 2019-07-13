@@ -14,7 +14,7 @@ def compute_dimensionless_ch_params_from_polymer_params( L_kuhn , m , X , N , L_
     return eps_2 , sigma
 
 # ********* POLYMER PARAMETERS *********
-Xmin = 0.05; Xmax = 0.5;
+Xmin = 0.055; Xmax = 0.5;
 N        =      np.mean([ 200  , 2000])
 L_repeat =      (10**-9) * np.mean([ 20   , 80  ]) # meters
 n_repeat = 15
@@ -24,7 +24,7 @@ m        = 0.0
 # **************************************
 
 Tmin = 0.1; Tmax = 1;
-T    = 0.95
+T    = 1.0
 X                      = convert_temperature_to_flory_huggins( T , Tmin , Tmax , Xmin , Xmax )
 eps2_base , sigma_base = compute_dimensionless_ch_params_from_polymer_params( L_kuhn , m , X , N , L_omega )
 print( "X = " + str(X) + "\nXN = " + str(X*N) + "\nepsilon = " + str(eps2_base**0.5) + "\nsigma = " + str(sigma_base) + "\nsigma/eps^2 = " + str(sigma_base/eps2_base) )
@@ -39,7 +39,7 @@ info.ny       = 64
 info.dx       = 1./info.nx
 info.dy       = 1./info.ny
 info.bc       = 'neumann'
-info.rhs_type = 'ch_non_thermal'
+info.rhs_type = 'ch_thermal_no_diffusion'
 
 eps_2        = eps2_base
 sigma        = sigma_base
@@ -57,6 +57,14 @@ chparams.u            = ch.DoubleVector(u      * np.ones(nx**2))
 chparams.sigma        = ch.DoubleVector(sigma  * np.ones(nx**2))
 chparams.m            = ch.DoubleVector(m      * np.ones(nx**2))
 chparams.sigma_noise  = sigma_noise
+chparams.eps2_min     = 0.0
+chparams.eps2_max     = 1.0
+chparams.sigma_min    = 0.0
+chparams.sigma_max    = 1.0e10
+chparams.T_min        = 0.0
+chparams.T_max        = 1.0
+chparams.T_const      = ch.DoubleVector(0.  * np.ones(nx**2))
+
 
 n_dt = 2000
 # ******************************
@@ -83,5 +91,6 @@ print( 'Sampling interval = ' , chparams.dt_check / stiff_dt , ' dt_stiff' )
 for i in range(n_tsteps):
     info.t0        = t[i]
     info.tf        = t[i+1]
+    
     print( 't0 = ', t[i]/lin_dt, ' dt_lin , tf = ', t[i+1]/lin_dt, ' dt_lin')
     ch.run_ch_solver(chparams,info);
