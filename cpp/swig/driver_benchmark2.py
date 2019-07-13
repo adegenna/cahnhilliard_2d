@@ -61,7 +61,7 @@ chparams.eps2_min     = 0.0
 chparams.eps2_max     = 1.0
 chparams.sigma_min    = 0.0
 chparams.sigma_max    = 1.0e10
-chparams.T_min        = 0.0
+chparams.T_min        = 0.1
 chparams.T_max        = 1.0
 chparams.T_const      = ch.DoubleVector(0.  * np.ones(nx**2))
 
