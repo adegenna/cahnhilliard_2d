@@ -3,12 +3,12 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 
 t0 = 0
-tf = 10
+tf = 100
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/C_'
 statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/swig/C_'
 
-nx = 64
-ny = 64
+nx = 128
+ny = 128
 
 x     = np.arange(nx)
 y     = np.arange(ny)

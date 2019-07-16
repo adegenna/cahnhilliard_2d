@@ -34,8 +34,8 @@ info              = ch.SimInfo();
 
 # *********** INPUTS ***********
 info.t0       = 0.0
-info.nx       = 64
-info.ny       = 64
+info.nx       = 128
+info.ny       = 128
 info.dx       = 1./info.nx
 info.dy       = 1./info.ny
 info.bc       = 'neumann'
@@ -80,7 +80,7 @@ diff_dt           = (info.dx**2) / np.max( [np.max(chparams.u) , np.max(chparams
 lin_dt            = 1.0 / np.max(chparams.sigma)
 
 # Reset from saved state
-n_tsteps          = 10
+n_tsteps          = 100
 info.t0           = 0
 stiff_dt          = np.min([ biharm_dt , diff_dt , lin_dt ])
 t                 = np.linspace(info.t0 , info.t0 + n_dt * stiff_dt , n_tsteps+1)

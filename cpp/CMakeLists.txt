@@ -41,22 +41,59 @@ include_directories( ${CMAKE_SOURCE_DIR}
                      ${CMAKE_BINARY_DIR}/external/petsc/include/petsc/mpiuni # needed for non-mpi petsc version
 )
 
+add_library( ch_src
+	     src/stochastic_euler.hpp
+	     src/chparams.cpp
+	     src/utils_ch.cpp
+	     src/cahnhilliard.cpp
+	     src/cahnhilliard_thermal.cpp
+	     src/cahnhilliard_thermal_nodiffusion.cpp
+	     src/run_ch_solver.cpp
+	     src/right_hand_side.cpp  
+  )
+
+add_dependencies(ch_src petsc_external)
+
 add_executable( ch2d
   src/driver.cpp
-  src/stochastic_euler.hpp
-  src/chparams.cpp
-  src/utils_ch.cpp
-  src/cahnhilliard.cpp
-  src/cahnhilliard_thermal.cpp
-  src/cahnhilliard_thermal_nodiffusion.cpp
-  src/run_ch_solver.cpp
-  src/right_hand_side.cpp
-)
+  )
 
 add_dependencies(ch2d petsc_external)
-
 
 target_link_libraries( ch2d
   ${Boost_LIBRARIES}   
   ${PETSC_LIBRARIES}
+  ch_src
+)
+
+#############################################
+# Swig/Python build
+#############################################
+
+FIND_PACKAGE( SWIG REQUIRED )
+INCLUDE( ${SWIG_USE_FILE} )
+
+FIND_PACKAGE( PythonLibs )
+INCLUDE_DIRECTORIES( ${PYTHON_INCLUDE_PATH} )
+INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR} )
+INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR}/src )
+	    
+SET( CMAKE_SWIG_FLAGS "-threads" )
+SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -fPIC")
+
+SET_SOURCE_FILES_PROPERTIES( src/cahnhilliard.i PROPERTIES CPLUSPLUS ON )
+SET_SOURCE_FILES_PROPERTIES( src/cahnhilliard.i PROPERTIES SWIG_FLAGS "-threads" )
+
+#SWIG_ADD_LIBRARY( cahnhilliard TYPE SHARED LANGUAGE python SOURCES src/cahnhilliard.i )
+SWIG_ADD_MODULE( cahnhilliard python src/cahnhilliard.i src/chparams.cpp src/utils_ch.cpp )
+
+SWIG_LINK_LIBRARIES( cahnhilliard
+                     ${PYTHON_LIBRARIES}
+		     ch_src
+)
+		   
+# Copy the shared objects and Swig wrappers to cpp/swig/
+message( STATUS "INCLUDE: ${CMAKE_SOURCE_DIR}")		   
+add_custom_target( mvcmd ALL
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/build/*.so ${CMAKE_SOURCE_DIR}/build/*.cxx ${CMAKE_SOURCE_DIR}/build/*.py ${CMAKE_SOURCE_DIR}/swig
 )
