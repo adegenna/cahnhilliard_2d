@@ -54,9 +54,8 @@ class CHparamsScalar
   double f_T;
   double eps2_min, eps2_max, sigma_min, sigma_max, T_min, T_max, T_const;
   double L_kuhn, N, L_omega, X_min, X_max; // Polymer parameters
-  double sigma_noise;
+  double sigma_noise = 0.0;
   bool temperature_dependence = false;
-  
 
   double compute_stability_limit(double dx , double dy);
   
@@ -81,10 +80,26 @@ class CHparamsVector
   double eps2_min, eps2_max, sigma_min, sigma_max, T_min, T_max;
   double L_kuhn, N, L_omega, X_min, X_max; // Polymer parameters
   bool temperature_dependence = false;
-
-  double sigma_noise;
+  double sigma_noise = 0.0;
 
   double compute_stability_limit(double dx , double dy);
+  double convert_temperature_to_flory_huggins( const double T ,
+					       const double T_min ,
+					       const double T_max ,
+					       const double X_min ,
+					       const double X_max );
+  double compute_eps2_from_polymer_params(     const double T ,
+					       const double m ,
+					       const double L_kuhn ,
+					       const double N );
+  double compute_sigma_from_polymer_params(    const double T ,
+					       const double m ,
+					       const double L_kuhn ,
+					       const double L_omega ,
+					       const double N );
+  void compute_and_set_eps2_and_sigma_from_polymer_params( const double T ,
+							   SimInfo& info );
+  
   
 };
 

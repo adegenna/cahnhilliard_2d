@@ -64,6 +64,5 @@ print( 'Sampling interval = ' , chparams.dt_check / biharm_dt , ' dt_biharm' )
 for i in range(n_tsteps):
     info.t0        = t[i]
     info.tf        = t[i+1]
-    rhs            = ch.CahnHilliard2DRHS(chparams , info)
     print( 't0 = ', t[i]/biharm_dt, ' dt_biharm , tf = ', t[i+1]/biharm_dt, ' dt_biharm')
-    ch.run_ch_vector_nonthermal(chparams,info,rhs);
+    ch.run_ch_solver(chparams,info);
