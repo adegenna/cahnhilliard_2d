@@ -58,7 +58,22 @@ class CHparamsScalar
   bool temperature_dependence = false;
 
   double compute_stability_limit(double dx , double dy);
-  
+  double convert_temperature_to_flory_huggins( const double T ,
+					       const double T_min ,
+					       const double T_max ,
+					       const double X_min ,
+					       const double X_max );
+  double compute_eps2_from_polymer_params(     const double T ,
+					       const double m ,
+					       const double L_kuhn ,
+					       const double N );
+  double compute_sigma_from_polymer_params(    const double T ,
+					       const double m ,
+					       const double L_kuhn ,
+					       const double L_omega ,
+					       const double N );
+  void compute_and_set_eps2_and_sigma_from_polymer_params( const double T );
+
 };
 
 class CHparamsVector
@@ -66,7 +81,8 @@ class CHparamsVector
   
  public:
 
-  CHparamsVector()  { };
+  CHparamsVector() { };
+  CHparamsVector(int nx , int ny);
   ~CHparamsVector() { };
   
   std::vector<double> eps_2;

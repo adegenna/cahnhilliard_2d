@@ -4,8 +4,6 @@ from scipy import misc
 import cahnhilliard as ch
 
 # User-interface objects for the ch solver
-chparams          = ch.CHparamsVector();
-info              = ch.SimInfo();
 
 # ********* POLYMER PARAMETERS *********
 Xmin     = 0.055
@@ -21,6 +19,8 @@ T        = 1.0
 # **************************************
 
 # *********** INPUTS ***********
+info          = ch.SimInfo();
+
 info.t0       = 0.0
 info.nx       = 128
 info.ny       = 128
@@ -32,6 +32,8 @@ info.rhs_type = 'ch_thermal_no_diffusion'
 # Set up grid for spatial-field quantities
 nx                = int(info.nx)
 xx,yy             = np.meshgrid( np.arange(0,1,1/info.nx), np.arange(0,1,1/info.nx) )
+
+chparams              = ch.CHparamsVector( info.nx , info.ny );
 
 chparams.b            = ch.DoubleVector(1.0    * np.ones(nx**2))
 chparams.u            = ch.DoubleVector(1.0    * np.ones(nx**2))
@@ -72,6 +74,7 @@ T                          = np.zeros(n_tsteps)
 T[0:n_tsteps//4]           = chparams.T_max
 T[n_tsteps//4:n_tsteps//2] = np.linspace( chparams.T_max , chparams.T_min , n_tsteps//4 )
 T[n_tsteps//2:]            = chparams.T_min
+#T[0:] = chparams.T_max
 
 # Run solver
 print( 'Biharmonic timescale dt_biharm = ' , biharm_dt )
