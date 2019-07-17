@@ -28,7 +28,6 @@ Spatial discretization is uniform finite difference. Temporal evolution is handl
 # cpp/
 This subdirectory contains all C++ source (in `src/`) as well as Python Swig wrappers (in `swig`).
 
-## Building: Pure C++
 Building is done through `cmake`, using the included `cpp/CMakeLists.txt` as follows: 
 
 ```shell
