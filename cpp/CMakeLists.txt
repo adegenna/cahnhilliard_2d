@@ -95,5 +95,5 @@ SWIG_LINK_LIBRARIES( cahnhilliard
 # Copy the shared objects and Swig wrappers to cpp/swig/
 message( STATUS "INCLUDE: ${CMAKE_SOURCE_DIR}")		   
 add_custom_target( mvcmd ALL
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/build/*.so ${CMAKE_SOURCE_DIR}/build/*.cxx ${CMAKE_SOURCE_DIR}/build/*.py ${CMAKE_SOURCE_DIR}/swig
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/build/*.so ${CMAKE_SOURCE_DIR}/build/*.py ${CMAKE_SOURCE_DIR}/swig
 )
