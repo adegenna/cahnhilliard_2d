@@ -9,17 +9,27 @@ Domain: 2D rectangular
 
 Boundary Conditions: periodic, Neumann, Dirichlet, or mixed
 
-## Thermal dynamics
+## Polymer properties
 
-Some of the coefficients of this equation may be chosen to be a function of temperature, based on scaling arguments:
+If desired, some of the coefficients of this equation may be chosen to be a function of polymer properties (see, e.g., `Choksi & Ren, 2003`):
 
 <img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/eps2_thermal.gif">
 
 <img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/sigma_thermal.gif">
 
-Temperature itself can be evolved as a spatial field through a thermal diffusion equation that is one-way coupled to the Cahn-Hilliard dynamics:
+## Thermal dependence
+
+Given that temperature is usually specified in experiment as a control, and that Flory-Huggins is inversely proportional to it, the user may optionally specify a temperature field and Flory-Huggins will be calculated as:
+
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/chi_thermal.gif">
+
+## Thermal dynamics
+
+If desired, temperature can be evolved as a spatial field through a thermal diffusion equation that is one-way coupled to the Cahn-Hilliard dynamics:
 
 <img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/thermal_eqn.gif">
+
+Boundary conditions: Neumann
 
 ## Numerical method
 
