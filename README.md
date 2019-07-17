@@ -59,9 +59,6 @@ cd [/PATH/TO]/cahnhilliard_2d/cpp/swig
 python driver.py
 ```
 
-# Discontinued Prototype: python/
-This subdirectory contains earlier prototyping code in pure Python, but support for it has been discontinued in favor of the C++/Swig solution.
-
 # User Interface
 
 The user of this code interfaces with the solver source through the following classes/functions:
@@ -70,6 +67,11 @@ The user of this code interfaces with the solver source through the following cl
 * `CHparamsScalar`: specifies physical parameters, all of which are scalars
 * `CHparamsVector`: specifies physical parameters, which can be field quantities
 * `run_ch_solver( SimInfo& , CHparams[Scalar/Vector]& )`: function used to run the simulation
+
+Please consult both the source code and example driver programs for more details on usage.
+
+# Discontinued Prototype: python/
+This subdirectory contains earlier prototyping code in pure Python, but support for it has been discontinued in favor of the C++/Swig solution.
 
 # Visualization
 Some lightweight Python scripts are provided in `visualization/` for convenience. You will have to edit the necessary options/filepaths to be consistent with the state files you are trying to read/display.

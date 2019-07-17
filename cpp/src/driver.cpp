@@ -25,7 +25,6 @@ int main()
   chparams.sigma        = eps_2 / info.dx / info.dx / info.dx / info.dx / 200.0;
   chparams.m            = 0.0;
   chparams.sigma_noise  = 0.0;
-  chparams.temperature_dependence = false;
   
   int n_tsteps        = 25;
   double n_dt         = 300.0;

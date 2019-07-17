@@ -12,6 +12,8 @@ static bool abs_compare(int a, int b)
 
 class SimInfo
 {
+
+  // User-interface for simulation info, grid properties, boundary condition, etc.
   
  public:
 
@@ -37,23 +39,31 @@ class SimInfo
 
 class CHparamsScalar
 {
+
+  // User-interface for CH parameter specification where all parameters are scalar-valued
   
  public:
 
   CHparamsScalar()  { };
   ~CHparamsScalar() { };
 
+  // CH parameters: dc/dt = -eps_2 * \nabla^4( c ) + \nabla^2( u*c^3 - b*c ) - sigma*( c - m ) + sigma_noise*eta 
   double eps_2;
   double b;
   double u;
   double sigma;
   double m;
+  double sigma_noise = 0.0;
+  // Thermal dynamics: dT/dt = DT * \nabla^2( T ) + f_T
   double DT;
   double f_T;
-  double eps2_min, eps2_max, sigma_min, sigma_max, T_min, T_max, T_const;
-  double L_kuhn, N, L_omega, X_min, X_max; // Polymer parameters
-  double sigma_noise = 0.0;
-  bool temperature_dependence = false;
+  double eps2_min, eps2_max, sigma_min, sigma_max, T_min, T_max; // Limiters on eps_2, sigma, and T
+  double T_const; 
+  // Polymer parameters
+  double L_kuhn;            // Kuhn-statistical length
+  double N;                 // Total polymer chain length
+  double L_omega;           // Length of physical domain (in 2D, this is \sqrt( area ) )
+  double X_min, X_max;      // Min/max values of Flory-Huggins
 
   double compute_stability_limit(double dx , double dy);
   double convert_temperature_to_flory_huggins( const double T ,
@@ -76,25 +86,32 @@ class CHparamsScalar
 
 class CHparamsVector
 {
+
+  // User-interface for CH parameter specification where all parameters are vector-valued fields
   
  public:
 
   CHparamsVector() { };
   CHparamsVector(int nx , int ny);
   ~CHparamsVector() { };
-  
+
+  // CH parameters: dc/dt = -eps_2 * \nabla^4( c ) + \nabla^2( u*c^3 - b*c ) - sigma*( c - m ) + sigma_noise*eta
   std::vector<double> eps_2;
   std::vector<double> b;
   std::vector<double> u;
   std::vector<double> sigma;
   std::vector<double> m;
+  double sigma_noise = 0.0;
+  // Thermal dynamics: dT/dt = DT * \nabla^2( T ) + f_T
   std::vector<double> DT;
   std::vector<double> f_T;
   std::vector<double> T_const;
-  double eps2_min, eps2_max, sigma_min, sigma_max, T_min, T_max;
-  double L_kuhn, N, L_omega, X_min, X_max; // Polymer parameters
-  bool temperature_dependence = false;
-  double sigma_noise = 0.0;
+  double eps2_min, eps2_max, sigma_min, sigma_max, T_min, T_max; // Limiters on eps_2, sigma, and T
+  // Polymer parameters
+  double L_kuhn;        // Kuhn-statistical length
+  double N;             // Total polymer chain length
+  double L_omega;       // Length of physical domain (in 2D, this is \sqrt( area ) )
+  double X_min, X_max;  // Min/max values of Flory-Huggins
 
   double compute_stability_limit(double dx , double dy);
   double convert_temperature_to_flory_huggins( const double T ,
