@@ -33,8 +33,8 @@ Boundary conditions: Neumann
 
 Spatial discretization is uniform finite difference. Temporal evolution is handled by the `boost::numeric::odeint` library. A variety of explicit marching options are possible (e.g., RK4, with or without adaptive steps). The explicit timestep is set with reference to the biharmonic timescale of the problem (which should be the stiffest linear timescale present).
 
-# cpp/
-This subdirectory contains all C++ source (in `src/`) as well as Python Swig wrappers (in `swig`).
+# Building
+The `cpp/` subdirectory contains all C++ source (`cpp/src/`) as well as Python Swig wrappers (`cpp/swig/`).
 
 Building is done through `cmake`, using the included `cpp/CMakeLists.txt` as follows: 
 
@@ -52,14 +52,14 @@ This should (1) build all C++ source into the static library `libch_src.a` that 
 ./ch2d
 ```
 
-The directory `cpp/swig` provides example drivers demonstrating how to use the Swig Python wrappers. For example:
+The directory `cpp/swig/` provides example drivers demonstrating how to use the Swig Python wrappers. For example:
 
 ```shell
 cd [/PATH/TO]/cahnhilliard_2d/cpp/swig
 python driver.py
 ```
 
-# python/
+# Discontinued Prototype: python/
 This subdirectory contains earlier prototyping code in pure Python, but support for it has been discontinued in favor of the C++/Swig solution.
 
 # Visualization
