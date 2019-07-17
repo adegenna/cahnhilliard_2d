@@ -4,7 +4,7 @@
 #include <vector>
 #include <algorithm>
 #include <string>
-
+ 
 static bool abs_compare(int a, int b)
 {
   return (std::abs(a) < std::abs(b));
@@ -18,16 +18,14 @@ class SimInfo
   SimInfo() { };
   ~SimInfo() { };
   
-  double t0;
-  double tf;
-  int iter = 0;
-  double dx, dy;
-  int nx, ny;
-  double dt_check;
-  std::vector<double> x;
-  std::string bc = "periodic";
-  std::string rhs_type = "ch_non_thermal";
-  double BC_dirichlet_ch;
+  double t0, tf;                // Initial and final simulation times
+  int iter = 0;                 // Current simulation iteration
+  double dx, dy;                // Spatial discretization
+  int nx, ny;                   // Number of grid points in (x,y)
+  std::vector<double> x;        // Optional, used to specify current state IFF t0 != 0 (MAKE THIS MORE ROBUST)
+  std::string bc = "periodic";  // Boundary condition type: "periodic", "neumann", "dirichlet", "mixed_neumann_bottom_dirichlet", "mixed_neumann_top_dirichlet"
+  std::string rhs_type = "ch_non_thermal"; // RHS type: "ch_non_thermal", "ch_thermal_no_diffusion", "ch_thermal_with_diffusion"
+  double BC_dirichlet_ch;       // Used to specify BC value for dirichlet BC
 
   int idx2d(int i, int j);
 

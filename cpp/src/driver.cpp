@@ -36,7 +36,7 @@ int main()
   double dt_lin     = 1.0 / chparams.sigma;
 
   double tf         = n_dt * dt_biharm;
-  info.dt_check     = tf / n_tsteps;
+  double dt_check   = tf / n_tsteps;
 
 
   std::cout << "Biharmonic timescale dt_biharm = " << dt_biharm << std::endl;
@@ -44,8 +44,8 @@ int main()
   std::cout << "Linear timescale dt_lin = " << dt_lin/dt_biharm << " dt_biharm" << std::endl;
 
   for (int i=0; i<n_tsteps; i++) {
-    info.t0 = i * info.dt_check;
-    info.tf = (i+1) * info.dt_check;
+    info.t0 = i * dt_check;
+    info.tf = (i+1) * dt_check;
     std::cout << "t0 = " << info.t0/dt_biharm << " dt_biharm , tf = " << info.tf/dt_biharm << " dt_biharm" << std::endl;
     run_ch_solver(chparams , info);
   }
