@@ -13,9 +13,7 @@ Boundary Conditions: periodic, Neumann, Dirichlet, or mixed
 
 If desired, some of the coefficients of this equation may be chosen to be a function of polymer properties (see, e.g., `Choksi & Ren, 2003`):
 
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/eps2_thermal.gif">
-
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/sigma_thermal.gif">
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/eps2_thermal.gif"> <img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/sigma_thermal.gif">
 
 ## Thermal dependence
 
