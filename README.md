@@ -28,8 +28,8 @@ Spatial discretization is uniform finite difference. Temporal evolution is handl
 # cpp/
 This subdirectory contains all C++ source (in `src/`) as well as Python Swig wrappers (in `swig`).
 
-## Building: Pure C++ 
-Pure C++ executables may be built with the included `CMakeLists.txt` as follows:
+## Building: Pure C++
+Building is done through `cmake`, using the included `cpp/CMakeLists.txt` as follows: 
 
 ```shell
 cd [/PATH/TO]/cahnhilliard_2d/cpp
@@ -39,20 +39,13 @@ cmake ../
 make
 ```
 
-The resulting executable may be run:
+This should (1) build all C++ source into the static library `libch_src.a` that one can link any client code against, (2) build an example C++ driver into the executable `ch2d`, and (3) build Python wrappers to the code using Swig, and store them in `cpp/swig`. To test, the C++ executable can be run in the usual way:
+
 ```shell
 ./ch2d
 ```
 
-## Building: C++/Swig
-A separate Makefile is included to wrap the C++ source code into a Python module that can be imported and used with Python. To make, do:
-
-```shell
-cd [/PATH/TO]/cahnhilliard_2d/cpp
-make
-```
-
-This will compile the C++ code into a .so shared object and move it into the `swig/` subdirectory. The `swig/` subdirectory provides an example driver demonstrating how to use this:
+The directory `cpp/swig` provides example drivers demonstrating how to use the Swig Python wrappers. For example:
 
 ```shell
 cd [/PATH/TO]/cahnhilliard_2d/cpp/swig
