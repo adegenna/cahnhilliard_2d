@@ -33,6 +33,7 @@ class SimInfo
   std::string bc = "periodic";  // Boundary condition type: "periodic", "neumann", "dirichlet", "mixed_neumann_bottom_dirichlet", "mixed_neumann_top_dirichlet"
   std::string rhs_type = "ch_non_thermal"; // RHS type: "ch_non_thermal", "ch_thermal_no_diffusion", "ch_thermal_with_diffusion"
   double BC_dirichlet_ch;       // Used to specify BC value for dirichlet BC
+  std::string outdir = "./";    // Filepath to the output directory
 
   int idx2d(int i, int j);
 

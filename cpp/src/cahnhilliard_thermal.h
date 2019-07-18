@@ -15,7 +15,7 @@ class CahnHilliard2DRHS_thermal : public RightHandSide {
   CahnHilliard2DRHS_thermal(CHparamsVector& chp , SimInfo& info);
   ~CahnHilliard2DRHS_thermal();
   void rhs(const std::vector<double> &c, std::vector<double> &dcdt, const double t) override;
-  void write_state( const std::vector<double> &x , const int idx , const int nx , const int ny ) override;
+  void write_state( const std::vector<double> &x , const int idx , const int nx , const int ny , std::string& outdir ) override;
   void setInitialConditions(std::vector<double> &x);
 
   struct PetscContext {

@@ -34,7 +34,7 @@ void run_ch_solver_non_thermal( CHparamsVector& chparams , SimInfo& info )
 
   std::cout << "residual at initial condition: " << res0 << std::endl;
   if (info.iter == 0)
-    rhs.write_state(x,0,info.nx,info.ny);
+    rhs.write_state(x,0,info.nx,info.ny,info.outdir);
 
   if (chparams.sigma_noise < 1e-2) {
     std::cout << "Solving deterministic (noise-free) CH" << std::endl;
@@ -50,7 +50,7 @@ void run_ch_solver_non_thermal( CHparamsVector& chparams , SimInfo& info )
   }
   info.iter += 1;
   std::cout << "iter: " << info.iter << " , t = " << info.tf << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
-  rhs.write_state(x,info.iter,info.nx,info.ny);
+  rhs.write_state(x,info.iter,info.nx,info.ny,info.outdir);
   info.x = x;
 
 };
@@ -85,7 +85,7 @@ void run_ch_solver_thermal_no_diffusion( CHparamsVector& chparams , SimInfo& inf
 
   std::cout << "residual at initial condition: " << res0 << std::endl;
   if (info.iter == 0)
-    rhs.write_state(x,0,info.nx,info.ny);
+    rhs.write_state(x,0,info.nx,info.ny,info.outdir);
 
   if (chparams.sigma_noise < 1e-2) {
     std::cout << "Solving deterministic (noise-free) CH" << std::endl;
@@ -101,7 +101,7 @@ void run_ch_solver_thermal_no_diffusion( CHparamsVector& chparams , SimInfo& inf
   }
   info.iter += 1;
   std::cout << "iter: " << info.iter << " , t = " << info.tf << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
-  rhs.write_state(x,info.iter,info.nx,info.ny);
+  rhs.write_state(x,info.iter,info.nx,info.ny,info.outdir);
   info.x = x;
 
 };
@@ -136,7 +136,7 @@ void run_ch_solver_thermal_with_diffusion( CHparamsVector& chparams , SimInfo& i
 
   std::cout << "residual at initial condition: " << res0 << std::endl;
   if (info.iter == 0)
-    rhs.write_state(x,0,info.nx,info.ny);
+    rhs.write_state(x,0,info.nx,info.ny,info.outdir);
 
   if (chparams.sigma_noise < 1e-2) {
     std::cout << "Solving deterministic (noise-free) CH" << std::endl;
@@ -152,7 +152,7 @@ void run_ch_solver_thermal_with_diffusion( CHparamsVector& chparams , SimInfo& i
   }
   info.iter += 1;
   std::cout << "iter: " << info.iter << " , t = " << info.tf << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
-  rhs.write_state(x,info.iter,info.nx,info.ny);
+  rhs.write_state(x,info.iter,info.nx,info.ny,info.outdir);
   info.x = x;
 
 };
@@ -187,7 +187,7 @@ void run_ch_solver_non_thermal( CHparamsScalar& chparams , SimInfo& info )
 
   std::cout << "residual at initial condition: " << res0 << std::endl;
   if (info.iter == 0)
-    rhs.write_state(x,0,info.nx,info.ny);
+    rhs.write_state(x,0,info.nx,info.ny,info.outdir);
 
   if (chparams.sigma_noise < 1e-2) {
     std::cout << "Solving deterministic (noise-free) CH" << std::endl;
@@ -203,7 +203,7 @@ void run_ch_solver_non_thermal( CHparamsScalar& chparams , SimInfo& info )
   }
   info.iter += 1;
   std::cout << "iter: " << info.iter << " , t = " << info.tf << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
-  rhs.write_state(x,info.iter,info.nx,info.ny);
+  rhs.write_state(x,info.iter,info.nx,info.ny,info.outdir);
   info.x = x;
 
 };
@@ -238,7 +238,7 @@ void run_ch_solver_thermal_no_diffusion( CHparamsScalar& chparams , SimInfo& inf
 
   std::cout << "residual at initial condition: " << res0 << std::endl;
   if (info.iter == 0)
-    rhs.write_state(x,0,info.nx,info.ny);
+    rhs.write_state(x,0,info.nx,info.ny,info.outdir);
 
   if (chparams.sigma_noise < 1e-2) {
     std::cout << "Solving deterministic (noise-free) CH" << std::endl;
@@ -254,7 +254,7 @@ void run_ch_solver_thermal_no_diffusion( CHparamsScalar& chparams , SimInfo& inf
   }
   info.iter += 1;
   std::cout << "iter: " << info.iter << " , t = " << info.tf << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
-  rhs.write_state(x,info.iter,info.nx,info.ny);
+  rhs.write_state(x,info.iter,info.nx,info.ny,info.outdir);
   info.x = x;
 
 };
@@ -289,7 +289,7 @@ void run_ch_solver_thermal_with_diffusion( CHparamsScalar& chparams , SimInfo& i
 
   std::cout << "residual at initial condition: " << res0 << std::endl;
   if (info.iter == 0)
-    rhs.write_state(x,0,info.nx,info.ny);
+    rhs.write_state(x,0,info.nx,info.ny,info.outdir);
 
   if (chparams.sigma_noise < 1e-2) {
     std::cout << "Solving deterministic (noise-free) CH" << std::endl;
@@ -305,7 +305,7 @@ void run_ch_solver_thermal_with_diffusion( CHparamsScalar& chparams , SimInfo& i
   }
   info.iter += 1;
   std::cout << "iter: " << info.iter << " , t = " << info.tf << ", relative residual: " << rhs.l2residual(x) / res0 << std::endl;
-  rhs.write_state(x,info.iter,info.nx,info.ny);
+  rhs.write_state(x,info.iter,info.nx,info.ny,info.outdir);
   info.x = x;
 
 };

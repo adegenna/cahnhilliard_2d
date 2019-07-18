@@ -106,10 +106,12 @@ void CahnHilliard2DRHS_thermal_nodiffusion::setInitialConditions(std::vector<dou
   }
 
 
-void CahnHilliard2DRHS_thermal_nodiffusion::write_state(const std::vector<double> &x , const int idx , const int nx , const int ny)
+void CahnHilliard2DRHS_thermal_nodiffusion::write_state(const std::vector<double> &x , const int idx , const int nx , const int ny , std::string& outdir)
 {
+  if ( outdir.back() != '/' )
+    outdir += '/';
   std::ofstream outC;
-  outC.open( "C_" + std::to_string(idx) + ".out" );
+  outC.open( outdir + "C_" + std::to_string(idx) + ".out" );
   outC.precision(16);
   
   for (int i = 0; i < ny; ++i){

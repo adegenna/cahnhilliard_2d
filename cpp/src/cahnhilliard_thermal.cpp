@@ -158,13 +158,14 @@ void CahnHilliard2DRHS_thermal::setInitialConditions(std::vector<double> &x)
   }
 
 
-void CahnHilliard2DRHS_thermal::write_state(const std::vector<double> &x , const int idx , const int nx , const int ny)
+void CahnHilliard2DRHS_thermal::write_state(const std::vector<double> &x , const int idx , const int nx , const int ny , std::string& outdir)
 {
-  std::cout << "printing C and T ..." << std::endl;
+  if ( outdir.back() != '/' )
+    outdir += '/';
   std::ofstream outC;
   std::ofstream outT;
-  outC.open( "C_" + std::to_string(idx) + ".out" );
-  outT.open( "T_" + std::to_string(idx) + ".out" );
+  outC.open( outdir + "C_" + std::to_string(idx) + ".out" );
+  outT.open( outdir + "T_" + std::to_string(idx) + ".out" );
   outC.precision(16);
   outT.precision(16);
   
