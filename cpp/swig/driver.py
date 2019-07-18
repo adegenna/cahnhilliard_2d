@@ -3,7 +3,12 @@ import matplotlib.pyplot as plt
 from scipy import misc
 import cahnhilliard as ch
 
-# User-interface objects for the ch solver
+# ***************************************************************
+# Example driver program for 2D modified Cahn-Hilliard
+# ON: temperature-dependent CH parameters
+# ON: polymer-dependent CH parameters
+# OFF: thermal dynamics
+# ***************************************************************
 
 # ********* POLYMER PARAMETERS *********
 Xmin     = 0.055
@@ -19,8 +24,9 @@ T        = 1.0
 # **************************************
 
 # *********** INPUTS ***********
-info          = ch.SimInfo();
 
+# Setup simulation info object
+info          = ch.SimInfo();
 info.t0       = 0.0
 info.nx       = 128
 info.ny       = 128
@@ -33,8 +39,8 @@ info.rhs_type = 'ch_thermal_no_diffusion'
 nx                = int(info.nx)
 xx,yy             = np.meshgrid( np.arange(0,1,1/info.nx), np.arange(0,1,1/info.nx) )
 
+# Setup CH parameter info object
 chparams              = ch.CHparamsVector( info.nx , info.ny );
-
 chparams.b            = ch.DoubleVector(1.0    * np.ones(nx**2))
 chparams.u            = ch.DoubleVector(1.0    * np.ones(nx**2))
 chparams.m            = ch.DoubleVector(0.0    * np.ones(nx**2))
@@ -51,8 +57,8 @@ chparams.N            = N
 chparams.L_omega      = L_omega
 chparams.X_min        = Xmin
 chparams.X_max        = Xmax
-
 chparams.compute_and_set_eps2_and_sigma_from_polymer_params( chparams.T_max , info )
+
 # ******************************
 
 
@@ -74,17 +80,16 @@ T                          = np.zeros(n_tsteps)
 T[0:n_tsteps//4]           = chparams.T_max
 T[n_tsteps//4:n_tsteps//2] = np.linspace( chparams.T_max , chparams.T_min , n_tsteps//4 )
 T[n_tsteps//2:]            = chparams.T_min
-#T[0:] = chparams.T_max
 
-# Run solver
 print( 'Biharmonic timescale dt_biharm = ' , biharm_dt )
 print( 'Diffusion timescale dt_diff = ' , diff_dt , ' = ' , diff_dt/biharm_dt , ' dt_biharm')
 print( 'Linear timescale dt_lin = ' , lin_dt , ' = ' , lin_dt/biharm_dt , ' dt_biharm')
 print( 'Sampling interval = ' , chparams.dt_check / stiff_dt , ' dt_stiff' )
 
+# Run solver
 for i in range(n_tsteps):
-    info.t0        = t[i]
-    info.tf        = t[i+1]
+    info.t0          = t[i]
+    info.tf          = t[i+1]
     chparams.T_const = ch.DoubleVector(T[i] * np.ones(nx**2))
     print( 't0 = ', t[i]/lin_dt, ' dt_lin , tf = ', t[i+1]/lin_dt, ' dt_lin')
     ch.run_ch_solver(chparams,info);

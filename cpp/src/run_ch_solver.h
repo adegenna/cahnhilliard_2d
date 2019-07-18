@@ -1,5 +1,9 @@
 #include "chparams.h"
 
+// *****************************************************************
+// run_ch_solver() is the user-interface for running the CH solver,
+// given simulation options specified by CHparams and SimInfo
+// *****************************************************************
 void run_ch_solver( CHparamsVector& chparams , SimInfo& info );
 void run_ch_solver( CHparamsScalar& chparams , SimInfo& info );
 

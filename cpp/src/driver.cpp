@@ -8,15 +8,25 @@
 int main()
 {
 
+  // ***************************************************************
+  // Example driver program for 2D modified Cahn-Hilliard
+  // No thermal dependence
+  // No polymer property dependence
+  // No thermal dynamics
+  // Scalar coefficients
+  // ***************************************************************
+
   CHparamsScalar chparams;
   SimInfo info;
   
   // *********  Inputs  ***********
-  info.nx             = 128;
-  info.ny             = 128;
-  info.dx             = 1.0 / info.nx;
-  info.dy             = 1.0 / info.ny;
-  info.t0             = 0.0;
+  info.nx               = 128;
+  info.ny               = 128;
+  info.dx               = 1.0 / info.nx;
+  info.dy               = 1.0 / info.ny;
+  info.t0               = 0.0;
+  info.bc               = "periodic";
+  info.rhs_type         = "ch_non_thermal";
 
   double eps_2          = pow( 0.01 ,2 );
   chparams.eps_2        = eps_2;
@@ -30,10 +40,12 @@ int main()
   double n_dt         = 300.0;
   // ******************************
 
+  // Compute linear timescales
   double dt_biharm  = (info.dx * info.dx * info.dx * info.dx) / chparams.eps_2;
   double dt_diff    = info.dx * info.dx / chparams.u;
   double dt_lin     = 1.0 / chparams.sigma;
 
+  // Setup temporal checkpointing
   double tf         = n_dt * dt_biharm;
   double dt_check   = tf / n_tsteps;
 
@@ -42,6 +54,7 @@ int main()
   std::cout << "Diffusion timescale dt_diff = " << dt_diff/dt_biharm << " dt_biharm" << std::endl;
   std::cout << "Linear timescale dt_lin = " << dt_lin/dt_biharm << " dt_biharm" << std::endl;
 
+  // Run solver
   for (int i=0; i<n_tsteps; i++) {
     info.t0 = i * dt_check;
     info.tf = (i+1) * dt_check;

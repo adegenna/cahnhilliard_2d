@@ -4,6 +4,11 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+
+// ************************************************************
+// These classes form the main user-interface for the CH solver
+// Use them to set all simulation options/parameters
+// ************************************************************
  
 static bool abs_compare(int a, int b)
 {
@@ -44,7 +49,7 @@ class CHparamsScalar
   
  public:
 
-  CHparamsScalar()  { };
+  CHparamsScalar();
   ~CHparamsScalar() { };
 
   // CH parameters: dc/dt = -eps_2 * \nabla^4( c ) + \nabla^2( u*c^3 - b*c ) - sigma*( c - m ) + sigma_noise*eta 
@@ -53,7 +58,7 @@ class CHparamsScalar
   double u;
   double sigma;
   double m;
-  double sigma_noise = 0.0;
+  double sigma_noise;
   // Thermal dynamics: dT/dt = DT * \nabla^2( T ) + f_T
   double DT;
   double f_T;
@@ -101,7 +106,7 @@ class CHparamsVector
   std::vector<double> u;
   std::vector<double> sigma;
   std::vector<double> m;
-  double sigma_noise = 0.0;
+  double sigma_noise;
   // Thermal dynamics: dT/dt = DT * \nabla^2( T ) + f_T
   std::vector<double> DT;
   std::vector<double> f_T;
