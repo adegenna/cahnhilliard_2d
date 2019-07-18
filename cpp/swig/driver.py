@@ -18,9 +18,6 @@ L_repeat = (10**-9) * np.mean([ 20   , 80  ]) # meters
 n_repeat = 15
 L_omega  = n_repeat * L_repeat
 L_kuhn   = (10**-9) * np.mean([ 0.5 , 3.0  ]) # meters
-Tmin     = 0.1
-Tmax     = 1
-T        = 1.0
 # **************************************
 
 # *********** INPUTS ***********
@@ -51,7 +48,7 @@ chparams.sigma_min    = 0.0
 chparams.sigma_max    = 1.0e10
 chparams.T_min        = 0.1
 chparams.T_max        = 1.0
-chparams.T_const      = ch.DoubleVector(0.  * np.ones(nx**2))
+chparams.T_const      = ch.DoubleVector( chparams.T_max  * np.ones(nx**2))
 chparams.L_kuhn       = L_kuhn
 chparams.N            = N
 chparams.L_omega      = L_omega
@@ -75,7 +72,7 @@ stiff_dt          = np.min([ biharm_dt , diff_dt , lin_dt ])
 t                 = np.linspace(info.t0 , info.t0 + n_dt * stiff_dt , n_tsteps+1)
 chparams.dt_check = t[1]-t[0]
 
-# Setup temperature profile
+# Setup time-dependent temperature profile
 T                          = np.zeros(n_tsteps)
 T[0:n_tsteps//4]           = chparams.T_max
 T[n_tsteps//4:n_tsteps//2] = np.linspace( chparams.T_max , chparams.T_min , n_tsteps//4 )
