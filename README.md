@@ -3,7 +3,7 @@
 ## Concentration dynamics
 The main field that evolves is relative concentration of the A phase at the mesoscale of a block copolymer, which occurs through a modified 2D Cahn Hilliard equation:
 
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/cheqn.gif">
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/figs/cheqn.gif">
 
 Domain: 2D rectangular
 
@@ -13,19 +13,21 @@ Boundary Conditions: periodic, Neumann, Dirichlet, or mixed
 
 If desired, some of the coefficients of this equation may be chosen to be a function of polymer properties (see, e.g., `Choksi & Ren, 2003`):
 
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/eps2_thermal.gif"> <img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/sigma_thermal.gif">
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/figs/eps2_thermal.gif">
+
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/figs/sigma_thermal.gif">
 
 ## Thermal dependence
 
 Given that temperature is usually specified in experiment as a control, and that Flory-Huggins is inversely proportional to it, the user may optionally specify a temperature field and Flory-Huggins will be calculated as:
 
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/chi_thermal.gif">
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/figs/chi_thermal.gif">
 
 ## Thermal dynamics
 
 If desired, temperature can be evolved as a spatial field through a thermal diffusion equation that is one-way coupled to the Cahn-Hilliard dynamics:
 
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/thermal_eqn.gif">
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/figs/thermal_eqn.gif">
 
 Boundary conditions: Neumann
 
@@ -113,12 +115,12 @@ The solver is parallelized using shared memory with OpenMP. Here are some small 
 # Example Output
 Here are some example state snapshots from 4 different simulations. The first three show the effect of increasing the biharmonic coefficient. The last snapshot is taken from the same system as that which produced the second snapshot, but with more noise added to the dynamics.
 
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/ch2d.png">
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/figs/ch2d.png">
 
 These are two steady-states achieved with differing values of `m` (the left has `m = 0.5`; the right has `m = 0`):
 
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/ch_nonthermal.png" width="200" height="200"> <img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/ch_nonthermal_2.png" width="200" height="200">
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/figs/ch_nonthermal.png" width="200" height="200"> <img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/figs/ch_nonthermal_2.png" width="200" height="200">
 
 This is a temperature-dependent simulation with thermal diffusion present (the top is the concentration field; the bottom is the temperature field):
 
-<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/ch_thermal.png" width="200" height="400">
+<img src="https://github.com/adegenna/cahnhilliard_2d/blob/master/figs/ch_thermal.png" width="200" height="400">
