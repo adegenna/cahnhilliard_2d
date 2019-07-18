@@ -89,9 +89,8 @@ for i in range(n_tsteps):
     info.t0          = t[i]
     info.tf          = t[i+1]
     chparams.T_const = ch.DoubleVector( T[i] * np.ones(nx**2) )
-    rhs              = ch.CahnHilliard2DRHS_thermal_nodiffusion(chparams , info)
     print( 't0 = ', t[i]/lin_dt, ' dt_lin , tf = ', t[i+1]/lin_dt, ' dt_lin')
-    ch.run_ch_vector_thermal_nodiffusion(chparams,info,rhs);
+    ch.run_ch_solver(chparams,info);
 
 # Save control (temperature) history
 np.savetxt( 'T.out' , np.vstack( [t/lin_dt , T] ) )

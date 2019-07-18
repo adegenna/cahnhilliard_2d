@@ -58,7 +58,6 @@ chparams.compute_and_set_eps2_and_sigma_from_polymer_params( chparams.T_max , in
 
 # ******************************
 
-
 # Define timescales
 biharm_dt         = (info.dx**4) / np.max(chparams.eps_2)
 diff_dt           = (info.dx**2) / np.max( [np.max(chparams.u) , np.max(chparams.b)] )
@@ -70,7 +69,7 @@ n_tsteps          = 100
 info.t0           = 0
 stiff_dt          = np.min([ biharm_dt , diff_dt , lin_dt ])
 t                 = np.linspace(info.t0 , info.t0 + n_dt * stiff_dt , n_tsteps+1)
-chparams.dt_check = t[1]-t[0]
+dt_check          = t[1]-t[0]
 
 # Setup time-dependent temperature profile
 T                          = np.zeros(n_tsteps)
@@ -81,7 +80,7 @@ T[n_tsteps//2:]            = chparams.T_min
 print( 'Biharmonic timescale dt_biharm = ' , biharm_dt )
 print( 'Diffusion timescale dt_diff = ' , diff_dt , ' = ' , diff_dt/biharm_dt , ' dt_biharm')
 print( 'Linear timescale dt_lin = ' , lin_dt , ' = ' , lin_dt/biharm_dt , ' dt_biharm')
-print( 'Sampling interval = ' , chparams.dt_check / stiff_dt , ' dt_stiff' )
+print( 'Sampling interval = ' , dt_check / stiff_dt , ' dt_stiff' )
 
 # Run solver
 for i in range(n_tsteps):
