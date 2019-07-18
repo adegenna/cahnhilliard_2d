@@ -58,6 +58,8 @@ chparams.compute_and_set_eps2_and_sigma_from_polymer_params( chparams.T_max , in
 
 # ******************************
 
+print( np.sqrt(chparams.eps_2[0]) , chparams.sigma[0] )
+
 # Define timescales
 biharm_dt         = (info.dx**4) / np.max(chparams.eps_2)
 diff_dt           = (info.dx**2) / np.max( [np.max(chparams.u) , np.max(chparams.b)] )
@@ -72,10 +74,11 @@ t                 = np.linspace(info.t0 , info.t0 + n_dt * stiff_dt , n_tsteps+1
 dt_check          = t[1]-t[0]
 
 # Setup time-dependent temperature profile
-T                          = np.zeros(n_tsteps)
-T[0:n_tsteps//4]           = chparams.T_max
-T[n_tsteps//4:n_tsteps//2] = np.linspace( chparams.T_max , chparams.T_min , n_tsteps//4 )
-T[n_tsteps//2:]            = chparams.T_min
+T                            = np.zeros(n_tsteps)
+T[0:n_tsteps//4]             = chparams.T_min + 0.1
+T[n_tsteps//4:n_tsteps//2]   = np.linspace( chparams.T_min + 0.1 , chparams.T_max , n_tsteps//4 )
+T[n_tsteps//2:3*n_tsteps//4] = chparams.T_max
+T[3*n_tsteps//4:]            = chparams.T_min + 0.1
 
 print( 'Biharmonic timescale dt_biharm = ' , biharm_dt )
 print( 'Diffusion timescale dt_diff = ' , diff_dt , ' = ' , diff_dt/biharm_dt , ' dt_biharm')

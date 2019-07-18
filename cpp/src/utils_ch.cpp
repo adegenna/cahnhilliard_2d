@@ -297,7 +297,7 @@ CHparamsVector compute_eps2_and_sigma_from_polymer_params( CHparamsVector& chpV0
       const int idx_ij        = info.idx2d(i, j);
       const double X          = convert_temperature_to_flory_huggins( chpV , info , T[idx_ij] );
       const double m_scaled   = 0.5 * ( 1.0 - chpV.m[idx_ij] );
-      const double eps_2      = chpV.L_kuhn * chpV.L_kuhn / ( 3.0 * m_scaled * (1.0 - m_scaled) * (1.0 - m_scaled) * chpV.L_kuhn * chpV.L_kuhn * X * chpV.N * chpV.N );
+      const double eps_2      = chpV.L_kuhn * chpV.L_kuhn / ( 3.0 * m_scaled * (1.0 - m_scaled) * X * chpV.L_omega * chpV.L_omega );
       const double sigma      = 36.0 * chpV.L_omega * chpV.L_omega / ( m_scaled * m_scaled * (1.0 - m_scaled) * (1.0 - m_scaled) * chpV.L_kuhn * chpV.L_kuhn * X * chpV.N * chpV.N );
       
       chpV.eps_2[idx_ij] = std::min( std::max( eps_2 , chpV.eps2_min )  , chpV.eps2_max );
