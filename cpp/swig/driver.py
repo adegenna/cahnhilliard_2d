@@ -75,10 +75,10 @@ dt_check          = t[1]-t[0]
 
 # Setup time-dependent temperature profile
 T                            = np.zeros(n_tsteps)
-T[0:n_tsteps//4]             = chparams.T_min + 0.1
-T[n_tsteps//4:n_tsteps//2]   = np.linspace( chparams.T_min + 0.1 , chparams.T_max , n_tsteps//4 )
+T[0:n_tsteps//4]             = chparams.T_min
+T[n_tsteps//4:n_tsteps//2]   = np.linspace( chparams.T_min , chparams.T_max , n_tsteps//4 )
 T[n_tsteps//2:3*n_tsteps//4] = chparams.T_max
-T[3*n_tsteps//4:]            = chparams.T_min + 0.1
+T[3*n_tsteps//4:]            = chparams.T_min
 
 print( 'Biharmonic timescale dt_biharm = ' , biharm_dt )
 print( 'Diffusion timescale dt_diff = ' , diff_dt , ' = ' , diff_dt/biharm_dt , ' dt_biharm')

@@ -157,7 +157,7 @@ double CHparamsVector::compute_eps2_from_polymer_params( const double X ,
                                                          const double N ) {
   
   const double m_scaled   = 0.5 * ( 1.0 - m );
-  const double Eps_2      = L_kuhn * L_kuhn / ( 3.0 * m_scaled * (1.0 - m_scaled) * (1.0 - m_scaled) * L_kuhn * L_kuhn * X * N * N );
+  const double Eps_2      = L_kuhn * L_kuhn / ( 3.0 * m_scaled * (1.0 - m_scaled) * X * L_omega * L_omega );
 
   return Eps_2;
 };
