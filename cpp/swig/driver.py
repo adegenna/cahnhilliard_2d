@@ -25,8 +25,8 @@ L_kuhn   = (10**-9) * np.mean([ 0.5 , 3.0  ]) # meters
 # Setup simulation info object
 info          = ch.SimInfo();
 info.t0       = 0.0
-info.nx       = 128
-info.ny       = 128
+info.nx       = 100
+info.ny       = 100
 info.dx       = 1./info.nx
 info.dy       = 1./info.ny
 info.bc       = 'neumann'
@@ -66,7 +66,7 @@ diff_dt           = (info.dx**2) / np.max( [np.max(chparams.u) , np.max(chparams
 lin_dt            = 1.0 / np.max(chparams.sigma)
 
 # Setup checkpointing in time
-n_dt              = 2000
+n_dt              = 6000
 n_tsteps          = 100
 info.t0           = 0
 stiff_dt          = np.min([ biharm_dt , diff_dt , lin_dt ])
@@ -75,10 +75,17 @@ dt_check          = t[1]-t[0]
 
 # Setup time-dependent temperature profile
 T                            = np.zeros(n_tsteps)
-T[0:n_tsteps//4]             = chparams.T_min
-T[n_tsteps//4:n_tsteps//2]   = np.linspace( chparams.T_min , chparams.T_max , n_tsteps//4 )
-T[n_tsteps//2:3*n_tsteps//4] = chparams.T_max
-T[3*n_tsteps//4:]            = chparams.T_min
+
+# T[0:n_tsteps//4]             = chparams.T_min
+# T[n_tsteps//4:n_tsteps//2]   = np.linspace( chparams.T_min , chparams.T_max , n_tsteps//4 )
+# T[n_tsteps//2:3*n_tsteps//4] = chparams.T_max
+# T[3*n_tsteps//4:]            = chparams.T_min
+
+T_mid            = 0.5*( chparams.T_max + chparams.T_min )
+T[0:20]          = chparams.T_max
+T[20:25]         = np.linspace( chparams.T_max , T_mid , 5 )
+T[25:50]         = T_mid
+T[50:]           = np.linspace( T_mid , chparams.T_min , 50 )
 
 print( 'Biharmonic timescale dt_biharm = ' , biharm_dt )
 print( 'Diffusion timescale dt_diff = ' , diff_dt , ' = ' , diff_dt/biharm_dt , ' dt_biharm')
