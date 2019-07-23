@@ -4,7 +4,6 @@ from scipy import misc
 import os , shutil
 from shutil import copyfile
 import cahnhilliard as ch
-from pce.src.Polynomial import *# Clone and install from github.com:adegenna/pce.git
 
 # ***************************************************************
 # Monte Carlo sampling program for 2D modified Cahn-Hilliard
@@ -12,29 +11,6 @@ from pce.src.Polynomial import *# Clone and install from github.com:adegenna/pce
 # ON: polymer-dependent CH parameters
 # OFF: thermal dynamics
 # ***************************************************************
-
-def generate_legendre_signal( x , xmin , xmax , ymin , ymax , N , eps = 0.5 ):
-
-    class I():
-        def __init__( self , polynomial_order , prior_mu , prior_sigma ):
-            self.polynomial_order = polynomial_order
-            self.prior_mu         = prior_mu
-            self.prior_sigma      = prior_sigma
-    
-    inputs      = I( N , 0 , 1 )
-    l           = Legendre( inputs )
-    y           = np.zeros_like( x )
-    x_transform = 2 * ( x - xmin ) / ( xmax - xmin ) - 1
-    for i in range(N):
-        l_i    = l.evaluate_1d_polynomial( i , x_transform )
-        a_i    = np.random.uniform( -1 , 1 )
-        y     += a_i * l_i
-    # Scale within limits
-    y  =  ( np.random.uniform(1 , 1 + eps) * ( ymax - ymin ) * ( y - np.min(y) ) / ( np.max(y) - np.min(y) ) + ymin )
-    y[ y < ymin ] = ymin
-    y[ y > ymax ] = ymax
-    
-    return y
 
 def generate_fourier_signal(  x , xmin , xmax , ymin , ymax , k_min , k_max , N , eps = 0.5 ):
 
@@ -89,7 +65,7 @@ chparams.eps2_max     = 1.0
 chparams.sigma_min    = 0.0
 chparams.sigma_max    = 1.0e10
 chparams.T_min        = 0.1
-chparams.T_max        = 1.0
+chparams.T_max        = 0.6
 chparams.T_const      = ch.DoubleVector( chparams.T_max  * np.ones(nx**2))
 chparams.L_kuhn       = L_kuhn
 chparams.N            = N
@@ -118,19 +94,21 @@ print( 'Diffusion timescale dt_diff = ' , diff_dt , ' = ' , diff_dt/biharm_dt , 
 print( 'Linear timescale dt_lin = ' , lin_dt , ' = ' , lin_dt/biharm_dt , ' dt_biharm')
 print( 'Sampling interval = ' , dt_check / stiff_dt , ' dt_stiff' )
 
-mc_samples = 100
-for i in range(mc_samples):
+mc_samples = 10
+mc_start   = 5
+for I in range(mc_samples):
 
-    print( '\n************** MC SAMPLE ' + str(i+1) + ' **************\n' )
+    i = 5*I + mc_start
+    print( '\n************** MC SAMPLE ' + str(i) + ' **************\n' )
     
     # Generate random temperature signal
-    outdir = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/data/mcruns/mc_' + str(i+1) + '/'
+    outdir       = '/home/adegennaro/cahnhilliard_2d/data/mcruns/mc_' + str(i) + '/'
+    info.outdir  = outdir
     if not os.path.exists(outdir):
         os.makedirs(outdir)
-    #T       = generate_legendre_signal( t , t[0] , t[-1] , chparams.T_min , chparams.T_max , 10 )
     T       = generate_fourier_signal( t , t[0] , t[-1] , chparams.T_min , chparams.T_max , 0 , 20 , 100 )
     T[-10:] = np.linspace(T[-10] , chparams.T_min , 10 ) # Final quench
-    np.savetxt( outdir + 'T_mc_' + str(i+1) + '.out', T )
+    np.savetxt( outdir + 'T_mc_' + str(i) + '.out', T )
     
     # Run solver
     info.iter        = 0
@@ -141,9 +119,3 @@ for i in range(mc_samples):
         print( 't0 = ', t[j]/lin_dt, ' dt_lin , tf = ', t[j+1]/lin_dt, ' dt_lin' )
         ch.run_ch_solver(chparams,info);
 
-    # Copy simulation data to outdir
-    for basename in os.listdir('./'):
-        if basename.endswith('.out'):
-            pathname = os.path.join('./', basename)
-            if os.path.isfile(pathname):
-                shutil.move(pathname, outdir)
