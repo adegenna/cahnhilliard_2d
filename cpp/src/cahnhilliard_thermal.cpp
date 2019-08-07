@@ -96,7 +96,7 @@ void CahnHilliard2DRHS_thermal::rhs(const std::vector<double> &ct, std::vector<d
     chpV_ = compute_eps2_and_sigma_from_polymer_params( chpV_ , info_ , T );
 
     // evaluate deterministic nonlocal dynamics
-    compute_ch_nonlocal(c, dcTdt, t, chpV_, info_);
+    (*ch_rhs_)(c, dcdt, t, chpV_, info_);
     
     // evaluate thermal diffusion
     # pragma omp parallel for
