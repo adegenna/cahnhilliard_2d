@@ -28,7 +28,7 @@ ExternalProject_Add(
         ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/external/petsc/configure
         PETSC_DIR=${CMAKE_BINARY_DIR}/external/petsc
         PETSC_ARCH=arch-linux2-c-opt
-        --with-cc=${CMAKE_C_COMPILER} --with-cxx=${CMAKE_CXX_COMPILER} --with-fc=0  --with-pic=1 --with-debugging=${PETSC_DEBUGGING} COPTFLAGS=${PETSC_OPT_FLAGS} CXXOPTFLAGS=${PETSC_OPT_FLAGS} --with-shared-libraries=1 MAKEFLAGS=$MAKEFLAGS --with-mpi=0
+        --with-cc=${CMAKE_C_COMPILER} --with-cxx=${CMAKE_CXX_COMPILER} --with-fc=0  --with-pic=1 --with-debugging=${PETSC_DEBUGGING} COPTFLAGS=${PETSC_OPT_FLAGS} CXXOPTFLAGS=${PETSC_OPT_FLAGS} --with-shared-libraries=1 MAKEFLAGS=$MAKEFLAGS --download-mpich=1
 
 
         BUILD_COMMAND

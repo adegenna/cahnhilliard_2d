@@ -13,6 +13,11 @@ if (OPENMP_FOUND)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
+find_package(MPI REQUIRED)
+if (MPI_FOUND)
+    message( STATUS "MPI_INCLUDE_PATH ${MPI_INCLUDE_PATH}")
+endif()
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -35,10 +40,11 @@ add_subdirectory(external)
 
 message( STATUS "PETSC_INCLUDES ${PETSC_INCLUDES}")
 
+message( STATUS "PETSC_LIBRARIES ${PETSC_LIBRARIES}")
+
 include_directories( ${CMAKE_SOURCE_DIR}
                      ${Boost_INCLUDE_DIRS}
                      ${PETSC_INCLUDES}
-                     ${CMAKE_BINARY_DIR}/external/petsc/include/petsc/mpiuni # needed for non-mpi petsc version
 )
 
 add_library( ch_src
@@ -100,4 +106,29 @@ add_custom_target( mvcmd_so ALL
 add_custom_target( mvcmd_py ALL
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/cahnhilliard.py" "${CMAKE_SOURCE_DIR}/swig/cahnhilliard.py"
   DEPENDS "${CMAKE_SOURCE_DIR}/build/cahnhilliard.py"
+)
+
+#############################################
+# Petsc implicit solver
+#############################################
+
+add_executable( jfnk_2d
+  implicit_petsc/jfnk_2d.cpp
+  implicit_petsc/utils_ch_implicit.cpp
+  implicit_petsc/boundary_conditions.cpp
+  implicit_petsc/initial_conditions.cpp
+  implicit_petsc/rhs_implicit.cpp
+)
+
+add_dependencies(jfnk_2d petsc_external)
+
+target_link_libraries( jfnk_2d
+  m
+  ${PETSC_LIBRARIES}
+)
+
+# Copy petsc implicit solver driver executable to implicit_petsc/examples/
+add_custom_target( mvcmd_implicit ALL
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/jfnk_2d" "${CMAKE_SOURCE_DIR}/implicit_petsc/examples/jfnk_2d"
+  DEPENDS "${CMAKE_SOURCE_DIR}/build/jfnk_2d"
 )

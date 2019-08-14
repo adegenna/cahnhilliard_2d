@@ -1,0 +1,15 @@
+-da_grid_x 64
+-da_grid_y 64
+-Lx 1.0
+-Ly 1.0
+-t_final 1.0 
+-boundary 0
+-dirichlet_bc 0.5
+-ts_type "arkimex"
+-ts_adapt "basic"
+-ts_monitor_draw_solution
+-draw_pause .1
+-ts_max_snes_failures -1
+-ts_monitor
+-ts_monitor_lg_snes_iterations
+-ts_monitor_lg_ksp_iterations
