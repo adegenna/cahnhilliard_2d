@@ -6,16 +6,17 @@ t0 = 0
 tf = 100
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/C_'
 statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/swig/C_'
+#statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/data/mcruns/mc_43/C_'
 
-nx = 128
-ny = 128
+nx = 100
+ny = 100
 
 x     = np.arange(nx)
 y     = np.arange(ny)
 xx,yy = np.meshgrid(x,y)
 xx = xx.T; yy = yy.T
 
-tstep = 1
+tstep = 5
 fig   = plt.figure(10,figsize=(8,8))
 ax    = fig.gca()
 
@@ -25,7 +26,7 @@ def animate(i):
     w = np.genfromtxt(statefile + str(int(i*tstep)) + '.out' )
     w = w.reshape([nx,ny],order='C');
     ax.cla()
-    contour = ax.contourf(xx,yy,w,30,vmin=-0.7,vmax=0.7)
+    contour = ax.contourf(xx,yy,w,30,vmin=-0.4,vmax=0.4)
     ax.set_aspect('equal')
     #contour = ax.contourf(xx,yy,w,30,vmin=0.,vmax=1)
     return contour

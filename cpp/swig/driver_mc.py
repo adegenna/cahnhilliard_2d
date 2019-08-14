@@ -21,7 +21,7 @@ def generate_fourier_signal(  x , xmin , xmax , ymin , ymax , k_min , k_max , N 
         A_i   = 1./(k_i + 1.0) * np.random.uniform( 0 , 1 )
         y    += A_i * np.sin( k_i * 2 * np.pi / (xmax - xmin) * x + phi_i)
     # Scale within limits
-    y  =  ( np.random.uniform(1 , 1 + eps) * ( ymax - ymin ) * ( y - np.min(y) ) / ( np.max(y) - np.min(y) ) + ymin )
+    y  =  ( np.random.uniform(1 - eps , 1 + eps) * ( ymax - ymin ) * ( y - np.min(y) ) / ( np.max(y) - np.min(y) ) + ymin )
     y[ y < ymin ] = ymin
     y[ y > ymax ] = ymax
 
@@ -95,14 +95,14 @@ print( 'Linear timescale dt_lin = ' , lin_dt , ' = ' , lin_dt/biharm_dt , ' dt_b
 print( 'Sampling interval = ' , dt_check / stiff_dt , ' dt_stiff' )
 
 mc_samples = 10
-mc_start   = 5
+mc_start   = 1
 for I in range(mc_samples):
 
     i = 5*I + mc_start
     print( '\n************** MC SAMPLE ' + str(i) + ' **************\n' )
     
     # Generate random temperature signal
-    outdir       = '/home/adegennaro/cahnhilliard_2d/data/mcruns/mc_' + str(i) + '/'
+    outdir       = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/data/mc_sintmp/mc_' + str(i) + '/'
     info.outdir  = outdir
     if not os.path.exists(outdir):
         os.makedirs(outdir)
@@ -110,12 +110,12 @@ for I in range(mc_samples):
     T[-10:] = np.linspace(T[-10] , chparams.T_min , 10 ) # Final quench
     np.savetxt( outdir + 'T_mc_' + str(i) + '.out', T )
     
-    # Run solver
-    info.iter        = 0
-    for j in range(n_tsteps):
-        info.t0          = t[j]
-        info.tf          = t[j+1]
-        chparams.T_const = ch.DoubleVector(T[j] * np.ones(nx**2))
-        print( 't0 = ', t[j]/lin_dt, ' dt_lin , tf = ', t[j+1]/lin_dt, ' dt_lin' )
-        ch.run_ch_solver(chparams,info);
+    # # Run solver
+    # info.iter        = 0
+    # for j in range(n_tsteps):
+    #     info.t0          = t[j]
+    #     info.tf          = t[j+1]
+    #     chparams.T_const = ch.DoubleVector(T[j] * np.ones(nx**2))
+    #     print( 't0 = ', t[j]/lin_dt, ' dt_lin , tf = ', t[j+1]/lin_dt, ' dt_lin' )
+    #     ch.run_ch_solver(chparams,info);
 

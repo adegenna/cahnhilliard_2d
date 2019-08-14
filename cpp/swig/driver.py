@@ -25,12 +25,13 @@ L_kuhn   = (10**-9) * np.mean([ 0.5 , 3.0  ]) # meters
 # Setup simulation info object
 info          = ch.SimInfo();
 info.t0       = 0.0
-info.nx       = 100
-info.ny       = 100
+info.nx       = 64
+info.ny       = 64
 info.dx       = 1./info.nx
 info.dy       = 1./info.ny
-info.bc       = 'neumann'
+info.bc       = 'dirichlet'
 info.rhs_type = 'ch_thermal_no_diffusion'
+info.BC_dirichlet_ch = 1.0
 
 # Set up grid for spatial-field quantities
 nx                = int(info.nx)
@@ -40,7 +41,7 @@ xx,yy             = np.meshgrid( np.arange(0,1,1/info.nx), np.arange(0,1,1/info.
 chparams              = ch.CHparamsVector( info.nx , info.ny );
 chparams.b            = ch.DoubleVector(1.0    * np.ones(nx**2))
 chparams.u            = ch.DoubleVector(1.0    * np.ones(nx**2))
-chparams.m            = ch.DoubleVector(0.0    * np.ones(nx**2))
+chparams.m            = ch.DoubleVector(0.1    * np.ones(nx**2))
 chparams.sigma_noise  = 0.0
 chparams.eps2_min     = 0.0
 chparams.eps2_max     = 1.0
@@ -58,7 +59,7 @@ chparams.compute_and_set_eps2_and_sigma_from_polymer_params( chparams.T_max , in
 
 # ******************************
 
-print( np.sqrt(chparams.eps_2[0]) , chparams.sigma[0] )
+print( chparams.eps_2[0] , chparams.sigma[0] )
 
 # Define timescales
 biharm_dt         = (info.dx**4) / np.max(chparams.eps_2)
@@ -74,18 +75,8 @@ t                 = np.linspace(info.t0 , info.t0 + n_dt * stiff_dt , n_tsteps+1
 dt_check          = t[1]-t[0]
 
 # Setup time-dependent temperature profile
-T                            = np.zeros(n_tsteps)
-
-# T[0:n_tsteps//4]             = chparams.T_min
-# T[n_tsteps//4:n_tsteps//2]   = np.linspace( chparams.T_min , chparams.T_max , n_tsteps//4 )
-# T[n_tsteps//2:3*n_tsteps//4] = chparams.T_max
-# T[3*n_tsteps//4:]            = chparams.T_min
-
-T_mid            = 0.5*( chparams.T_max + chparams.T_min )
-T[0:20]          = chparams.T_max
-T[20:25]         = np.linspace( chparams.T_max , T_mid , 5 )
-T[25:50]         = T_mid
-T[50:]           = np.linspace( T_mid , chparams.T_min , 50 )
+T                = np.zeros(n_tsteps)
+T[0:]            = chparams.T_max
 
 print( 'Biharmonic timescale dt_biharm = ' , biharm_dt )
 print( 'Diffusion timescale dt_diff = ' , diff_dt , ' = ' , diff_dt/biharm_dt , ' dt_biharm')

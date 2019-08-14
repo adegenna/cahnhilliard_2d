@@ -16,13 +16,13 @@ def compute_voronoi_lattice_metrics( data_file , N , M ):
     Ci    = w.reshape([N,M],order='C');
     inputs             = Inputs(data_file, 'csv', 2, 'voronoi', './structure_metrics_2d.dat' , N , M, filter_tolerance=-0.8)
     structure_analysis = image_structure.src.ImageStructure.ImageStructure( inputs )
-    vertices_internal , centers_internal , vol_internal , d_cv , vor = \
+    vertices_internal , centers_internal , vol_internal , skewness_internal , d_cv , vor = \
                 structure_analysis.compute_structure(plot_metrics=False, outdir='./', str_figure='/C_' )
     n_6           = len([vi for vi in vertices_internal if len(vi) == 6])
     n_not_6       = len([vi for vi in vertices_internal if len(vi) != 6])
     lattice_ratio = n_not_6 / ( n_not_6 + n_6 )
 
-    return vor , lattice_ratio , vol_internal , centers_internal
+    return vor , lattice_ratio , vol_internal , skewness_internal , centers_internal
 
 
 mcsamps     = 50
@@ -62,7 +62,7 @@ idxk = np.argsort(k)    + mcstart + 1
 
 fig   = plt.figure(1,figsize=(15,7))
 fig2  = plt.figure(2,figsize=(15,7))
-fig3,ax3  = plt.subplots(1,3,figsize=(10,5))
+fig3,ax3  = plt.subplots(1,4,figsize=(10,5))
 
 subplotsx = int( np.ceil(np.sqrt( n_samples//2 ) ) )
 subplotsy = n_samples // subplotsx
@@ -82,11 +82,8 @@ for i in range(mcstart , mcstart + mcsamps):
         w             = np.genfromtxt( data_file )
         Ci            = w.reshape([N,M],order='C');
         Ti            = np.genfromtxt( basedir + str(idxI) + '/T_mc_' + str(int(idxI)) + '.out')
-        vor , lattice_ratio , vol_internal , centers_internal = compute_voronoi_lattice_metrics( data_file , N , M )
+        vor , lattice_ratio , vol_internal , skewness_internal , centers_internal  = compute_voronoi_lattice_metrics( data_file , N , M )
 
-        print( vor.vertices)
-        print( vor.regions )
-        
         ax1 = fig.add_subplot(subplotsx , subplotsy , plot_count+1)
         ax1.cla()
         ax1.contourf(xx,yy,Ci,30,vmin=-1,vmax=1)
@@ -95,19 +92,21 @@ for i in range(mcstart , mcstart + mcsamps):
         ax1.set_xticks([])
         ax1.set_yticks([])
         ax1.set_title('C_' + str(idxI) + ', L=%.2f' %lattice_ratio + ', M=%.0f' %np.mean(vol_internal) + ', V=%.0f' %np.var(vol_internal) )
-        
+
         ax2 = fig2.add_subplot(subplotsx , subplotsy , plot_count+1)
         ax2.cla()
         ax2.plot(Ti)
         ax2.set_ylim([Tmin,Tmax])
         ax2.set_title('T_' + str(idxI))
 
-        ax3[0].plot( intT[idxI-1]      , lattice_ratio , 'bo' )
+        ax3[0].plot( intT[idxI-1-mcstart]      , lattice_ratio , 'bo' )
         ax3[0].set_title( 'L vs avg(T)' )
-        ax3[1].plot( intT[idxI-1]      , np.mean(vol_internal) , 'bo' )
+        ax3[1].plot( intT[idxI-1-mcstart]      , np.mean(vol_internal) , 'bo' )
         ax3[1].set_title( 'M vs avg(T)' )
-        ax3[2].semilogy( intT[idxI-1]  , np.var(vol_internal) , 'bo' )
+        ax3[2].semilogy( intT[idxI-1-mcstart]  , np.var(vol_internal) , 'bo' )
         ax3[2].set_title( 'log(V) vs avg(T)' )
+        ax3[3].plot( intT[idxI-1-mcstart]      , np.mean(skewness_internal) , 'bo' )
+        ax3[3].set_title( 'S vs avg(T)' )
         
         plot_count += 1
         
