@@ -325,3 +325,190 @@ double convert_temperature_to_flory_huggins( CHparamsVector& chpV,
 
 
 
+/*********************
+Functions for implicit
+**********************/
+
+
+void compute_ch_nonlocal_implicit_dirichlet(const std::vector<double> &c,
+                                            std::vector<double> &dcdt,
+                                            const double t,
+                                            CHparamsVector& chpV,
+                                            SimInfo& info ,
+                                            TS& ts ,
+                                            Vec& F ,
+                                            DM& da ) {
+
+  // Computes deterministic nonlocal CH dynamics over a Petsc domain patch
+  // dc/dt = laplacian( u*c^3 - b*c ) - eps_2*biharm(c) - sigma*(c - m)
+
+  PetscErrorCode ierr;
+  int            i,j,Mx,My,xs,ys,xm,ym;
+  double         hx,hy,sx,sy;
+  double         u,uxx,uyy,**uarray,**f,**udot;
+  Vec            localU;
+
+  double l_i,l_ip1,l_im1,l_jp1,l_jm1;
+  double dxx,dyy,dxxxx,dyyyy,dxxyy,rhs_ij;
+  double eps_2 = chpV.eps_2;
+  double sigma = chpV.sigma;
+  double m     = chpV.m;
+
+  PetscFunctionBeginUser;
+  DMGetLocalVector( da , &localU );
+  DMDAGetInfo( da , PETSC_IGNORE , &Mx , &My , \
+               PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
+
+  hx = info.dx; sx = 1.0/(hx*hx);
+  hy = info.dy; sy = 1.0/(hy*hy);
+
+  /*
+     Scatter ghost points to local vector,using the 2-step process
+        DMGlobalToLocalBegin(),DMGlobalToLocalEnd().
+     By placing code between these two statements, computations can be
+     done while messages are in transition.
+  */
+  DMGlobalToLocalBegin(da,U,INSERT_VALUES,localU);
+  DMGlobalToLocalEnd(da,U,INSERT_VALUES,localU);
+
+  /* Get pointers to vector data */
+  DMDAVecGetArrayRead(da,localU,&uarray);
+  DMDAVecGetArray(da,F,&f);
+  DMDAVecGetArray(da,Udot,&udot);
+
+  /* Get local grid boundaries */
+  DMDAGetCorners(da,&xs,&ys,NULL,&xm,&ym,NULL);
+
+  /* Compute function over the locally owned part of the grid */
+  for (j=ys; j<ys+ym; j++) {
+    for (i=xs; i<xs+xm; i++) {
+
+      c_i   = uarray[j][i];
+      
+      /* Boundary conditions */
+      ThirteenPointStencil stencil;
+      if ( info.bc.compare("dirichlet") == 0 ) /* Dirichlet BC */
+        stencil = get_stencil_dirichlet_bc( info.BC_dirichlet_ch , uarray , Mx , My , i , j );
+	
+      else {                  /* Neumann BC */
+        
+      }
+      
+      // dc/dt = laplacian( c^3 - c ) - eps_2*biharm(c) - sigma*(c - m)
+      
+      // Term: laplacian( c^3 - c )
+
+      l_i     = stencil.c_i*stencil.c_i*stencil.c_i       - stencil.c_i;
+      l_im1   = stencil.c_im1*stencil.c_im1*stencil.c_im1 - stencil.c_im1;
+      l_ip1   = stencil.c_ip1*stencil.c_ip1*stencil.c_ip1 - stencil.c_ip1;
+      l_jm1   = stencil.c_jm1*stencil.c_jm1*stencil.c_jm1 - stencil.c_jm1;
+      l_jp1   = stencil.c_jp1*stencil.c_jp1*stencil.c_jp1 - stencil.c_jp1;
+
+      dxx     = sx * ( l_ip1 + l_im1 - 2.0 * l_i );
+      dyy     = sy * ( l_jp1 + l_jm1 - 2.0 * l_i );
+	
+      rhs_ij  = dxx + dyy;
+
+      // Term: -eps_2*biharm(c)
+      dxxxx = sx * sx * (stencil.c_ip2 - 4.0*stencil.c_ip1 + 6.0*stencil.c_i - 4.0*stencil.c_im1 + stencil.c_im2);
+      dyyyy = sy * sy * (stencil.c_jp2 - 4.0*stencil.c_jp1 + 6.0*stencil.c_i - 4.0*stencil.c_jm1 + stencil.c_jm2);
+      dxxyy = sx * sy * 2 * (4*stencil.c_i - 2*(stencil.c_im1 + stencil.c_ip1 + stencil.c_jm1 + stencil.c_jp1) + stencil.c_ul + stencil.c_ur + stencil.c_bl + stencil.c_br );	// mixed term 2*u_xxyy
+
+      rhs_ij += -eps_2 * ( dxxxx + dyyyy + dxxyy );
+
+      // Term: -sigma*(c - m)
+      rhs_ij += -sigma * ( stencil.c_i - m );
+
+      // Form f
+      f[j][i] = udot[j][i] - rhs_ij;
+
+    }
+
+  }
+  
+  /* Restore vectors */
+  DMDAVecRestoreArrayRead(da,localU,&uarray);
+  DMDAVecRestoreArray(da,F,&f);
+  DMDAVecRestoreArray(da,Udot,&udot);
+  DMRestoreLocalVector(da,&localU);
+  PetscLogFlops(11.0*ym*xm);
+  PetscFunctionReturn(0);
+
+};
+
+ThirteenPointStencil get_stencil_dirichlet_bc( const double dirichlet_bc ,
+                                               const double** uarray ,
+                                               const int Mx ,
+                                               const int My ,
+                                               const int i ,
+                                               const int j ) {
+
+  ThirteenPointStencil stencil;
+
+  /* Compute function over the locally owned part of the grid */
+
+  stencil.c_i   = uarray[j][i];
+  
+  if ((j-2 >= 0) && (j-2 <= My-1) && (i >= 0) && (i <= Mx-1)  )    //c_jm2 
+    stencil.c_jm2 = uarray[j-2][i];
+  else
+    stencil.c_jm2 = dirichlet_bc;
+
+  if ((j-1 >= 0) && (j-1 <= My-1) && (i >= 0) && (i <= Mx-1)  )    //c_jm1
+    stencil.c_jm1 = uarray[j-1][i];
+  else
+    stencil.c_jm1 = dirichlet_bc;
+
+  if ((j+1 >= 0) && (j+1 <= My-1) && (i >= 0) && (i <= Mx-1)  )    //c_jp1
+    stencil.c_jp1 = uarray[j+1][i];
+  else
+    stencil.c_jp1 = dirichlet_bc;
+
+  if ((j+2 >= 0) && (j+2 <= My-1) && (i >= 0) && (i <= Mx-1)  )    //c_jp2
+    stencil.c_jp2 = uarray[j+2][i];
+  else
+    stencil.c_jp2 = dirichlet_bc;
+
+  if ((j >= 0) && (j <= My-1) && (i-2 >= 0) && (i-2 <= Mx-1)  )    //c_im2 
+    stencil.c_im2 = uarray[j][i-2];
+  else
+    stencil.c_im2 = dirichlet_bc;
+
+  if ((j >= 0) && (j <= My-1) && (i-1 >= 0) && (i-1 <= Mx-1)  )    //c_im1 
+    stencil.c_im1 = uarray[j][i-1];
+  else
+    stencil.c_im1 = dirichlet_bc;
+
+  if ((j >= 0) && (j <= My-1) && (i+1 >= 0) && (i+1 <= Mx-1)  )    //c_ip1 
+    stencil.c_ip1 = uarray[j][i+1];
+  else
+    stencil.c_ip1 = dirichlet_bc;
+
+  if ((j >= 0) && (j <= My-1) && (i+2 >= 0) && (i+2 <= Mx-1)  )    //c_ip2 
+    stencil.c_ip2 = uarray[j][i+2];
+  else
+    stencil.c_ip2 = dirichlet_bc;
+
+  if ((j-1 >= 0) && (j-1 <= My-1) && (i-1 >= 0) && (i-1 <= Mx-1)  )    //c_ul
+    stencil.c_ul = uarray[j-1][i-1];
+  else
+    stencil.c_ul = dirichlet_bc;
+
+  if ((j-1 >= 0) && (j-1 <= My-1) && (i+1 >= 0) && (i+1 <= Mx-1)  )    //c_ur
+    stencil.c_ur = uarray[j-1][i+1];
+  else
+    stencil.c_ur = dirichlet_bc;
+
+  if ((j+1 >= 0) && (j+1 <= My-1) && (i-1 >= 0) && (i-1 <= Mx-1)  )    //c_bl
+    stencil.c_bl = uarray[j+1][i-1];
+  else
+    stencil.c_bl = dirichlet_bc;
+
+  if ((j+1 >= 0) && (j+1 <= My-1) && (i+1 >= 0) && (i+1 <= Mx-1)  )    //c_br
+    stencil.c_br = uarray[j+1][i+1];
+  else
+    stencil.c_br = dirichlet_bc;
+  
+  return stencil;
+
+};
