@@ -3,11 +3,26 @@
 
 #include "utils_ch_implicit.h"
 
+ThirteenPointStencil get_thirteen_point_stencil( AppCtx* user ,
+						 PetscReal** uarray ,
+						 PetscInt Mx , PetscInt My ,
+						 PetscInt i , PetscInt j );
+
+PetscReal reset_boundary_residual_values_for_neumann_bc( PetscReal** uarray ,
+							 PetscReal rhs_ij ,
+							 PetscReal udot_ij ,
+							 PetscInt Mx , PetscInt My ,
+							 PetscInt i , PetscInt j );
+
 ThirteenPointStencil apply_dirichlet_bc( AppCtx* user ,
 					 PetscReal** uarray ,
 					 PetscInt Mx , PetscInt My ,
 					 PetscInt i , PetscInt j );
 
+ThirteenPointStencil apply_neumann_bc( AppCtx* user ,
+				       PetscReal** uarray ,
+				       PetscInt Mx , PetscInt My ,
+				       PetscInt i , PetscInt j );
 
 
 #endif

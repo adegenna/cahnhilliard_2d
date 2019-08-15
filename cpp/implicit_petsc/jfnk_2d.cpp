@@ -28,7 +28,7 @@ int main(int argc,char **argv) {
      Create distributed array (DMDA) to manage parallel grid and vectors
   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   DMDACreate2d(PETSC_COMM_WORLD, 
-		      DM_BOUNDARY_NONE, DM_BOUNDARY_NONE,      // type of ghost nodes
+		      DM_BOUNDARY_GHOSTED, DM_BOUNDARY_GHOSTED,      // type of ghost nodes
  		      DMDA_STENCIL_BOX,                        // type of stencil
 		      11,11,                                   // global dimns of array
 		      PETSC_DECIDE,PETSC_DECIDE,               // #procs in each dimn

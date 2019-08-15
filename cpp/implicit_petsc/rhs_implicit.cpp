@@ -50,38 +50,7 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
       
       /* Boundary conditions */
       ThirteenPointStencil stencil;
-      if (user->boundary == 0) /* Dirichlet BC */
-        stencil = apply_dirichlet_bc( user , uarray , Mx , My , i , j );
-	
-      else {                  /* Neumann BC */
-
-	if (i == 0 && j == 0) {            // SW corner
-	  f[j][i] = uarray[j][i] - uarray[j+1][i+1];
-	}
-	else if (i == Mx-1 && j == 0) {    // SE corner 
-	  f[j][i] = uarray[j][i] - uarray[j+1][i-1];
-	}
-	else if (i == 0 && j == My-1) {    // NW corner 
-	  f[j][i] = uarray[j][i] - uarray[j-1][i+1];
-	}
-	else if (i == Mx-1 && j == My-1) { // NE corner 
-	  f[j][i] = uarray[j][i] - uarray[j-1][i-1];
-	}
-	  
-	else if ( (i == 0) || (i == 1) ) {        // Left 
-	  f[j][i] = uarray[j][i] - uarray[j][i+1];
-	}
-	else if ( (i == Mx-1) || (i == Mx-2) ) {  // Right 
-	  f[j][i] = uarray[j][i] - uarray[j][i-1];
-	}
-	else if ( (j == 0) || (j == 1) ) {        // Bottom 
-	  f[j][i] = uarray[j][i] - uarray[j+1][i];
-	}
-	else if ( (j == My-1) || (j == My-2) ) {  // Top 
-	  f[j][i] = uarray[j][i] - uarray[j-1][i];
-	}
-
-      }
+      stencil = get_thirteen_point_stencil( user , uarray , Mx , My , i , j );
       
       // dc/dt = laplacian( c^3 - c ) - eps_2*biharm(c) - sigma*(c - m)
 
@@ -115,7 +84,10 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
       rhs_ij += -sigma * ( stencil.c_i - m );
 
       // Form f
-      f[j][i] = udot[j][i] - rhs_ij;
+      if (user->boundary == 0) // Dirichlet: just compute with ghost nodes
+        f[j][i] = udot[j][i] - rhs_ij;
+      else // Neumann: reset residuals explicitly
+        f[j][i] = reset_boundary_residual_values_for_neumann_bc( uarray , rhs_ij , udot[j][i] , Mx , My , i , j );
 
     }
 

@@ -27,11 +27,28 @@ PetscErrorCode FormInitialSolution(Vec U,void *ptr)
   PetscRandomCreate(PETSC_COMM_WORLD,&rng);
   PetscRandomSetType(rng,PETSCRAND48);
 
-  // Interior
+  // Fill values
+  PetscInt j_mir, i_mir;
   for (j=ys; j<ys+ym; j++) {
     for (i=xs; i<xs+xm; i++) {
-      PetscRandomGetValueReal(rng , &value_rng);
-      u[j][i] = 0.005 * ( 2.0 * value_rng - 1.0 );
+      if ( (j >= 1) && (j <= My-2) && (i >= 1) && (i <= Mx-2) ) {
+        // Interior
+        PetscRandomGetValueReal(rng , &value_rng);
+        u[j][i] = 0.005 * ( 2.0 * value_rng - 1.0 );
+      }
+      else {
+        // Boundary
+        if ( user->boundary == 0 )
+          // Dirichlet
+          u[j][i] = user->dirichlet_bc;
+        else {
+          // Neumann: just fill ghost cells with random values, and explicitly change residual at the end
+          PetscRandomGetValueReal(rng , &value_rng);
+          u[j][i] = 0.005 * ( 2.0 * value_rng - 1.0 );
+        }
+          
+      }
+      
     }
   }
   

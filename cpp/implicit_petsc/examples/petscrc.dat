@@ -3,7 +3,7 @@
 -Lx 1.0
 -Ly 1.0
 -t_final 1.0 
--boundary 0
+-boundary 1
 -dirichlet_bc 0.5
 -ts_type "arkimex"
 -ts_adapt "basic"
