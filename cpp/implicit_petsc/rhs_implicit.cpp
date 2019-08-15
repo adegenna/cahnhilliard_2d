@@ -58,7 +58,7 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
       //sigma = 1589.7207868872565;
       eps_2 = 0.00013331972927932523;
       sigma = 1621.9985581953435;
-      m     = 0.1;
+      m     = 0.0;
       
       // Term: laplacian( c^3 - c )
 
@@ -84,11 +84,11 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
       rhs_ij += -sigma * ( stencil.c_i - m );
 
       // Form f
-      if (user->boundary == 0) // Dirichlet: just compute with ghost nodes
-        f[j][i] = udot[j][i] - rhs_ij;
-      else // Neumann: reset residuals explicitly
+      if ( user->boundary == 1 ) // Neumann: reset residuals explicitly 
         f[j][i] = reset_boundary_residual_values_for_neumann_bc( uarray , rhs_ij , udot[j][i] , Mx , My , i , j );
-
+      
+      else // Dirichlet: just compute with ghost nodes
+        f[j][i] = udot[j][i] - rhs_ij;
     }
 
   }
