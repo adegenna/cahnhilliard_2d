@@ -10,6 +10,37 @@ static char help[] = "JFNK implicit solver for 2D CH with PETSc \n";
 #include "initial_conditions.h"
 #include "rhs_implicit.h"
 
+PetscErrorCode EventFunction( TS ts , PetscReal t , Vec U , PetscScalar *fvalue , void *ctx ) {
+
+  AppCtx            *app=(AppCtx*)ctx;
+  PetscErrorCode    ierr;
+  
+  /* Event for ball height */
+  if ( (t - (app->dt_counter + 1) * app->dt_check) < 0)
+    fvalue[0] = 1;
+  else
+    fvalue[0] = 0;
+  
+  return(0);
+
+}
+
+PetscErrorCode PostEventFunction(TS ts,PetscInt nevents,PetscInt event_list[],PetscReal t,Vec U,PetscBool forwardsolve,void* ctx) {
+
+  AppCtx         *app=(AppCtx*)ctx;
+  PetscReal       m;
+
+  if ( event_list[0] == 0 ) {
+    app->m += 0.1;
+    app->dt_counter += 1;
+    PetscPrintf( PETSC_COMM_WORLD , "Changing m at t = %5.2f seconds to %5.2f\n" , (double)t , (double)app->m );
+  }
+
+  return(0);
+
+}
+
+
 int main(int argc,char **argv) {
   
   TS             ts;                   /* nonlinear solver */
@@ -77,6 +108,13 @@ int main(int argc,char **argv) {
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   TSSetFromOptions(ts);
   PetscOptionsView( NULL , PETSC_VIEWER_STDOUT_WORLD );
+
+  /* Set directions and terminate flags for the two events */
+  PetscInt       direction[1];
+  PetscBool      terminate[1];
+  direction[0] = -1;
+  terminate[0] = PETSC_FALSE;
+  TSSetEventHandler( ts , 1 , direction , terminate , EventFunction , PostEventFunction , (void*)&user );
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Solve nonlinear system

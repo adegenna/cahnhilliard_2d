@@ -25,6 +25,9 @@ typedef struct {
   PetscReal Lx, Ly;            // Length of domain in each direction
   PetscReal t_final;           // Final time of simulation
   PetscReal dirichlet_bc;      // Value of dirichlet bc
+  PetscReal dt_check   = 0.1;  // Value of time increment where you change the parameters/temperature
+  PetscInt  dt_counter = 0;    // Counter that keeps track of how many dt_check have gone by so far
+  PetscReal m          = 0.0;  // CH parameter: value of m (avg concentration)
 } AppCtx;
 
 AppCtx parse_petsc_options( );
