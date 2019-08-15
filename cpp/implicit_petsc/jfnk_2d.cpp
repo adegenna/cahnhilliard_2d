@@ -82,8 +82,8 @@ int main(int argc,char **argv) {
      Solve nonlinear system
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   TSSolve(ts,u);
-  printf("Simulation done, press enter to continue...\n");
-  getchar();
+  //printf("Simulation done, press enter to continue...\n");
+  //getchar();
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Free work space.

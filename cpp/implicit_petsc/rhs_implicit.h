@@ -3,7 +3,9 @@
 
 #include "utils_ch_implicit.h"
 
-PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx);
+PetscErrorCode compute_rhs( TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx );
+
+PetscErrorCode FormIFunction( TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx );
 
 
 #endif
