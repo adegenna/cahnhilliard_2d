@@ -4,7 +4,7 @@
 -Ly 1.0
 -t_final 1
 -boundary 1
--dirichlet_bc 0.5
+-dirichlet_bc 0.0
 -ts_type "arkimex"
 -ts_adapt_type "basic"
 -draw_pause .1

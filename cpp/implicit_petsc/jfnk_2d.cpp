@@ -5,6 +5,8 @@ static char help[] = "JFNK implicit solver for 2D CH with PETSc \n";
 #include <petscdmda.h>
 #include <petscts.h>
 #include <stdio.h>
+#include <iostream>
+#include <fstream>
 #include "utils_ch_implicit.h"
 #include "boundary_conditions.h"
 #include "initial_conditions.h"
@@ -15,7 +17,6 @@ PetscErrorCode EventFunction( TS ts , PetscReal t , Vec U , PetscScalar *fvalue 
   AppCtx            *app=(AppCtx*)ctx;
   PetscErrorCode    ierr;
   
-  /* Event for ball height */
   if ( (t - (app->dt_counter + 1) * app->dt_check) < 0)
     fvalue[0] = 1;
   else
@@ -28,15 +29,34 @@ PetscErrorCode EventFunction( TS ts , PetscReal t , Vec U , PetscScalar *fvalue 
 PetscErrorCode PostEventFunction(TS ts,PetscInt nevents,PetscInt event_list[],PetscReal t,Vec U,PetscBool forwardsolve,void* ctx) {
 
   AppCtx         *app=(AppCtx*)ctx;
-  PetscReal       m;
-
+  PetscReal       m, m_new;
+  
   if ( event_list[0] == 0 ) {
-    app->m += 0.1;
-    app->dt_counter += 1;
-    PetscPrintf( PETSC_COMM_WORLD , "Changing m at t = %5.2f seconds to %5.2f\n" , (double)t , (double)app->m );
-  }
 
-  return(0);
+    const std::string name     = "m_" + std::to_string( (app->dt_counter + 1) * app->dt_check ).substr(0,4) + ".dat";
+    const std::string petscout = "Attepting to read new m at t = %5.2f seconds from file " + name + "\n";
+    PetscPrintf( PETSC_COMM_WORLD , petscout.c_str() , (double)t );
+    
+    while(true) {
+
+      if (FILE *file = fopen(name.c_str(), "r")) {
+
+        std::ifstream fin(name);
+        PetscReal m_new;
+        fin >> m_new;
+        
+        app->m           = m_new;
+        app->dt_counter += 1;
+        
+        PetscPrintf( PETSC_COMM_WORLD , "Changing m at t = %5.2f seconds to %5.2f.dat\n" , (double)t , (double)app->m );
+
+        fin.close();
+        return(0);
+        
+      }
+
+    }
+  }
 
 }
 
@@ -112,7 +132,7 @@ int main(int argc,char **argv) {
   /* Set directions and terminate flags for the two events */
   PetscInt       direction[1];
   PetscBool      terminate[1];
-  direction[0] = -1;
+  direction[0] = 1;
   terminate[0] = PETSC_FALSE;
   TSSetEventHandler( ts , 1 , direction , terminate , EventFunction , PostEventFunction , (void*)&user );
   
