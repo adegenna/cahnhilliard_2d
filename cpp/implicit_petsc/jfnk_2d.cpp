@@ -7,6 +7,8 @@ static char help[] = "JFNK implicit solver for 2D CH with PETSc \n";
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
+#include <chrono>
+#include <thread>
 #include "utils_ch_implicit.h"
 #include "boundary_conditions.h"
 #include "initial_conditions.h"
@@ -33,13 +35,27 @@ PetscErrorCode PostEventFunction(TS ts,PetscInt nevents,PetscInt event_list[],Pe
   
   if ( event_list[0] == 0 ) {
 
+    if ( t >= app->t_final )
+      return(0);
+
     const std::string name     = "m_" + std::to_string( (app->dt_counter + 1) * app->dt_check ).substr(0,4) + ".dat";
     const std::string petscout = "Attepting to read new m at t = %5.2f seconds from file " + name + "\n";
     PetscPrintf( PETSC_COMM_WORLD , petscout.c_str() , (double)t );
-    
+
+    // Output to file that you are ready for a new value
+    const std::string outname  = "complete_" + std::to_string( (app->dt_counter + 1) * app->dt_check ).substr(0,4) + ".dat";
+    std::ofstream fout(outname);
+    fout << "complete\n";
+    fout.close();
+
+    // Wait until receive a new value of m from an input file
     while(true) {
 
-      if (FILE *file = fopen(name.c_str(), "r")) {
+      if (FILE *file = fopen(name.c_str(), "r") ) {
+
+        fclose(file);
+        
+        std::this_thread::sleep_for( std::chrono::milliseconds(100) ); // Give the driver time to finish writing the new parameters
 
         std::ifstream fin(name);
         PetscReal m_new;
@@ -50,7 +66,7 @@ PetscErrorCode PostEventFunction(TS ts,PetscInt nevents,PetscInt event_list[],Pe
         
         PetscPrintf( PETSC_COMM_WORLD , "Changing m at t = %5.2f seconds to %5.2f.dat\n" , (double)t , (double)app->m );
 
-        fin.close();
+        fin.close();        
         return(0);
         
       }
@@ -132,7 +148,7 @@ int main(int argc,char **argv) {
   /* Set directions and terminate flags for the two events */
   PetscInt       direction[1];
   PetscBool      terminate[1];
-  direction[0] = 1;
+  direction[0] = -1;
   terminate[0] = PETSC_FALSE;
   TSSetEventHandler( ts , 1 , direction , terminate , EventFunction , PostEventFunction , (void*)&user );
   
@@ -140,6 +156,7 @@ int main(int argc,char **argv) {
      Solve nonlinear system
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   TSSolve(ts,u);
+  PetscPrintf( PETSC_COMM_WORLD , "SIMULATION DONE\n\n" );
   //printf("Simulation done, press enter to continue...\n");
   //getchar();
   

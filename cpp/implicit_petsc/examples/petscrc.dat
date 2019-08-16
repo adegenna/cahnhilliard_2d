@@ -2,7 +2,7 @@
 -da_grid_y 64
 -Lx 1.0
 -Ly 1.0
--t_final 1
+-t_final 0.3
 -boundary 1
 -dirichlet_bc 0.0
 -ts_type "arkimex"
@@ -15,6 +15,7 @@
 -ksp_atol 1e-9
 -ksp_rtol 1e-2
 -snes_atol 1e-8
+-ts_adapt_dt_max 0.1
 
 -ts_monitor_draw_solution
 -ts_monitor
