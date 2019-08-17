@@ -29,8 +29,11 @@ typedef struct {
   PetscInt  dt_counter = 0;    // Counter that keeps track of how many dt_check have gone by so far
   PetscReal dt_output  = 0.02; // Value of time increment where you change the parameters/temperature
   PetscInt  dt_output_counter = 0;   // Counter that keeps track of how many dt_output have gone by so far
-  
+
+  // CH paramaters
   PetscReal m          = -0.15;  // CH parameter: value of m (avg concentration)
+  Vec       eps_2;
+  
 } AppCtx;
 
 AppCtx parse_petsc_options( );

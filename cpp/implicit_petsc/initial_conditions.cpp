@@ -1,12 +1,12 @@
 #include "initial_conditions.h"
 
-PetscErrorCode FormInitialSolution(Vec U,void *ptr)
+PetscErrorCode FormInitialSolution(Vec U , Vec Eps_2 , void *ptr)
 {
   AppCtx         *user=(AppCtx*)ptr;
   DM             da   =user->da;
   PetscErrorCode ierr;
   PetscInt       i,j,xs,ys,xm,ym,Mx,My;
-  PetscScalar    **u;
+  PetscScalar    **u , **eps_2;
   PetscReal      hx,hy,x,y,r;
   PetscRandom rng;
   PetscReal value_rng;
@@ -19,6 +19,7 @@ PetscErrorCode FormInitialSolution(Vec U,void *ptr)
 
   /* Get pointers to vector data */
   DMDAVecGetArray(da,U,&u);
+  DMDAVecGetArray(da,Eps_2,&eps_2);
 
   /* Get local grid boundaries */
   DMDAGetCorners(da,&xs,&ys,NULL,&xm,&ym,NULL);
@@ -31,7 +32,8 @@ PetscErrorCode FormInitialSolution(Vec U,void *ptr)
   for (j=ys; j<ys+ym; j++) {
     for (i=xs; i<xs+xm; i++) {
       PetscRandomGetValueReal(rng , &value_rng);
-      u[j][i] = 0.005 * ( 2.0 * value_rng - 1.0 ); 
+      u[j][i]     = 0.005 * ( 2.0 * value_rng - 1.0 );
+      eps_2[j][i] = 0.00013331972927932523 * PetscExpReal( -0.5 * ( (j-32)*(j-32) + (i-32)*(i-32) ) / (32.0*32.0) );
     } 
   }
 
@@ -76,5 +78,6 @@ PetscErrorCode FormInitialSolution(Vec U,void *ptr)
 
   /* Restore vectors */
   DMDAVecRestoreArray(da,U,&u);
+  DMDAVecRestoreArray(da,Eps_2,&eps_2);
   PetscFunctionReturn(0);
 }

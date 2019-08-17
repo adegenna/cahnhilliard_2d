@@ -118,6 +118,7 @@ add_executable( jfnk_2d
   implicit_petsc/boundary_conditions.cpp
   implicit_petsc/initial_conditions.cpp
   implicit_petsc/rhs_implicit.cpp
+  implicit_petsc/petsc_event_handling.cpp
 )
 
 add_dependencies(jfnk_2d petsc_external)

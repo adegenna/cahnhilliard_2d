@@ -11,16 +11,17 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
   DM             da   = (DM)user->da;
   PetscInt       i,j,Mx,My,xs,ys,xm,ym;
   PetscReal      hx,hy,sx,sy;
-  PetscScalar    u,uxx,uyy,**uarray,**f,**udot;
-  Vec            localU;
-
+  PetscScalar    u,uxx,uyy,**uarray,**f,**udot, **eps_2_array;
+  Vec            localU, local_eps_2;
+  
   PetscReal c_i,c_im2,c_im1,c_ip1,c_ip2,c_jm2,c_jm1,c_jp1,c_jp2, c_ul,c_ur,c_bl,c_br;
   PetscReal l_i,l_ip1,l_im1,l_jp1,l_jm1;
   PetscReal dxx,dyy,dxxxx,dyyyy,dxxyy,rhs_ij;
-  PetscReal eps_2,sigma,m;
+  PetscReal sigma,m;
 
   PetscFunctionBeginUser;
   DMGetLocalVector(da,&localU);
+  DMGetLocalVector(da,&local_eps_2);
   DMDAGetInfo(da,PETSC_IGNORE,&Mx,&My,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
 
   hx = (user->Lx)/(PetscReal)(Mx-1); sx = 1.0/(hx*hx);
@@ -34,9 +35,12 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
   */
   DMGlobalToLocalBegin(da,U,INSERT_VALUES,localU);
   DMGlobalToLocalEnd(da,U,INSERT_VALUES,localU);
+  DMGlobalToLocalBegin(da,user->eps_2,INSERT_VALUES,local_eps_2);
+  DMGlobalToLocalEnd(da,user->eps_2,INSERT_VALUES,local_eps_2);
 
   /* Get pointers to vector data */
   DMDAVecGetArrayRead(da,localU,&uarray);
+  DMDAVecGetArrayRead(da,local_eps_2,&eps_2_array);
   DMDAVecGetArray(da,F,&f);
   DMDAVecGetArray(da,Udot,&udot);
 
@@ -50,14 +54,11 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
       c_i   = uarray[j][i];
       
       /* Boundary conditions */
-      ThirteenPointStencil stencil;
-      stencil = get_thirteen_point_stencil( user , uarray , Mx , My , i , j );
+      ThirteenPointStencil stencil = get_thirteen_point_stencil( user , uarray , Mx , My , i , j );
       
       // dc/dt = laplacian( c^3 - c ) - eps_2*biharm(c) - sigma*(c - m)
 
-      //eps_2 = 0.00013198653198653198;
-      //sigma = 1589.7207868872565;
-      eps_2 = 0.00013331972927932523;
+      //eps_2 = 0.00013331972927932523;
       sigma = 1621.9985581953435;
       m     = user->m;
       
@@ -79,7 +80,7 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
       dyyyy = sy * sy * (stencil.c_jp2 - 4.0*stencil.c_jp1 + 6.0*stencil.c_i - 4.0*stencil.c_jm1 + stencil.c_jm2);
       dxxyy = sx * sy * 2 * (4*stencil.c_i - 2*(stencil.c_im1 + stencil.c_ip1 + stencil.c_jm1 + stencil.c_jp1) + stencil.c_ul + stencil.c_ur + stencil.c_bl + stencil.c_br );	// mixed term 2*u_xxyy
 
-      rhs_ij += -eps_2 * ( dxxxx + dyyyy + dxxyy );
+      rhs_ij += -eps_2_array[j][i] * ( dxxxx + dyyyy + dxxyy );
 
       // Term: -sigma*(c - m)
       rhs_ij += -sigma * ( stencil.c_i - m );
@@ -96,6 +97,7 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
   
   /* Restore vectors */
   DMDAVecRestoreArrayRead(da,localU,&uarray);
+  DMDAVecRestoreArrayRead(da,local_eps_2,&eps_2_array);
   DMDAVecRestoreArray(da,F,&f);
   DMDAVecRestoreArray(da,Udot,&udot);
   DMRestoreLocalVector(da,&localU);
