@@ -7,8 +7,6 @@ static char help[] = "JFNK implicit solver for 2D CH with PETSc \n";
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
-#include <chrono>
-#include <thread>
 #include "utils_ch_implicit.h"
 #include "boundary_conditions.h"
 #include "initial_conditions.h"
