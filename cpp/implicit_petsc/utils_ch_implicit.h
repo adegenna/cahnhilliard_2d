@@ -27,6 +27,9 @@ typedef struct {
   PetscReal dirichlet_bc;      // Value of dirichlet bc
   PetscReal dt_check   = 0.1;  // Value of time increment where you change the parameters/temperature
   PetscInt  dt_counter = 0;    // Counter that keeps track of how many dt_check have gone by so far
+  PetscReal dt_output  = 0.02; // Value of time increment where you change the parameters/temperature
+  PetscInt  dt_output_counter = 0;   // Counter that keeps track of how many dt_output have gone by so far
+  
   PetscReal m          = -0.15;  // CH parameter: value of m (avg concentration)
 } AppCtx;
 

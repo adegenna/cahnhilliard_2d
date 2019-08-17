@@ -18,12 +18,20 @@ PetscErrorCode EventFunction( TS ts , PetscReal t , Vec U , PetscScalar *fvalue 
 
   AppCtx            *app=(AppCtx*)ctx;
   PetscErrorCode    ierr;
-  
-  if ( (t - (app->dt_counter + 1) * app->dt_check) < 0)
+
+  // Event 1: stop for driver program 
+  if ( (t - (app->dt_counter + 1) * app->dt_check) < 0 )
     fvalue[0] = 1;
   else
     fvalue[0] = 0;
-  
+
+  // Event 2: output solution
+  if ( (t - (app->dt_output_counter + 1) * app->dt_output) < 0 )
+    fvalue[1] = 1;
+  else
+    fvalue[1] = 0;
+
+
   return(0);
 
 }
@@ -33,10 +41,7 @@ PetscErrorCode PostEventFunction(TS ts,PetscInt nevents,PetscInt event_list[],Pe
   AppCtx         *app=(AppCtx*)ctx;
   PetscReal       m, m_new;
   
-  if ( event_list[0] == 0 ) {
-
-    if ( t >= app->t_final )
-      return(0);
+  if ( (event_list[0] == 0) && ( t < app->t_final ) ) {
 
     const std::string name     = "m_" + std::to_string( (app->dt_counter + 1) * app->dt_check ).substr(0,4) + ".dat";
     const std::string petscout = "Attepting to read new m at t = %5.2f seconds from file " + name + "\n";
@@ -64,15 +69,39 @@ PetscErrorCode PostEventFunction(TS ts,PetscInt nevents,PetscInt event_list[],Pe
         app->m           = m_new;
         app->dt_counter += 1;
         
-        PetscPrintf( PETSC_COMM_WORLD , "Changing m at t = %5.2f seconds to %5.2f.dat\n" , (double)t , (double)app->m );
+        PetscPrintf( PETSC_COMM_WORLD , "Changing m at t = %5.2f seconds to m = %5.2f\n" , (double)t , (double)app->m );
 
         fin.close();        
-        return(0);
+        break;
         
       }
 
     }
   }
+
+  if ( (event_list[1] == 1) && ( t < app->t_final ) ) {
+
+    PetscPrintf( PETSC_COMM_WORLD , "Logging solution at t = %5.2f seconds\n" , (double)t );
+
+    const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,4) + ".dat";
+
+    const PetscScalar *u;
+
+    PetscViewer    viewer;
+    PetscViewerCreate( PETSC_COMM_WORLD , &viewer );
+    PetscViewerSetType( viewer , PETSCVIEWERASCII );
+    PetscViewerFileSetMode( viewer , FILE_MODE_WRITE );
+
+    PetscViewerASCIIOpen( PETSC_COMM_WORLD , outname.c_str() , &viewer );
+    VecView( U , viewer );
+    
+    PetscViewerDestroy( &viewer );
+    
+    app->dt_output_counter += 1;
+
+  }
+
+  return(0);
 
 }
 
@@ -146,11 +175,11 @@ int main(int argc,char **argv) {
   PetscOptionsView( NULL , PETSC_VIEWER_STDOUT_WORLD );
 
   /* Set directions and terminate flags for the two events */
-  PetscInt       direction[1];
-  PetscBool      terminate[1];
-  direction[0] = -1;
-  terminate[0] = PETSC_FALSE;
-  TSSetEventHandler( ts , 1 , direction , terminate , EventFunction , PostEventFunction , (void*)&user );
+  PetscInt       direction[2];
+  PetscBool      terminate[2];
+  direction[0] = -1; direction[1] = 1;
+  terminate[0] = PETSC_FALSE; terminate[1] = PETSC_FALSE;
+  TSSetEventHandler( ts , 2 , direction , terminate , EventFunction , PostEventFunction , (void*)&user );
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Solve nonlinear system
