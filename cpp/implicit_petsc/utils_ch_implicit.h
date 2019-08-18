@@ -21,13 +21,12 @@ typedef struct {
   DM        da;
   PetscReal c;
   PetscInt  boundary;            /* Type of boundary condition */
-  PetscBool viewJacobian;
   PetscReal Lx, Ly;            // Length of domain in each direction
   PetscReal t_final;           // Final time of simulation
   PetscReal dirichlet_bc;      // Value of dirichlet bc
-  PetscReal dt_check   = 0.1;  // Value of time increment where you change the parameters/temperature
+  PetscReal dt_check;          // Value of time increment where you change the parameters/temperature
   PetscInt  dt_counter = 0;    // Counter that keeps track of how many dt_check have gone by so far
-  PetscReal dt_output  = 0.02; // Value of time increment where you change the parameters/temperature
+  PetscReal dt_output;         // Value of time increment where you change the parameters/temperature
   PetscInt  dt_output_counter = 0;   // Counter that keeps track of how many dt_output have gone by so far
 
   // CH paramaters

@@ -86,7 +86,7 @@ int main(int argc,char **argv) {
   /* Set directions and terminate flags for the two events */
   PetscInt       direction[2];
   PetscBool      terminate[2];
-  direction[0] = -1; direction[1] = 1;
+  direction[0] = 1; direction[1] = 1;
   terminate[0] = PETSC_FALSE; terminate[1] = PETSC_FALSE;
   TSSetEventHandler( ts , 2 , direction , terminate , EventFunction , PostEventFunction , (void*)&user );
   
@@ -95,6 +95,13 @@ int main(int argc,char **argv) {
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   TSSolve(ts,u);
   PetscPrintf( PETSC_COMM_WORLD , "SIMULATION DONE\n\n" );
+
+  // Output to filesystem that you are done
+  const std::string outname  = "complete_sim.dat";
+  std::ofstream fout(outname);
+  fout << "whole simulation complete\n";
+  fout.close();
+
   //printf("Simulation done, press enter to continue...\n");
   //getchar();
   
