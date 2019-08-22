@@ -63,7 +63,7 @@ CHparamsScalar::CHparamsScalar( ) {
   eps2_min     = 0.0;
   eps2_max     = 1.0;
   sigma_min    = 0.0;
-  sigma_max    = pow( 1.0 , 10 );
+  sigma_max    = pow( 10.0 , 10 );
   sigma_noise  = 0.0;
 
   // Thermal dynamics defaults
@@ -101,7 +101,7 @@ CHparamsVector::CHparamsVector( int nx , int ny ) {
   eps2_min     = 0.0;
   eps2_max     = 1.0;
   sigma_min    = 0.0;
-  sigma_max    = pow( 1.0 , 10 );
+  sigma_max    = pow( 10.0 , 10 );
   sigma_noise  = 0.0;
 
   // Thermal dynamics defaults
