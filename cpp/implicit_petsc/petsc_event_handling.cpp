@@ -88,6 +88,9 @@ PetscErrorCode PostEventFunction(TS ts,PetscInt nevents,PetscInt event_list[],Pe
         }
 
       }
+      
+      // Recompute ch parameters based on new temperature
+      compute_eps2_and_sigma_from_temperature( ctx );
     }
     
   }

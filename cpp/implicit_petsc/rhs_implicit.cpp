@@ -101,6 +101,7 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
   DMDAVecRestoreArray(da,F,&f);
   DMDAVecRestoreArray(da,Udot,&udot);
   DMRestoreLocalVector(da,&localU);
+  DMRestoreLocalVector(da,&local_eps_2);
   PetscLogFlops(11.0*ym*xm);
   PetscFunctionReturn(0);
 }
