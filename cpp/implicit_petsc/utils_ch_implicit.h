@@ -29,9 +29,26 @@ typedef struct {
   PetscReal dt_output;         // Value of time increment where you change the parameters/temperature
   PetscInt  dt_output_counter = 0;   // Counter that keeps track of how many dt_output have gone by so far
 
-  // CH paramaters
-  PetscReal m          = -0.15;  // CH parameter: value of m (avg concentration)
-  Vec       eps_2;
+  // Polymer physics defaults
+  PetscScalar X_min    = 0.055;
+  PetscScalar X_max    = 0.5;
+  PetscScalar N        = 0.5 * ( 200.0 + 2000.0 );
+  PetscScalar L_repeat = 0.5 * ( 20.0 + 80.0 );   // nanometers
+  PetscInt    n_repeat = 15;
+  PetscScalar L_omega  = n_repeat * L_repeat;
+  PetscScalar L_kuhn   = 0.5 * ( 0.5 + 3.0 );     // nanometers
+
+  // Thermal dynamics defaults
+  PetscScalar T_min     = 0.1;
+  PetscScalar T_max     = 1.0;
+
+  // CH paramater defaults
+  PetscScalar m         = -0.15;  // CH parameter: value of m (avg concentration)
+  PetscScalar eps2_min  = 0.0;
+  PetscScalar eps2_max  = 1.0;
+  PetscScalar sigma_min = 0.0;
+  PetscScalar sigma_max = pow( 10.0 , 10 );
+  Vec         eps_2,sigma,temperature,X;
   
 } AppCtx;
 

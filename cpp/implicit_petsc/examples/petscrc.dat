@@ -2,8 +2,8 @@
 
 # Grid
 
--da_grid_x 128
--da_grid_y 128
+-da_grid_x 64
+-da_grid_y 64
 -Lx 1.0
 -Ly 1.0
 

@@ -1,10 +1,11 @@
 #include "petsc_event_handling.h"
 #include <chrono>
 #include <thread>
-#include "utils_ch_implicit.h"
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
+#include "utils_ch_implicit.h"
+#include "temperature_dependence.h"
 
 PetscErrorCode EventFunction( TS ts , PetscReal t , Vec U , PetscScalar *fvalue , void *ctx ) {
 

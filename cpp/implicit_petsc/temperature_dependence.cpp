@@ -1,4 +1,5 @@
 #include "temperature_dependence.h"
+#include "utils_ch_implicit.h"
 
 double convert_temperature_to_flory_huggins( const double T ,
 					     const double X_min ,
@@ -6,9 +7,9 @@ double convert_temperature_to_flory_huggins( const double T ,
 					     const double T_min ,
 					     const double T_max ) {
 
-  const double dX_dTinv   = ( chpV.X_max  - chpV.X_min ) / ( 1.0 / chpV.T_min - 1.0 / chpV.T_max );  
-  const double dTinv      = 1.0 / T - 1.0 / chpV.T_max;
-  const double X          = dX_dTinv * dTinv + chpV.X_min;
+  const double dX_dTinv   = ( X_max  - X_min ) / ( 1.0 / T_min - 1.0 / T_max );  
+  const double dTinv      = 1.0 / T - 1.0 / T_max;
+  const double X          = dX_dTinv * dTinv + X_min;
 
   return X;
 
@@ -46,10 +47,11 @@ PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx ) {
   AppCtx         *user = (AppCtx*)ctx;
   DM             da    = (DM)user->da;
 
-  PetscInt xs,ys;
-  PetscScalar    **tarray , **xarray;
-  Vec            local_temperature , local_X;
+  PetscInt       i,j,xs,ys,xm,ym;
 
+  PetscScalar    **tarray , **xarray , **eps2array , **sigmaarray;
+  Vec            local_temperature , local_X;
+  
   /*
      Scatter ghost points to local vector,using the 2-step process
         DMGlobalToLocalBegin(),DMGlobalToLocalEnd().

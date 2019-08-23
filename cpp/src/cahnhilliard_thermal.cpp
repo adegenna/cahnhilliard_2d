@@ -7,11 +7,6 @@
 #include "cahnhilliard_thermal.h"
 #include "utils_ch.h"
 
-#include <petscvec.h>
-#include <petscksp.h>
-#include <petscsnes.h>
-#include <petscts.h>
-
   /*
   Cahn-Hilliard:
   
@@ -25,7 +20,7 @@
   */
 
 CahnHilliard2DRHS_thermal::CahnHilliard2DRHS_thermal(CHparamsScalar& chp , SimInfo& info)
-  : noise_dist_(0.0,1.0) , info_(info) , petsc_context_(*this)
+  : noise_dist_(0.0,1.0) , info_(info)
   {    
     chpV_.eps_2    = std::vector<double>( info_.nx*info_.ny , chp.eps_2     );
     chpV_.b        = std::vector<double>( info_.nx*info_.ny , chp.b         );
@@ -52,7 +47,7 @@ CahnHilliard2DRHS_thermal::CahnHilliard2DRHS_thermal(CHparamsScalar& chp , SimIn
   }
 
 CahnHilliard2DRHS_thermal::CahnHilliard2DRHS_thermal(CHparamsVector& chp , SimInfo& info)
-  : noise_dist_(0.0,1.0) , chpV_(chp) , info_(info) , petsc_context_(*this)
+  : noise_dist_(0.0,1.0) , chpV_(chp) , info_(info)
   {
 
     if ( info.bc.compare("dirichlet") == 0) {

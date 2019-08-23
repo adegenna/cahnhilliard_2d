@@ -18,22 +18,15 @@ class CahnHilliard2DRHS_thermal : public RightHandSide {
   void write_state( const std::vector<double> &x , const int idx , const int nx , const int ny , std::string& outdir ) override;
   void setInitialConditions(std::vector<double> &x);
 
-  struct PetscContext {
-    PetscContext(CahnHilliard2DRHS_thermal &outer) : instance_(outer) {}
-    
-    CahnHilliard2DRHS_thermal &instance_;
-  };
-
 private:
 
+  std::normal_distribution<double> noise_dist_;
   CHparamsVector chpV_;
   SimInfo& info_;
   void (*ch_rhs_) (const std::vector<double>&, std::vector<double>&, double, CHparamsVector&, SimInfo&);
 
   std::default_random_engine generator_;
-  std::normal_distribution<double> noise_dist_;
 
-  PetscContext petsc_context_;    
 };
 
 

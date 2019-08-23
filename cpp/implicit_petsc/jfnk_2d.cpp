@@ -12,6 +12,7 @@ static char help[] = "JFNK implicit solver for 2D CH with PETSc \n";
 #include "initial_conditions.h"
 #include "rhs_implicit.h"
 #include "petsc_event_handling.h"
+#include "temperature_dependence.h"
 
 int main(int argc,char **argv) {
   
@@ -49,6 +50,9 @@ int main(int argc,char **argv) {
   DMCreateGlobalVector(da,&u);
   VecDuplicate(u,&r);
   VecDuplicate(u,&user.eps_2);
+  VecDuplicate(u,&user.sigma);
+  VecDuplicate(u,&user.temperature);
+  VecDuplicate(u,&user.X);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create timestepping solver context
@@ -63,7 +67,8 @@ int main(int argc,char **argv) {
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Set initial conditions
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  FormInitialSolution( u , user.eps_2 , &user );
+  FormInitialSolution( u , user.temperature , &user );
+  compute_eps2_and_sigma_from_temperature( &user );
   TSSetSolution(ts,u);
   dt   = 0.005;
   TSSetTimeStep(ts,dt);
@@ -112,6 +117,10 @@ int main(int argc,char **argv) {
   MatDestroy(&Jmf);
   VecDestroy(&u);
   VecDestroy(&r);
+  VecDestroy(&user.eps_2);
+  VecDestroy(&user.sigma);
+  VecDestroy(&user.temperature);
+  VecDestroy(&user.X);
   TSDestroy(&ts);
   DMDestroy(&da);
 

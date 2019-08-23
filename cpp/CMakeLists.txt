@@ -21,8 +21,9 @@ endif()
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release")
+if (NOT CMAKE_BUILD_TYPE)
+  message( STATUS "Compiling PETSc with debugging OFF")
+  set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
 add_definitions( -DSRCDIR=\"${CMAKE_SOURCE_DIR}/\")
@@ -44,7 +45,6 @@ message( STATUS "PETSC_LIBRARIES ${PETSC_LIBRARIES}")
 
 include_directories( ${CMAKE_SOURCE_DIR}
                      ${Boost_INCLUDE_DIRS}
-                     ${PETSC_INCLUDES}
 )
 
 add_library( ch_src
@@ -58,17 +58,12 @@ add_library( ch_src
 	     src/right_hand_side.cpp  
   )
 
-add_dependencies(ch_src petsc_external)
-
 add_executable( ch2d
   src/driver.cpp
   )
 
-add_dependencies(ch2d petsc_external)
-
 target_link_libraries( ch2d
   ${Boost_LIBRARIES}   
-  ${PETSC_LIBRARIES}
   ch_src
 )
 
@@ -83,6 +78,8 @@ FIND_PACKAGE( PythonLibs )
 INCLUDE_DIRECTORIES( ${PYTHON_INCLUDE_PATH} )
 INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR} )
 INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR}/src )
+include_directories( ${PETSC_INCLUDES} )
+
 	    
 SET( CMAKE_SWIG_FLAGS "-threads" )
 SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -fPIC")
@@ -119,6 +116,7 @@ add_executable( jfnk_2d
   implicit_petsc/initial_conditions.cpp
   implicit_petsc/rhs_implicit.cpp
   implicit_petsc/petsc_event_handling.cpp
+  implicit_petsc/temperature_dependence.cpp
 )
 
 add_dependencies(jfnk_2d petsc_external)
