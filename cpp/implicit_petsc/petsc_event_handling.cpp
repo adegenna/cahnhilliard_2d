@@ -32,9 +32,9 @@ PetscErrorCode PostEventFunction(TS ts,PetscInt nevents,PetscInt event_list[],Pe
     // Log solution
     if ( (event_list[i] == 1) && ( t < app->t_final ) ) {
 
-      PetscPrintf( PETSC_COMM_WORLD , "Logging solution at t = %5.2f seconds\n" , (double)t );
+      PetscPrintf( PETSC_COMM_WORLD , "Logging solution at t = %5.4f seconds\n" , (double)t );
 
-      const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,4) + ".dat";
+      const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".dat";
 
       const PetscScalar *u;
 
@@ -55,12 +55,12 @@ PetscErrorCode PostEventFunction(TS ts,PetscInt nevents,PetscInt event_list[],Pe
     // Look for new input parameters from driver
     if ( (event_list[i] == 0) && ( t < app->t_final ) ) {
 
-      const std::string name     = "m_" + std::to_string( (app->dt_counter + 1) * app->dt_check ).substr(0,4) + ".dat";
-      const std::string petscout = "Attepting to read new m at t = %5.2f seconds from file " + name + "\n";
+      const std::string name     = "m_" + std::to_string( (app->dt_counter + 1) * app->dt_check ).substr(0,6) + ".dat";
+      const std::string petscout = "Attepting to read new m at t = %5.4f seconds from file " + name + "\n";
       PetscPrintf( PETSC_COMM_WORLD , petscout.c_str() , (double)t );
 
       // Output to file that you are ready for a new value
-      const std::string outname  = "complete_" + std::to_string( (app->dt_counter + 1) * app->dt_check ).substr(0,4) + ".dat";
+      const std::string outname  = "complete_" + std::to_string( (app->dt_counter + 1) * app->dt_check ).substr(0,6) + ".dat";
       std::ofstream fout(outname);
       fout << "complete\n";
       fout.close();
@@ -81,7 +81,7 @@ PetscErrorCode PostEventFunction(TS ts,PetscInt nevents,PetscInt event_list[],Pe
           app->m           = m_new;
           app->dt_counter += 1;
         
-          PetscPrintf( PETSC_COMM_WORLD , "Changing m at t = %5.2f seconds to m = %5.2f\n" , (double)t , (double)app->m );
+          PetscPrintf( PETSC_COMM_WORLD , "Changing m at t = %5.4f seconds to m = %5.4f\n" , (double)t , (double)app->m );
 
           fin.close();        
           break;

@@ -34,7 +34,7 @@ typedef struct {
   PetscScalar X_max    = 0.5;
   PetscScalar N        = 0.5 * ( 200.0 + 2000.0 );
   PetscScalar L_repeat = 0.5 * ( 20.0 + 80.0 );   // nanometers
-  PetscInt    n_repeat = 15;
+  PetscScalar n_repeat = 15.0;
   PetscScalar L_omega  = n_repeat * L_repeat;
   PetscScalar L_kuhn   = 0.5 * ( 0.5 + 3.0 );     // nanometers
 

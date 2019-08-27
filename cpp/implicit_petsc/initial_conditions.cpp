@@ -106,7 +106,10 @@ PetscErrorCode FormInitialSolution(Vec U , Vec Temperature , void *ptr)
                                                  user->L_omega ,
                                                  user->N );
 
-  //PetscPrintf( PETSC_COMM_WORLD , "%5.2f\n" , (double)user->sigma_max );
+  PetscPrintf( PETSC_COMM_WORLD , "%5.6f\n" , (double)user->eps2_min );
+  PetscPrintf( PETSC_COMM_WORLD , "%5.6f\n" , (double)user->eps2_max );
+  PetscPrintf( PETSC_COMM_WORLD , "%5.2f\n" , (double)user->sigma_min );
+  PetscPrintf( PETSC_COMM_WORLD , "%5.2f\n" , (double)user->sigma_max );
 
   
   PetscFunctionReturn(0);

@@ -18,9 +18,9 @@
 -ts_adapt_type "basic"
 -ts_adapt_dt_max 0.1
 -ts_max_snes_failures -1
--t_final 0.001
--dt_check 0.0025
--dt_output 10.0
+-t_final 0.0005
+-dt_check 0.2
+-dt_output 0.0001
 
 # Petsc solver options
 
@@ -42,3 +42,6 @@
 #-ksp_monitor
 #-snes_linesearch_monitor
 #-ts_adapt_monitor
+
+#-on_error_attach_debugger
+#-start_in_debugger

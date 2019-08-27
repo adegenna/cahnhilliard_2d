@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
 
-t0 = 0.02
-tf = 0.98
+t0 = 0.0001
+tf = 0.0004
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/C_'
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/swig/C_'
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/data/mcruns/mc_43/C_'
@@ -17,7 +17,7 @@ y     = np.arange(ny)
 xx,yy = np.meshgrid(x,y)
 xx = xx.T; yy = yy.T
 
-tstep = 0.02
+tstep = 0.0001
 fig   = plt.figure(10,figsize=(8,8))
 ax    = fig.gca()
 
@@ -25,7 +25,7 @@ ax    = fig.gca()
 def animate(i):
     print(i*tstep + t0)
     #w = np.genfromtxt(statefile + str(int(i*tstep)) + '.out' )
-    timestamp = '{:0.2f}.dat'.format( (i*tstep + t0) )
+    timestamp = '{:0.4f}.dat'.format( (i*tstep + t0) )
     w = np.genfromtxt(statefile + timestamp , skip_header=5 )
     w = w.reshape([nx,ny],order='C');
     ax.cla()
