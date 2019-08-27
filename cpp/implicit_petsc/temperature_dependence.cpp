@@ -9,7 +9,7 @@ double convert_temperature_to_flory_huggins( const double T ,
 
   const double dX_dTinv   = ( X_max  - X_min ) / ( 1.0 / T_min - 1.0 / T_max );  
   const double dTinv      = 1.0 / T - 1.0 / T_max;
-  const double X          = dX_dTinv * dTinv + X_min;
+  double X                = dX_dTinv * dTinv + X_min;
 
   return X;
 
@@ -82,7 +82,6 @@ PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx ) {
   DMDAVecGetArray( da , local_eps2 , &eps2array );
   DMDAVecGetArray( da , local_sigma , &sigmaarray );
   
-
   /* Get local grid boundaries */
   DMDAGetCorners( da , &xs , &ys , NULL , &xm , &ym , NULL );
 
@@ -119,7 +118,6 @@ PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx ) {
   DMDAVecRestoreArray(da,local_X,&xarray);
   DMDAVecRestoreArray(da,local_eps2,&eps2array);
   DMDAVecRestoreArray(da,local_sigma,&sigmaarray);
-
   DMRestoreLocalVector(da,&local_temperature);
   DMRestoreLocalVector(da,&local_X);
   DMRestoreLocalVector(da,&local_eps2);
