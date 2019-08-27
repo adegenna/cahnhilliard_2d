@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
 
-t0 = 0.0001
-tf = 0.0004
+t0 = 0.005
+tf = 0.09
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/C_'
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/swig/C_'
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/data/mcruns/mc_43/C_'
@@ -17,7 +17,7 @@ y     = np.arange(ny)
 xx,yy = np.meshgrid(x,y)
 xx = xx.T; yy = yy.T
 
-tstep = 0.0001
+tstep = 0.005
 fig   = plt.figure(10,figsize=(8,8))
 ax    = fig.gca()
 

@@ -4,6 +4,8 @@
 #include <petscdm.h>
 #include <petscdmda.h>
 #include <petscts.h>
+#include <petscdmlabel.h>     
+#include <petscds.h>
 #include <stdio.h>
 
 double convert_temperature_to_flory_huggins( const double T ,

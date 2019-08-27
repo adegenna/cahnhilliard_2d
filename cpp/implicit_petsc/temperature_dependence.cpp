@@ -118,6 +118,14 @@ PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx ) {
   DMDAVecRestoreArray(da,local_X,&xarray);
   DMDAVecRestoreArray(da,local_eps2,&eps2array);
   DMDAVecRestoreArray(da,local_sigma,&sigmaarray);
+
+  DMLocalToGlobalBegin( da , local_eps2 , INSERT_VALUES , user->eps_2 );
+  DMLocalToGlobalEnd( da , local_eps2 , INSERT_VALUES , user->eps_2 );
+  DMLocalToGlobalBegin( da , local_sigma , INSERT_VALUES , user->sigma );
+  DMLocalToGlobalEnd( da , local_sigma , INSERT_VALUES , user->sigma );
+  DMLocalToGlobalBegin( da , local_X     , INSERT_VALUES , user->X );
+  DMLocalToGlobalEnd( da , local_X     , INSERT_VALUES , user->X );
+  
   DMRestoreLocalVector(da,&local_temperature);
   DMRestoreLocalVector(da,&local_X);
   DMRestoreLocalVector(da,&local_eps2);
