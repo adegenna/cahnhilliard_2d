@@ -19,7 +19,7 @@
 -ts_adapt_dt_max 0.1
 -ts_max_snes_failures -1
 -t_final 0.1
--dt_check 0.2
+-dt_check 0.02
 -dt_output 0.005
 
 # Petsc solver options

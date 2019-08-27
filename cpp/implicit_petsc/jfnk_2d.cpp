@@ -93,7 +93,7 @@ int main(int argc,char **argv) {
   PetscBool      terminate[2];
   direction[0] = 1; direction[1] = 1;
   terminate[0] = PETSC_FALSE; terminate[1] = PETSC_FALSE;
-  TSSetEventHandler( ts , 2 , direction , terminate , EventFunction , PostEventFunction , (void*)&user );
+  TSSetEventHandler( ts , 2 , direction , terminate , EventFunction , PostEventFunction_ResetTemperatureGaussianProfile , (void*)&user );
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Solve nonlinear system
