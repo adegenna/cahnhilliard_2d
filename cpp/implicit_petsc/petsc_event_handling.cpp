@@ -34,7 +34,7 @@ PetscErrorCode PostEventFunction_ResetM(TS ts,PetscInt nevents,PetscInt event_li
 
       PetscPrintf( PETSC_COMM_WORLD , "Logging solution at t = %5.4f seconds\n" , (double)t );
 
-      const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".dat";
+      const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".out";
 
       const PetscScalar *u;
 
@@ -55,12 +55,12 @@ PetscErrorCode PostEventFunction_ResetM(TS ts,PetscInt nevents,PetscInt event_li
     // Look for new input parameters from driver
     if ( (event_list[i] == 0) && ( t < app->t_final ) ) {
 
-      const std::string name     = "m_" + std::to_string( (app->dt_counter + 1) * app->dt_check ).substr(0,6) + ".dat";
+      const std::string name     = "m_" + std::to_string( (app->dt_counter + 1) * app->dt_check ).substr(0,6) + ".out";
       const std::string petscout = "Attepting to read new m at t = %5.4f seconds from file " + name + "\n";
       PetscPrintf( PETSC_COMM_WORLD , petscout.c_str() , (double)t );
 
       // Output to file that you are ready for a new value
-      const std::string outname  = "complete_" + std::to_string( (app->dt_counter + 1) * app->dt_check ).substr(0,6) + ".dat";
+      const std::string outname  = "complete_" + std::to_string( (app->dt_counter + 1) * app->dt_check ).substr(0,6) + ".out";
       std::ofstream fout(outname);
       fout << "complete\n";
       fout.close();
@@ -112,7 +112,7 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 
       PetscPrintf( PETSC_COMM_WORLD , "Logging solution at t = %5.4f seconds\n" , (double)t );
 
-      const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".dat";
+      const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".out";
 
       const PetscScalar *u;
 
@@ -133,12 +133,12 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
     // Look for new input parameters from driver
     if ( (event_list[i] == 0) && ( t < app->t_final ) ) {
 
-      const std::string name     = "T_" + std::to_string( (app->dt_counter + 1) * app->dt_check ).substr(0,6) + ".dat";
+      const std::string name     = "T_" + std::to_string( (app->dt_counter + 1) * app->dt_check ).substr(0,6) + ".out";
       const std::string petscout = "Attepting to read new T(amplitude,x_mean,y_mean,sigma) at t = %5.4f seconds from file " + name + "\n";
       PetscPrintf( PETSC_COMM_WORLD , petscout.c_str() , (double)t );
 
       // Output to file that you are ready for a new value
-      const std::string outname  = "complete_" + std::to_string( (app->dt_counter + 1) * app->dt_check ).substr(0,6) + ".dat";
+      const std::string outname  = "complete_" + std::to_string( (app->dt_counter + 1) * app->dt_check ).substr(0,6) + ".out";
       std::ofstream fout(outname);
       fout << "complete\n";
       fout.close();

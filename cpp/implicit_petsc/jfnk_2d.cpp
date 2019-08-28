@@ -102,7 +102,7 @@ int main(int argc,char **argv) {
   PetscPrintf( PETSC_COMM_WORLD , "SIMULATION DONE\n\n" );
 
   // Output to filesystem that you are done
-  const std::string outname  = "complete_sim.dat";
+  const std::string outname  = "complete_sim.out";
   std::ofstream fout(outname);
   fout << "whole simulation complete\n";
   fout.close();

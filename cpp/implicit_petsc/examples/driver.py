@@ -5,7 +5,7 @@ import sys,os
 def main():
 
     # Remove any temporary files for communication with the solver
-    os.system( 'rm m_*.dat complete_*.dat' )
+    os.system( 'rm m_*.out complete_*.out' )
 
     # Set temporal profile for parameter values
     T_amp    = np.linspace(1.0,1.0,5)
@@ -22,9 +22,9 @@ def main():
 
     # Check filesystem for indication from solver that it is waiting for next m value
     while True:
-        timestamp  = '_{:0.4f}.dat'.format( (count+1) * dt )
+        timestamp  = '_{:0.4f}.out'.format( (count+1) * dt )
         petsc_done = os.path.exists( 'complete' + timestamp )
-        sim_done   = os.path.exists( 'complete_sim.dat' )
+        sim_done   = os.path.exists( 'complete_sim.out' )
         if sim_done:
             print("DRIVER PROGRAM DONE")
             break

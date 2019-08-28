@@ -13,3 +13,8 @@ cpp/swig/*.out
 .vscode/*
 .vscode*
 .vscode/settings.json
+
+cpp/data/
+cpp/implicit_petsc/examples/*.out
+visualization/*.mp4
+visualization/*.png

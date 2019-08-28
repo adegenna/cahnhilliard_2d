@@ -25,7 +25,7 @@ ax    = fig.gca()
 def animate(i):
     print(i*tstep + t0)
     #w = np.genfromtxt(statefile + str(int(i*tstep)) + '.out' )
-    timestamp = '{:0.4f}.dat'.format( (i*tstep + t0) )
+    timestamp = '{:0.4f}.out'.format( (i*tstep + t0) )
     w = np.genfromtxt(statefile + timestamp , skip_header=5 )
     w = w.reshape([nx,ny],order='C');
     ax.cla()
