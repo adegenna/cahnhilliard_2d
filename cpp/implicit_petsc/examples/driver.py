@@ -2,6 +2,40 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys,os
 
+class PetscSettings:
+
+    def __init__(self):
+        self.tf          = None
+        self.dt          = None
+        self.T0_filename = None
+        self.nx          = None
+        self.ny          = None
+
+def parse_inputs_from_petscfile( petscfile ):
+
+    settings = PetscSettings()
+    
+    T0_filename = 'initial_temperature.dat'
+    with open( petscfile ) as f:
+        petscsettings = f.readlines()
+        for line in petscsettings:
+            try:
+                k,v = line.split(' ')
+            except:
+                k = None; v = None
+            if   k == '-t_final':
+                settings.tf = float(v.split('\n')[0])
+            elif k == '-dt_check':
+                settings.dt = float(v.split('\n')[0])
+            elif k == '-initial_temperature_file':
+                settings.T0_filename = v.split('\n')[0]
+            elif k == '-nx':
+                settings.nx = int(v.split('\n')[0])
+            elif k == '-ny':
+                settings.ny = int(v.split('\n')[0])
+            
+    return settings
+
 def main():
 
     # Remove any temporary files for communication with the solver
@@ -13,8 +47,10 @@ def main():
     T_y      = np.linspace(32,32,5)
     T_sigma  = np.linspace(32,32,5)
 
-    dt = 0.02
-    tf = 0.1
+    settings = parse_inputs_from_petscfile( 'petscrc.dat' )
+
+    # Write initial temperature field to disk for petsc
+    np.savetxt( settings.T0_filename , 1.0 * np.ones( settings.nx * settings.ny ) )
     
     # Run solver
     count = 0

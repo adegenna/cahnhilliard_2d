@@ -1,5 +1,8 @@
 #include "initial_conditions.h"
 #include "temperature_dependence.h"
+#include <stdio.h>
+#include <iostream>
+#include <fstream>
 
 PetscErrorCode FormInitialSolution(Vec U , Vec Temperature , void *ptr)
 {
@@ -30,14 +33,16 @@ PetscErrorCode FormInitialSolution(Vec U , Vec Temperature , void *ptr)
   PetscRandomSetType(rng,PETSCRAND48);
 
   // Interior
+  std::ifstream Tin( user->initial_temperature_file );
   for (j=ys; j<ys+ym; j++) {
     for (i=xs; i<xs+xm; i++) {
       PetscRandomGetValueReal(rng , &value_rng);
       u[j][i]     = 0.005 * ( 2.0 * value_rng - 1.0 );
-      T[j][i]     = user->T_max * PetscExpReal( -0.5 * ( (j-32)*(j-32) + (i-32)*(i-32) ) / (32.0*32.0) );
-      //eps_2[j][i] = 0.00013331972927932523 * PetscExpReal( -0.5 * ( (j-32)*(j-32) + (i-32)*(i-32) ) / (32.0*32.0) );
+      Tin >> T[j][i];
+      //T[j][i]     = user->T_max * PetscExpReal( -0.5 * ( (j-32)*(j-32) + (i-32)*(i-32) ) / (32.0*32.0) );
     } 
   }
+  Tin.close();
 
   // Boundary
   PetscInt J, I;
@@ -105,12 +110,6 @@ PetscErrorCode FormInitialSolution(Vec U , Vec Temperature , void *ptr)
                                                  user->m ,
                                                  user->L_omega ,
                                                  user->N );
-
-  PetscPrintf( PETSC_COMM_WORLD , "%5.6f\n" , (double)user->eps2_min );
-  PetscPrintf( PETSC_COMM_WORLD , "%5.6f\n" , (double)user->eps2_max );
-  PetscPrintf( PETSC_COMM_WORLD , "%5.2f\n" , (double)user->sigma_min );
-  PetscPrintf( PETSC_COMM_WORLD , "%5.2f\n" , (double)user->sigma_max );
-
   
   PetscFunctionReturn(0);
 }

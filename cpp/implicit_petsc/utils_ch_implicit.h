@@ -41,9 +41,10 @@ typedef struct {
   // Thermal dynamics defaults
   PetscScalar T_min     = 0.1;
   PetscScalar T_max     = 1.0;
+  std::string initial_temperature_file = "initial_temperature.dat"; // File that holds the initial temperature field
 
   // CH paramater defaults
-  PetscScalar m         = -0.15;  // CH parameter: value of m (avg concentration)
+  PetscScalar m         = 0.1;  // CH parameter: value of m (avg concentration)
   PetscScalar eps2_min  = 0.0;
   PetscScalar eps2_max  = 1.0;
   PetscScalar sigma_min = 0.0;

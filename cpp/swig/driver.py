@@ -29,7 +29,7 @@ info.nx       = 64
 info.ny       = 64
 info.dx       = 1./info.nx
 info.dy       = 1./info.ny
-info.bc       = 'dirichlet'
+info.bc       = 'neumann'
 info.rhs_type = 'ch_thermal_no_diffusion'
 info.BC_dirichlet_ch = 1.0
 
