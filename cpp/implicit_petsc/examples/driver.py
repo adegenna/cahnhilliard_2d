@@ -12,10 +12,10 @@ class PetscSettings:
         self.ny          = None
 
 def parse_inputs_from_petscfile( petscfile ):
-
+    
     settings = PetscSettings()
     
-    T0_filename = 'initial_temperature.dat'
+    settings.T0_filename = 'initial_temperature.dat'
     with open( petscfile ) as f:
         petscsettings = f.readlines()
         for line in petscsettings:
@@ -29,25 +29,34 @@ def parse_inputs_from_petscfile( petscfile ):
                 settings.dt = float(v.split('\n')[0])
             elif k == '-initial_temperature_file':
                 settings.T0_filename = v.split('\n')[0]
-            elif k == '-nx':
+            elif k == '-da_grid_x':
                 settings.nx = int(v.split('\n')[0])
-            elif k == '-ny':
+            elif k == '-da_grid_y':
                 settings.ny = int(v.split('\n')[0])
             
     return settings
 
+def write_temperature_laser_parameters_for_petsc_solver( T_amp , T_x , T_y , T_sigma , filename ):
+
+    outlist = [ T_amp , T_x , T_y , T_sigma ]
+    np.savetxt( filename , outlist , fmt='%.4f' )
+
+    return
+
 def main():
 
     # Remove any temporary files for communication with the solver
-    os.system( 'rm m_*.out complete_*.out' )
-
-    # Set temporal profile for parameter values
-    T_amp    = np.linspace(1.0,1.0,5)
-    T_x      = np.linspace(0,64,5)
-    T_y      = np.linspace(32,32,5)
-    T_sigma  = np.linspace(32,32,5)
+    os.system( 'rm c_*.out complete_*.out' )
 
     settings = parse_inputs_from_petscfile( 'petscrc.dat' )
+
+    # Set temporal profile for parameter values
+    num_changes = int( settings.tf / settings.dt )
+    T_amp    = np.ones( num_changes )
+    T_x      = np.linspace( 0.0 * settings.nx , 1.5 * settings.nx , num_changes )
+    T_y      = settings.ny//2 * np.ones( num_changes )
+    #T_y      = ( T_x - 0.5 * settings.nx )**2 / ( 0.4*0.4 * settings.nx )
+    T_sigma  = np.linspace( settings.nx // 2 , settings.ny // 2 , num_changes )
 
     # Write initial temperature field to disk for petsc
     np.savetxt( settings.T0_filename , 1.0 * np.ones( settings.nx * settings.ny ) )
@@ -58,7 +67,7 @@ def main():
 
     # Check filesystem for indication from solver that it is waiting for next m value
     while True:
-        timestamp  = '_{:0.4f}.out'.format( (count+1) * dt )
+        timestamp  = '_{:0.4f}.out'.format( (count+1) * settings.dt )
         petsc_done = os.path.exists( 'complete' + timestamp )
         sim_done   = os.path.exists( 'complete_sim.out' )
         if sim_done:
@@ -66,8 +75,11 @@ def main():
             break
         else:
             if petsc_done:
-                outlist = [ T_amp[count+1] , T_x[count+1] , T_y[count+1] , T_sigma[count+1] ]
-                np.savetxt( 'T' + timestamp , outlist , fmt='%.4f' )
+                write_temperature_laser_parameters_for_petsc_solver( T_amp[count] ,
+                                                                     T_x[count] ,
+                                                                     T_y[count] ,
+                                                                     T_sigma[count],
+                                                                     'T' + timestamp )
                 count += 1
             
 if __name__ == '__main__':
