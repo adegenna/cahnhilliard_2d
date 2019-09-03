@@ -18,7 +18,6 @@ ExternalProject_Add(
         URL http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.8.3.tar.gz
         URL_MD5 b21d15cdc033d50cc47b9997ef490fef
 
-        # has a bug affecting something in the preconditioner setup
         #URL http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.9.3.tar.gz
 
         BUILD_IN_SOURCE 1
@@ -28,8 +27,7 @@ ExternalProject_Add(
         ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/external/petsc/configure
         PETSC_DIR=${CMAKE_BINARY_DIR}/external/petsc
         PETSC_ARCH=arch-linux2-c-opt
-        --with-cc=${CMAKE_C_COMPILER} --with-cxx=${CMAKE_CXX_COMPILER} --with-fc=0  --with-pic=1 --with-debugging=${PETSC_DEBUGGING} COPTFLAGS=${PETSC_OPT_FLAGS} CXXOPTFLAGS=${PETSC_OPT_FLAGS} --with-shared-libraries=1 MAKEFLAGS=$MAKEFLAGS --download-mpich=1
-
+        --with-cc=${MPI_C_COMPILER} --with-cxx=${MPI_CXX_COMPILER} --with-fc=0 --with-pic=1 --download-metis MAKEFLAGS=$MAKEFLAGS  COPTFLAGS=${PETSC_OPT_FLAGS} CXXOPTFLAGS=${PETSC_OPT_FLAGS} --with-debugging=${PETSC_DEBUGGING} ${PETSC_64_BIT_INDEX_FLAG}
 
         BUILD_COMMAND
         make

@@ -52,9 +52,12 @@ def main():
 
     # Set temporal profile for parameter values
     num_changes = int( settings.tf / settings.dt )
-    T_amp    = np.ones( num_changes )
-    T_x      = np.linspace( 0.0 * settings.nx , 1.5 * settings.nx , num_changes )
-    T_y      = settings.ny//2 * np.ones( num_changes )
+    T_amp       = np.ones( num_changes )
+    th          = np.linspace( 0.75 * np.pi , 1.75*np.pi , num_changes )
+    T_x         = settings.nx * ( 1 + 0.75 * np.cos( th ) )
+    T_y         = settings.ny * ( 1 + 0.75 * np.sin( th ) )
+    #T_x      = np.linspace( 0.0 * settings.nx , 1.5 * settings.nx , num_changes )
+    #T_y      = settings.ny//2 * np.ones( num_changes )
     #T_y      = ( T_x - 0.5 * settings.nx )**2 / ( 0.4*0.4 * settings.nx )
     T_sigma  = np.linspace( settings.nx // 2 , settings.ny // 2 , num_changes )
 

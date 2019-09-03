@@ -22,7 +22,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release")
+  set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
 add_definitions( -DSRCDIR=\"${CMAKE_SOURCE_DIR}/\")
@@ -42,7 +42,8 @@ message( STATUS "PETSC_INCLUDES ${PETSC_INCLUDES}")
 
 message( STATUS "PETSC_LIBRARIES ${PETSC_LIBRARIES}")
 
-include_directories( ${CMAKE_SOURCE_DIR}
+include_directories( ${MPI_INCLUDE_PATH}
+                     ${CMAKE_SOURCE_DIR}
                      ${Boost_INCLUDE_DIRS}
 )
 
@@ -122,6 +123,7 @@ add_dependencies(jfnk_2d petsc_external)
 
 target_link_libraries( jfnk_2d
   m
+  ${MPI_LIBRARIES}
   ${PETSC_LIBRARIES}
 )
 

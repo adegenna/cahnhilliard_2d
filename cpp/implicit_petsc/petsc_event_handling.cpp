@@ -26,7 +26,8 @@ PetscErrorCode PostEventFunction_ResetM(TS ts,PetscInt nevents,PetscInt event_li
 
   AppCtx         *app=(AppCtx*)ctx;
   PetscReal       m, m_new;
-
+  MPI_Comm       comm = PETSC_COMM_WORLD;
+  
   for (int i=0; i<nevents; i++) {
     
     // Log solution
@@ -39,13 +40,14 @@ PetscErrorCode PostEventFunction_ResetM(TS ts,PetscInt nevents,PetscInt event_li
       const PetscScalar *u;
 
       PetscViewer    viewer;
-      PetscViewerCreate( PETSC_COMM_WORLD , &viewer );
+
+      PetscViewerCreate( comm , &viewer );
       PetscViewerSetType( viewer , PETSCVIEWERASCII );
       PetscViewerFileSetMode( viewer , FILE_MODE_WRITE );
+      PetscViewerASCIIOpen( comm , outname.c_str() , &viewer );
 
-      PetscViewerASCIIOpen( PETSC_COMM_WORLD , outname.c_str() , &viewer );
       VecView( U , viewer );
-    
+
       PetscViewerDestroy( &viewer );
     
       app->dt_output_counter += 1;
@@ -104,6 +106,7 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 
   AppCtx         *app=(AppCtx*)ctx;
   PetscReal       m, m_new;
+  MPI_Comm       comm = PETSC_COMM_WORLD;
 
   for (int i=0; i<nevents; i++) {
     
@@ -114,17 +117,20 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 
       const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".out";
 
-      const PetscScalar *u;
+      PetscInt* size; 
+      VecGetSize( U , size);
+      PetscPrintf( PETSC_COMM_WORLD , "size = %d\n" , size );
 
-      PetscViewer    viewer;
-      PetscViewerCreate( PETSC_COMM_WORLD , &viewer );
-      PetscViewerSetType( viewer , PETSCVIEWERASCII );
-      PetscViewerFileSetMode( viewer , FILE_MODE_WRITE );
+      //PetscViewer    viewer;
+      // PetscViewerCreate( comm , &viewer );
+      // PetscViewerSetType( viewer , PETSCVIEWERASCII );
+      // PetscViewerFileSetMode( viewer , FILE_MODE_WRITE );
+      // PetscViewerASCIIOpen( comm , outname.c_str() , &viewer );
 
-      PetscViewerASCIIOpen( PETSC_COMM_WORLD , outname.c_str() , &viewer );
-      VecView( U , viewer );
-    
-      PetscViewerDestroy( &viewer );
+      // VecView( U , viewer );
+      //VecView(U,PETSC_VIEWER_STDOUT_WORLD);
+
+      //PetscViewerDestroy( &viewer );
     
       app->dt_output_counter += 1;
 
@@ -205,6 +211,7 @@ void compute_new_temperature_profile( AppCtx* user , PetscScalar T_amp , PetscSc
   for (j=ys; j<ys+ym; j++) {
     for (i=xs; i<xs+xm; i++) {
       T[j][i]     = T_amp * PetscExpReal( -0.5 * ( (j-T_x)*(j-T_x) + (i-T_y)*(i-T_y) ) / (T_sigma * T_sigma) );
+      T[j][i]     = std::max( T[j][i] , 0.5 );
     }
   }
 
