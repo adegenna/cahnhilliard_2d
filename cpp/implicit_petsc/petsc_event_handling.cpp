@@ -104,10 +104,12 @@ PetscErrorCode PostEventFunction_ResetM(TS ts,PetscInt nevents,PetscInt event_li
 
 PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt nevents,PetscInt event_list[],PetscReal t,Vec U,PetscBool forwardsolve,void* ctx) {
 
-  AppCtx         *app=(AppCtx*)ctx;
+  AppCtx         *app = (AppCtx*)ctx;
   PetscReal       m, m_new;
-  MPI_Comm       comm = PETSC_COMM_WORLD;
-
+  DM              da  = app->da;
+  PetscInt        xs,ys,xm,ym;
+  PetscScalar    **uarray;
+  
   for (int i=0; i<nevents; i++) {
     
     // Log solution
@@ -116,22 +118,15 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
       PetscPrintf( PETSC_COMM_WORLD , "Logging solution at t = %5.4f seconds\n" , (double)t );
 
       const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".out";
-
-      PetscInt* size; 
-      VecGetSize( U , size);
-      PetscPrintf( PETSC_COMM_WORLD , "size = %d\n" , size );
-
-      //PetscViewer    viewer;
-      // PetscViewerCreate( comm , &viewer );
-      // PetscViewerSetType( viewer , PETSCVIEWERASCII );
-      // PetscViewerFileSetMode( viewer , FILE_MODE_WRITE );
-      // PetscViewerASCIIOpen( comm , outname.c_str() , &viewer );
-
-      // VecView( U , viewer );
-      //VecView(U,PETSC_VIEWER_STDOUT_WORLD);
-
-      //PetscViewerDestroy( &viewer );
-    
+      
+      PetscViewer    viewer;
+      PetscViewerCreate( PETSC_COMM_WORLD , &viewer );
+      PetscViewerSetType( viewer , PETSCVIEWERASCII );
+      PetscViewerFileSetMode( viewer , FILE_MODE_WRITE );
+      PetscViewerASCIIOpen( PETSC_COMM_WORLD , outname.c_str() , &viewer );
+      VecView( U , viewer );
+      PetscViewerDestroy( &viewer );
+      
       app->dt_output_counter += 1;
 
     }

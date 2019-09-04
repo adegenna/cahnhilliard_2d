@@ -9,8 +9,8 @@ tf = 0.98
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/data/mcruns/mc_43/C_'
 statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/implicit_petsc/examples/c_'
 
-nx = 100
-ny = 100
+nx = 64
+ny = 64
 
 x     = np.arange(nx)
 y     = np.arange(ny)
@@ -26,7 +26,7 @@ def animate(i):
     print(i*tstep + t0)
     #w = np.genfromtxt(statefile + str(int(i*tstep)) + '.out' )
     timestamp = '{:0.4f}.out'.format( (i*tstep + t0) )
-    w = np.genfromtxt(statefile + timestamp , skip_header=5 )
+    w = np.genfromtxt(statefile + timestamp , skip_header=0 )
     w = w.reshape([nx,ny],order='C');
     ax.cla()
     contour = ax.contourf(xx,yy,w,30,vmin=-0.4,vmax=0.4)

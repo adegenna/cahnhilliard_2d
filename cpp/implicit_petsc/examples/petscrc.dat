@@ -2,8 +2,8 @@
 
 # Grid
 
--da_grid_x 32
--da_grid_y 32
+-da_grid_x 64
+-da_grid_y 64
 -Lx 1.0
 -Ly 1.0
 
@@ -38,6 +38,8 @@
 
 #-ts_monitor_draw_solution
 -ts_monitor
+#-ts_monitor_solution binary:filename
+#-ts_save_trajectory 1
 #-ts_monitor_lg_snes_iterations
 #-ts_monitor_lg_ksp_iterations
 #-draw_pause .1
@@ -46,5 +48,5 @@
 #-snes_linesearch_monitor
 #-ts_adapt_monitor
 
--on_error_attach_debugger
--start_in_debugger
+#-on_error_attach_debugger
+#-start_in_debugger

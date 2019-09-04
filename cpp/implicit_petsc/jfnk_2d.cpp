@@ -53,7 +53,7 @@ int main(int argc,char **argv) {
   VecDuplicate(u,&user.sigma);
   VecDuplicate(u,&user.temperature);
   VecDuplicate(u,&user.X);
-
+  
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create timestepping solver context
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
