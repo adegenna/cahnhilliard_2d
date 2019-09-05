@@ -2,6 +2,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
 
+def read_mpi_soln_file( statefile , timestamp , n ):
+    
+    c = np.zeros( n )
+    count = 0
+    with open( statefile + timestamp ) as f:
+        for line in f:
+            try:
+                c[count] = line
+                count += 1
+            except:
+                print(line)
+                pass
+    
+    return c
+
 t0 = 0.02
 tf = 0.98
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/C_'
@@ -26,7 +41,8 @@ def animate(i):
     print(i*tstep + t0)
     #w = np.genfromtxt(statefile + str(int(i*tstep)) + '.out' )
     timestamp = '{:0.4f}.out'.format( (i*tstep + t0) )
-    w = np.genfromtxt(statefile + timestamp , skip_header=0 )
+    w = read_mpi_soln_file( statefile , timestamp , nx*ny )
+    #w = np.genfromtxt(statefile + timestamp , skip_header=3 )
     w = w.reshape([nx,ny],order='C');
     ax.cla()
     contour = ax.contourf(xx,yy,w,30,vmin=-0.4,vmax=0.4)

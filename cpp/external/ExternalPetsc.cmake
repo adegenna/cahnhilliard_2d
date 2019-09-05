@@ -15,11 +15,11 @@ find_package( PythonInterp 2.7 REQUIRED )
 ExternalProject_Add(
         petsc_external
 
-        URL http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.8.3.tar.gz
-        URL_MD5 b21d15cdc033d50cc47b9997ef490fef
+	URL http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.9.4.tar.gz
 
-        #URL http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.9.3.tar.gz
-
+	#URL http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.8.3.tar.gz
+        #URL_MD5 b21d15cdc033d50cc47b9997ef490fef
+        
         BUILD_IN_SOURCE 1
         SOURCE_DIR ${CMAKE_BINARY_DIR}/external/petsc/
 
@@ -27,7 +27,8 @@ ExternalProject_Add(
         ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/external/petsc/configure
         PETSC_DIR=${CMAKE_BINARY_DIR}/external/petsc
         PETSC_ARCH=arch-linux2-c-opt
-        --with-cc=${MPI_C_COMPILER} --with-cxx=${MPI_CXX_COMPILER} --with-fc=0 --with-pic=1 --download-metis MAKEFLAGS=$MAKEFLAGS  COPTFLAGS=${PETSC_OPT_FLAGS} CXXOPTFLAGS=${PETSC_OPT_FLAGS} --with-debugging=${PETSC_DEBUGGING} ${PETSC_64_BIT_INDEX_FLAG}
+	--with-fc=0 --with-pic=1 --download-metis MAKEFLAGS=$MAKEFLAGS  COPTFLAGS=${PETSC_OPT_FLAGS} CXXOPTFLAGS=${PETSC_OPT_FLAGS} --with-debugging=${PETSC_DEBUGGING} ${PETSC_64_BIT_INDEX_FLAG} --download-openmpi
+        #--with-cc=${MPI_C_COMPILER} --with-cxx=${MPI_CXX_COMPILER} --with-fc=0 --with-pic=1 --download-metis MAKEFLAGS=$MAKEFLAGS  COPTFLAGS=${PETSC_OPT_FLAGS} CXXOPTFLAGS=${PETSC_OPT_FLAGS} --with-debugging=${PETSC_DEBUGGING} ${PETSC_64_BIT_INDEX_FLAG} --download-openmpi
 
         BUILD_COMMAND
         make

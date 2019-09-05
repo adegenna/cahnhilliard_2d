@@ -13,16 +13,14 @@ if (OPENMP_FOUND)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-find_package(MPI REQUIRED)
-if (MPI_FOUND)
-    message( STATUS "MPI_INCLUDE_PATH ${MPI_INCLUDE_PATH}")
-endif()
+set( MPI_LIBRARIES "/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/lib/libmpi.so" )
+message( STATUS "MPI_LIBRARIES ${MPI_LIBRARIES}")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Debug")
+  set(CMAKE_BUILD_TYPE "Release")
 endif()
 
 add_definitions( -DSRCDIR=\"${CMAKE_SOURCE_DIR}/\")
@@ -30,22 +28,21 @@ add_definitions( -DSRCDIR=\"${CMAKE_SOURCE_DIR}/\")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Werror=reorder")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -DBOOST_LOG_DYN_LINK -DNDEBUG")
 
-
-#############################################
-# Build external dependencies
-#############################################
-
 set( EXTERNAL_INSTALL_DIR ${CMAKE_BINARY_DIR}/external_install )
 add_subdirectory(external)
 
 message( STATUS "PETSC_INCLUDES ${PETSC_INCLUDES}")
-
 message( STATUS "PETSC_LIBRARIES ${PETSC_LIBRARIES}")
 
-include_directories( ${MPI_INCLUDE_PATH}
-                     ${CMAKE_SOURCE_DIR}
+include_directories( ${CMAKE_SOURCE_DIR}
                      ${Boost_INCLUDE_DIRS}
+		     ${PETSC_INCLUDES}
+	     
 )
+
+#############################################
+# Build openmp solver
+#############################################
 
 add_library( ch_src
 	     src/stochastic_euler.hpp
@@ -78,8 +75,6 @@ FIND_PACKAGE( PythonLibs )
 INCLUDE_DIRECTORIES( ${PYTHON_INCLUDE_PATH} )
 INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR} )
 INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR}/src )
-include_directories( ${PETSC_INCLUDES} )
-
 	    
 SET( CMAKE_SWIG_FLAGS "-threads" )
 SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -fPIC")
@@ -131,4 +126,20 @@ target_link_libraries( jfnk_2d
 add_custom_target( mvcmd_implicit ALL
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/jfnk_2d" "${CMAKE_SOURCE_DIR}/implicit_petsc/examples/jfnk_2d"
   DEPENDS "${CMAKE_SOURCE_DIR}/build/jfnk_2d"
+  )
+
+#############################################
+# Petsc example
+#############################################
+
+add_executable( ex15
+  implicit_petsc/ex15.cpp
+)
+
+add_dependencies(ex15 petsc_external)
+
+target_link_libraries( ex15
+  m
+  ${MPI_LIBRARIES}
+  ${PETSC_LIBRARIES}
 )

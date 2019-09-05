@@ -6,7 +6,12 @@
 #include <fstream>
 #include "utils_ch_implicit.h"
 #include "temperature_dependence.h"
+#include <petscvec.h>
+#include <petscsys.h>
+#include <petscis.h>
+#include <petscviewer.h>
 
+ 
 PetscErrorCode EventFunction( TS ts , PetscReal t , Vec U , PetscScalar *fvalue , void *ctx ) {
 
   AppCtx            *app=(AppCtx*)ctx;
@@ -109,7 +114,9 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
   DM              da  = app->da;
   PetscInt        xs,ys,xm,ym;
   PetscScalar    **uarray;
-  
+  MPI_Comm       comm = PETSC_COMM_WORLD;
+  PetscErrorCode ierr;
+
   for (int i=0; i<nevents; i++) {
     
     // Log solution
@@ -120,9 +127,10 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
       const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".out";
       
       PetscViewer    viewer;
-      PetscViewerCreate( PETSC_COMM_WORLD , &viewer );
+      PetscViewerCreate( comm , &viewer );
       PetscViewerSetType( viewer , PETSCVIEWERASCII );
       PetscViewerFileSetMode( viewer , FILE_MODE_WRITE );
+      PetscViewerFileSetName( viewer , outname.c_str() );
       PetscViewerASCIIOpen( PETSC_COMM_WORLD , outname.c_str() , &viewer );
       VecView( U , viewer );
       PetscViewerDestroy( &viewer );

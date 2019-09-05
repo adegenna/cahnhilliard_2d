@@ -4,6 +4,9 @@ static char help[] = "JFNK implicit solver for 2D CH with PETSc \n";
 #include <petscdm.h>
 #include <petscdmda.h>
 #include <petscts.h>
+#include <petscvec.h>
+#include <petscviewer.h>
+#include <petscsys.h>
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
@@ -18,15 +21,15 @@ int main(int argc,char **argv) {
   
   TS             ts;                   /* nonlinear solver */
   Vec            u,r;                  /* solution, residual vectors */
-  Vec            eps_2;
   Mat            J,Jmf = NULL;         /* Jacobian matrices */
   PetscErrorCode ierr;
   DM             da;
   PetscReal      dt;
   SNES           snes;
 
-  PetscInitialize( NULL , NULL , argv[1] , help );
-  
+  //PetscInitialize( NULL , NULL , argv[1] , help );
+  ierr = PetscInitialize(&argc,&argv,argv[1],help);if (ierr) return ierr;
+
   AppCtx         user = parse_petsc_options();
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -47,7 +50,7 @@ int main(int argc,char **argv) {
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Extract global vectors from DMDA;
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  DMCreateGlobalVector(da,&u);
+  DMCreateGlobalVector(da,&u);  
   VecDuplicate(u,&r);
   VecDuplicate(u,&user.eps_2);
   VecDuplicate(u,&user.sigma);
