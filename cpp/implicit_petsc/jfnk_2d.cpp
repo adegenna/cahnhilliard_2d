@@ -102,6 +102,11 @@ int main(int argc,char **argv) {
      Solve nonlinear system
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   TSSolve(ts,u);
+
+  const std::string final_soln = "c_" + std::to_string( user.t_final ).substr(0,6) + ".out";
+  PetscPrintf( PETSC_COMM_WORLD , "Logging final solution at t = %5.4f seconds\n" , (double)user.t_final );
+  log_solution( u , final_soln );
+  
   PetscPrintf( PETSC_COMM_WORLD , "SIMULATION DONE\n\n" );
 
   // Output to filesystem that you are done
@@ -109,9 +114,6 @@ int main(int argc,char **argv) {
   std::ofstream fout(outname);
   fout << "whole simulation complete\n";
   fout.close();
-
-  //printf("Simulation done, press enter to continue...\n");
-  //getchar();
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Free work space.

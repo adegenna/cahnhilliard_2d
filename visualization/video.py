@@ -12,20 +12,19 @@ def read_mpi_soln_file( statefile , timestamp , n ):
                 c[count] = line
                 count += 1
             except:
-                print(line)
                 pass
     
     return c
 
 t0 = 0.02
-tf = 0.98
+tf = 1.00
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/C_'
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/swig/C_'
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/data/mcruns/mc_43/C_'
 statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/implicit_petsc/examples/c_'
 
-nx = 64
-ny = 64
+nx = 80
+ny = 80
 
 x     = np.arange(nx)
 y     = np.arange(ny)

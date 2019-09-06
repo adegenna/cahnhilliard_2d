@@ -127,19 +127,3 @@ add_custom_target( mvcmd_implicit ALL
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/jfnk_2d" "${CMAKE_SOURCE_DIR}/implicit_petsc/examples/jfnk_2d"
   DEPENDS "${CMAKE_SOURCE_DIR}/build/jfnk_2d"
   )
-
-#############################################
-# Petsc example
-#############################################
-
-add_executable( ex15
-  implicit_petsc/ex15.cpp
-)
-
-add_dependencies(ex15 petsc_external)
-
-target_link_libraries( ex15
-  m
-  ${MPI_LIBRARIES}
-  ${PETSC_LIBRARIES}
-)
