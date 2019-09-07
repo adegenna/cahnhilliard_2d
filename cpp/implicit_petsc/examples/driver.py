@@ -43,23 +43,37 @@ def write_temperature_laser_parameters_for_petsc_solver( T_amp , T_x , T_y , T_s
 
     return
 
+def generate_quarter_circle_laser_path( amp , nx , ny , num_changes ):
+
+    T_amp       = amp * np.ones( num_changes )
+    th          = np.linspace( 0.75 * np.pi , 1.75*np.pi , num_changes )
+    T_x         = nx * ( 1 + 0.75 * np.cos( th ) )
+    T_y         = ny * ( 1 + 0.75 * np.sin( th ) )
+    T_sigma     = np.linspace( nx // 2 , ny // 2 , num_changes )
+    
+    return T_amp , T_x , T_y , T_sigma
+
+def generate_const_global_temperature( amp , nx , ny , num_changes ):
+
+    T_amp   = amp   * np.ones( num_changes )
+    T_x     = nx//2 * np.ones( num_changes )
+    T_y     = ny//2 * np.ones( num_changes )
+    T_sigma = nx*ny * np.ones( num_changes )
+    
+    return T_amp , T_x , T_y , T_sigma
+
 def main():
 
     # Remove any temporary files for communication with the solver
-    os.system( 'rm c_*.out complete_*.out' )
+    os.system( 'mkdir old' )
+    os.system( 'mv *.out old/' )
 
     settings = parse_inputs_from_petscfile( 'petscrc.dat' )
 
     # Set temporal profile for parameter values
-    num_changes = int( settings.tf / settings.dt )
-    T_amp       = np.ones( num_changes )
-    th          = np.linspace( 0.75 * np.pi , 1.75*np.pi , num_changes )
-    T_x         = settings.nx * ( 1 + 0.75 * np.cos( th ) )
-    T_y         = settings.ny * ( 1 + 0.75 * np.sin( th ) )
-    #T_x      = np.linspace( 0.0 * settings.nx , 1.5 * settings.nx , num_changes )
-    #T_y      = settings.ny//2 * np.ones( num_changes )
-    #T_y      = ( T_x - 0.5 * settings.nx )**2 / ( 0.4*0.4 * settings.nx )
-    T_sigma  = np.linspace( settings.nx // 2 , settings.ny // 2 , num_changes )
+    num_changes                 = int( settings.tf / settings.dt )
+    #T_amp , T_x , T_y , T_sigma = generate_quarter_circle_laser_path( 1.0 , settings.nx , settings.ny , num_changes )
+    T_amp , T_x , T_y , T_sigma = generate_const_global_temperature( 0.5 , settings.nx , settings.ny , num_changes )
 
     # Write initial temperature field to disk for petsc
     np.savetxt( settings.T0_filename , 1.0 * np.ones( settings.nx * settings.ny ) )

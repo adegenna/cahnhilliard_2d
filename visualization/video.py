@@ -16,15 +16,15 @@ def read_mpi_soln_file( statefile , timestamp , n ):
     
     return c
 
-t0 = 0.02
-tf = 1.00
+t0 = 0.00
+tf = 0.18
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/C_'
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/swig/C_'
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/data/mcruns/mc_43/C_'
 statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/implicit_petsc/examples/c_'
 
-nx = 80
-ny = 80
+nx = 128
+ny = 128
 
 x     = np.arange(nx)
 y     = np.arange(ny)

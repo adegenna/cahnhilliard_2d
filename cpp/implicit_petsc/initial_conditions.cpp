@@ -39,54 +39,16 @@ PetscErrorCode FormInitialSolution(Vec U , Vec Temperature , void *ptr)
       PetscRandomGetValueReal(rng , &value_rng);
       u[j][i]     = 0.005 * ( 2.0 * value_rng - 1.0 );
       Tin >> T[j][i];
-      //T[j][i]     = user->T_max * PetscExpReal( -0.5 * ( (j-32)*(j-32) + (i-32)*(i-32) ) / (32.0*32.0) );
     } 
   }
   Tin.close();
 
-  // Boundary
-  PetscInt J, I;
-  for (j=ys; j<ys+ym; j++) {
-    for (i=xs; i<xs+xm; i++) {
-
-      if ( (i <= 1) || (i >= Mx-2) || (j <= 1) || (j >= My-2) ) {
-        
-        if ( user->boundary == 0 ) {
-          // Dirichlet
-          u[j][i] = user->dirichlet_bc;
-        }
-        
-        else if ( user->boundary == 1 ) {
-          // Neumann: just fill ghost cells with random values, and explicitly change residual at the end
-          PetscRandomGetValueReal(rng , &value_rng);
-          u[j][i] = 0.005 * ( 2.0 * value_rng - 1.0 );
-        }
-
-        else if ( user->boundary == 2 ) {
-          // Periodic
-          I = i; J = j;
-          if (i <= 1)
-            I = (i-2) + Mx;
-          else if (i >= Mx-2)
-            I = i % (Mx-2);
-          if (j <= 1)
-            J = (j-2) + My;
-          else if (j >= My-2)
-            J = j % (My-2);
-          u[j][i] = u[ J ][ I ];
-        }
-        
-      }
-        
-    }
-  }
-  
-
-  PetscRandomDestroy(&rng);
-
   /* Restore vectors */
   DMDAVecRestoreArray(da,U,&u);
   DMDAVecRestoreArray(da,Temperature,&T);
+  
+  PetscRandomDestroy(&rng);
+
 
   // Compute temperature-dependent polymer limiters
   user->eps2_min = compute_eps2_from_chparams( user->X_max ,

@@ -34,15 +34,15 @@ int main(int argc,char **argv) {
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create distributed array (DMDA) to manage parallel grid and vectors
-  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */  
   DMDACreate2d(PETSC_COMM_WORLD, 
-		      DM_BOUNDARY_GHOSTED, DM_BOUNDARY_GHOSTED,      // type of ghost nodes
- 		      DMDA_STENCIL_BOX,                        // type of stencil
-		      11,11,                                   // global dimns of array
-		      PETSC_DECIDE,PETSC_DECIDE,               // #procs in each dimn
-		      1,                                       // DOF per node
-		      2,                                       // Stencil width
-		      NULL,NULL,&da);
+               DM_BOUNDARY_GHOSTED, DM_BOUNDARY_GHOSTED,    // type of boundary nodes
+               DMDA_STENCIL_BOX,                // type of stencil
+               11,11,                           // global dimns of array
+               PETSC_DECIDE,PETSC_DECIDE,       // #procs in each dimn
+               1,                               // DOF per node
+               2,                               // Stencil width
+               NULL,NULL,&da);
   DMSetFromOptions(da);
   DMSetUp(da);
   user.da = da;
@@ -101,6 +101,10 @@ int main(int argc,char **argv) {
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Solve nonlinear system
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+  const std::string initial_soln = "c_" + std::to_string( 0.0 ).substr(0,6) + ".out";
+  PetscPrintf( PETSC_COMM_WORLD , "Logging initial solution at t = 0 seconds\n" );
+  log_solution( u , initial_soln );
+
   TSSolve(ts,u);
 
   const std::string final_soln = "c_" + std::to_string( user.t_final ).substr(0,6) + ".out";

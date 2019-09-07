@@ -56,6 +56,8 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
   for (j=ys; j<ys+ym; j++) {
     for (i=xs; i<xs+xm; i++) {
 
+      set_boundary_ghost_nodes( user , uarray , Mx , My , i , j );
+
       c_i   = uarray[j][i];
       
       /* Boundary conditions */
@@ -63,8 +65,6 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
       
       // dc/dt = laplacian( c^3 - c ) - eps_2*biharm(c) - sigma*(c - m)
 
-      //eps_2 = 0.00013331972927932523;
-      //sigma = 1621.9985581953435;
       eps_2 = eps_2_array[j][i];
       sigma = sigma_array[j][i];
       m     = user->m;
@@ -95,8 +95,11 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
       // Form f
       if ( user->boundary == 1 ) // Neumann: reset residuals explicitly 
         f[j][i] = reset_boundary_residual_values_for_neumann_bc( uarray , rhs_ij , udot[j][i] , Mx , My , i , j );
+
+      else if ( user->boundary == 3 ) // Bottom dirichlet, rest Neumann
+        f[j][i] = reset_boundary_residual_values_for_dirichlet_bottom_neumann_remainder_bc( uarray , rhs_ij , udot[j][i] , Mx , My , i , j );
       
-      else // Dirichlet: just compute with ghost nodes
+      else // Dirichlet or periodic: just compute with ghost nodes
         f[j][i] = udot[j][i] - rhs_ij;
     }
 
@@ -112,6 +115,5 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
   DMRestoreLocalVector(da,&local_eps_2);
   DMRestoreLocalVector(da,&local_sigma);
   
-  PetscLogFlops(11.0*ym*xm);
   PetscFunctionReturn(0);
 }
