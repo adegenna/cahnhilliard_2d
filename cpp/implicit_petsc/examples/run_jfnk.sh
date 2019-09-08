@@ -4,4 +4,4 @@ export mpiexec_petsc="/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build
 echo "PETSc inputfile =" $petsc_inputfile
 
 # Run solver
-$mpiexec_petsc -np 6 ./jfnk_2d $petsc_inputfile
+$mpiexec_petsc -np 2 ./jfnk_2d $petsc_inputfile

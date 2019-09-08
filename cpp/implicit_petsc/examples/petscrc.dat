@@ -21,7 +21,7 @@
 -ts_adapt_type "basic"
 -ts_adapt_dt_max 0.1
 -ts_max_snes_failures -1
--t_final 0.001
+-t_final 0.1
 -dt_check 2
 -dt_output 0.02
 
@@ -40,11 +40,11 @@
 -ts_monitor
 -ts_monitor_lg_snes_iterations
 -ts_monitor_lg_ksp_iterations
-#-draw_pause .1
 -snes_monitor
 -ksp_monitor
 -snes_linesearch_monitor
 -ts_adapt_monitor
+#-draw_pause .1
 
 #-on_error_attach_debugger
 #-start_in_debugger
