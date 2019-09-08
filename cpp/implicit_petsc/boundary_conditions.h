@@ -22,6 +22,11 @@ PetscReal reset_boundary_residual_values_for_dirichlet_bottom_neumann_remainder_
 										    PetscInt Mx , PetscInt My ,
 										    PetscInt i , PetscInt j );
 
+PetscReal reset_boundary_residual_values_for_dirichlet_topandbottom_neumann_remainder_bc( PetscReal** uarray ,
+											  PetscReal rhs_ij ,
+											  PetscReal udot_ij ,
+											  PetscInt Mx , PetscInt My ,
+											  PetscInt i , PetscInt j );
 
 ThirteenPointStencil apply_dirichlet_bc( AppCtx* user ,
 					 PetscReal** uarray ,

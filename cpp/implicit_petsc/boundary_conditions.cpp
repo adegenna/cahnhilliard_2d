@@ -6,8 +6,9 @@
 
 void set_boundary_ghost_nodes( AppCtx* user , PetscScalar** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
   
-  if ( user->boundary == 0 ) {
-    // Dirichlet
+  if ( (user->boundary == 0) || (user->boundary == 3) || (user->boundary == 4) ) {
+    // 0: Dirichlet
+    // 3,4: mixed dirichlet-neumann, just fill ghost cells with dirichlet and we will reset boundary residuals later
     if (i <= 1) {
       uarray[j][-2] = user->dirichlet_bc;
       uarray[j][-1] = user->dirichlet_bc;
@@ -52,24 +53,6 @@ void set_boundary_ghost_nodes( AppCtx* user , PetscScalar** uarray , PetscInt Mx
     // Periodic
   }
 
-  else if ( user->boundary == 3 ) {
-    // Bottom-Dirichlet, rest Neumann
-    // Fill all ghost nodes with dirichlet and impose neumann on interior residuals in rhs
-    if ( i <= 1 ) {
-      uarray[j][i] = user->dirichlet_bc;
-    }
-    else if (i >= Mx-2) {
-      uarray[j][i]    = user->dirichlet_bc;
-    }
-    else if (j <= 1) {
-      uarray[j][i]    = user->dirichlet_bc;
-    }
-    else if (j >= My-2) {
-      uarray[j][i]    = user->dirichlet_bc;
-    }
-
-  }
-  
   return;
   
 };
@@ -158,7 +141,33 @@ PetscReal reset_boundary_residual_values_for_dirichlet_bottom_neumann_remainder_
 
   // Dirichlet parts
   if ( (i == 0) || (i == 1) ) {        // Left 
-    f_ji = udot_ij - rhs_ij; //f_ji = uarray[j][i] - uarray[j-1][i+1];
+    f_ji = udot_ij - rhs_ij;
+  }
+
+  return f_ji;
+}
+
+PetscReal reset_boundary_residual_values_for_dirichlet_topandbottom_neumann_remainder_bc( PetscReal** uarray , PetscReal rhs_ij , PetscReal udot_ij , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
+
+  PetscReal f_ji;
+
+  // Default: interior value
+  f_ji = udot_ij - rhs_ij;
+
+  // Neumann parts
+  if ( (j == 0) || (j == 1) ) {        // Bottom 
+    f_ji = uarray[j][i] - uarray[j+1][i];
+  }
+  else if ( (j == My-1) || (j == My-2) ) {  // Top 
+    f_ji = uarray[j][i] - uarray[j-1][i];
+  }
+
+  // Dirichlet parts
+  if ( (i == 0) || (i == 1) ) {        // Left 
+    f_ji = udot_ij - rhs_ij;
+  }
+  else if ( (i == Mx-1) || (i == Mx-2) ) { // Right
+    f_ji = udot_ij - rhs_ij;
   }
 
   return f_ji;

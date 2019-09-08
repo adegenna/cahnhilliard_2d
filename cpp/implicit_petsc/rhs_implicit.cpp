@@ -98,6 +98,9 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
 
       else if ( user->boundary == 3 ) // Bottom dirichlet, rest Neumann
         f[j][i] = reset_boundary_residual_values_for_dirichlet_bottom_neumann_remainder_bc( uarray , rhs_ij , udot[j][i] , Mx , My , i , j );
+
+      else if ( user->boundary == 4 ) // Bottom/top dirichlet, rest Neumann
+        f[j][i] = reset_boundary_residual_values_for_dirichlet_topandbottom_neumann_remainder_bc( uarray , rhs_ij , udot[j][i] , Mx , My , i , j );
       
       else // Dirichlet or periodic: just compute with ghost nodes
         f[j][i] = udot[j][i] - rhs_ij;
