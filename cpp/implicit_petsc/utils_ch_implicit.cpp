@@ -30,6 +30,9 @@ AppCtx parse_petsc_options( ) {
   char tempfile[PETSC_MAX_PATH_LEN];
   PetscOptionsGetString(NULL,NULL,"-initial_temperature_file",tempfile,sizeof(tempfile),NULL);
   user.initial_temperature_file = std::string(tempfile);
+
+  // CH options
+  PetscOptionsGetReal(NULL,NULL,"-CH_m",&user.m,NULL);
   
   return user;
   
