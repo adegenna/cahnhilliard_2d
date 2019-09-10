@@ -42,7 +42,8 @@ typedef struct {
   PetscScalar T_min     = 0.1;
   PetscScalar T_max     = 1.0;
   std::string initial_temperature_file = "initial_temperature.dat"; // File that holds the initial temperature field
-
+  std::string initial_soln_file        = "initial_soln.dat"; // File that holds the initial solution field
+  
   // CH paramater defaults
   PetscScalar m         = 0.1;  // CH parameter: value of m (avg concentration)
   PetscScalar eps2_min  = 0.0;

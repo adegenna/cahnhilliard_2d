@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sys,os
+import h5py
 
 class PetscSettings:
 
@@ -76,7 +77,10 @@ def main():
     T_amp , T_x , T_y , T_sigma = generate_const_global_temperature( 0.5 , settings.nx , settings.ny , num_changes )
 
     # Write initial temperature field to disk for petsc
-    np.savetxt( settings.T0_filename , 1.0 * np.ones( settings.nx * settings.ny ) )
+    #np.savetxt( settings.T0_filename , 1.0 * np.ones( settings.nx * settings.ny ) )
+    with h5py.File( settings.T0_filename , 'w' ) as f:
+        dset = f.create_dataset( "default" , data=1.0*np.ones( settings.nx * settings.ny ) )
+
     
     # Run solver
     count = 0

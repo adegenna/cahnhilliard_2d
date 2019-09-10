@@ -2,13 +2,14 @@
 
 # Grid
 
--da_grid_x 64
--da_grid_y 64
+-da_grid_x 128
+-da_grid_y 256
 -Lx 1.0
 -Ly 1.0
 
 # Initial conditions
--initial_temperature_file input2.dat
+-initial_temperature_file input2.hdf5
+-initial_soln_file c_mixedmorphology.hdf5
 
 # Boundary conditions
 

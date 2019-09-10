@@ -13,8 +13,11 @@ if (OPENMP_FOUND)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
+# Set paths to external library files here
 set( MPI_LIBRARIES "/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/lib/libmpi.so" )
 message( STATUS "MPI_LIBRARIES ${MPI_LIBRARIES}")
+set( HDF5_LIBRARIES "/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/lib/libhdf5.so" )
+message( STATUS "HDF5_LIBRARIES ${HDF5_LIBRARIES}")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -119,6 +122,7 @@ add_dependencies(jfnk_2d petsc_external)
 target_link_libraries( jfnk_2d
   m
   ${MPI_LIBRARIES}
+  ${HDF5_LIBRARIES}
   ${PETSC_LIBRARIES}
 )
 

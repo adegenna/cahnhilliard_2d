@@ -33,7 +33,10 @@ AppCtx parse_petsc_options( ) {
 
   // CH options
   PetscOptionsGetReal(NULL,NULL,"-CH_m",&user.m,NULL);
-  
+  char tempfile_U[PETSC_MAX_PATH_LEN];
+  PetscOptionsGetString(NULL,NULL,"-initial_soln_file",tempfile_U,sizeof(tempfile_U),NULL);
+  user.initial_soln_file = std::string(tempfile_U);
+
   return user;
   
 };

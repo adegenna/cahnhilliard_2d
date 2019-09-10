@@ -27,7 +27,7 @@ ExternalProject_Add(
         ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/external/petsc/configure
         PETSC_DIR=${CMAKE_BINARY_DIR}/external/petsc
         PETSC_ARCH=arch-linux2-c-opt
-	--with-fc=0 --with-pic=1 --download-metis MAKEFLAGS=$MAKEFLAGS  COPTFLAGS=${PETSC_OPT_FLAGS} CXXOPTFLAGS=${PETSC_OPT_FLAGS} --with-debugging=${PETSC_DEBUGGING} ${PETSC_64_BIT_INDEX_FLAG} --download-openmpi
+	--with-fc=0 --with-pic=1 --download-metis MAKEFLAGS=$MAKEFLAGS  COPTFLAGS=${PETSC_OPT_FLAGS} CXXOPTFLAGS=${PETSC_OPT_FLAGS} --with-debugging=${PETSC_DEBUGGING} ${PETSC_64_BIT_INDEX_FLAG} --download-openmpi --download-hdf5
         #--with-cc=${MPI_C_COMPILER} --with-cxx=${MPI_CXX_COMPILER} --with-fc=0 --with-pic=1 --download-metis MAKEFLAGS=$MAKEFLAGS  COPTFLAGS=${PETSC_OPT_FLAGS} CXXOPTFLAGS=${PETSC_OPT_FLAGS} --with-debugging=${PETSC_DEBUGGING} ${PETSC_64_BIT_INDEX_FLAG} --download-openmpi
 
         BUILD_COMMAND
