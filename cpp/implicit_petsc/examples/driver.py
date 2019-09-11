@@ -65,10 +65,6 @@ def generate_const_global_temperature( amp , nx , ny , num_changes ):
 
 def main():
 
-    # Remove any temporary files for communication with the solver
-    os.system( 'mkdir old' )
-    os.system( 'mv *.out old/' )
-
     settings = parse_inputs_from_petscfile( 'petscrc.dat' )
 
     # Set temporal profile for parameter values
@@ -80,7 +76,6 @@ def main():
     #np.savetxt( settings.T0_filename , 1.0 * np.ones( settings.nx * settings.ny ) )
     with h5py.File( settings.T0_filename , 'w' ) as f:
         dset = f.create_dataset( "default" , data=1.0*np.ones( settings.nx * settings.ny ) )
-
     
     # Run solver
     count = 0
@@ -88,9 +83,10 @@ def main():
 
     # Check filesystem for indication from solver that it is waiting for next m value
     while True:
-        timestamp  = '_{:0.4f}.out'.format( (count+1) * settings.dt )
-        petsc_done = os.path.exists( 'complete' + timestamp )
-        sim_done   = os.path.exists( 'complete_sim.out' )
+        timestamp        = '_{:0.4f}.bin'.format( (count+1) * settings.dt )
+        timestamp_final  = '_{:0.4f}.bin'.format( settings.tf )
+        petsc_done = os.path.exists( 'c' + timestamp )
+        sim_done   = os.path.exists( 'c' + timestamp_final )
         if sim_done:
             print("DRIVER PROGRAM DONE")
             break

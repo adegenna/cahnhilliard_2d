@@ -1,7 +1,7 @@
-export petsc_inputfile="petscrc.dat"
-export mpiexec_petsc="/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/bin/mpiexec"
+export petsc_inputfile="/home/adegennaro/cahnhilliard_2d/cpp/implicit_petsc/examples/petscrc.dat"
+export mpiexec_petsc="/home/adegennaro/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/bin/mpiexec"
 
 echo "PETSc inputfile =" $petsc_inputfile
 
 # Run solver
-$mpiexec_petsc -np 2 ./jfnk_2d $petsc_inputfile
+$mpiexec_petsc ./jfnk_2d $petsc_inputfile

@@ -34,30 +34,27 @@ PetscErrorCode FormInitialSolution(Vec U , Vec Temperature , void *ptr)
   PetscRandomSetType(rng,PETSCRAND48);
 
   // Interior
-  PetscViewer viewer_T , viewer_U;
-  MPI_Comm comm = PETSC_COMM_WORLD;
-  PetscViewer    viewer_out;
-  PetscViewerCreate( comm , &viewer_out );
-  PetscViewerHDF5Open( PETSC_COMM_WORLD , user->initial_temperature_file.c_str() , FILE_MODE_READ , &viewer_T );
-  PetscViewerHDF5Open( PETSC_COMM_WORLD , user->initial_soln_file.c_str()        , FILE_MODE_READ , &viewer_U );
-  VecLoad( Temperature , viewer_T );
-  VecLoad( U           , viewer_U );
-  PetscViewerDestroy(&viewer_T);
-  PetscViewerDestroy(&viewer_U);
-  //VecView( U , viewer_out );
+  // PetscViewer viewer_T , viewer_U;
+  // MPI_Comm comm = PETSC_COMM_WORLD;
+  // PetscViewer    viewer_out;
+  // PetscViewerCreate( comm , &viewer_out );
+  // PetscViewerHDF5Open( PETSC_COMM_WORLD , user->initial_temperature_file.c_str() , FILE_MODE_READ , &viewer_T );
+  // PetscViewerHDF5Open( PETSC_COMM_WORLD , user->initial_soln_file.c_str()        , FILE_MODE_READ , &viewer_U );
+  // VecLoad( Temperature , viewer_T );
+  // VecLoad( U           , viewer_U );
+  // PetscViewerDestroy(&viewer_T);
+  // PetscViewerDestroy(&viewer_U);
 
-  // std::ifstream Tin( user->initial_temperature_file );
-  // for (j=ys; j<ys+ym; j++) {
-  //   for (i=xs; i<xs+xm; i++) {
-  //     PetscRandomGetValueReal(rng , &value_rng);
-  //     u[j][i]     = 0.005 * ( 2.0 * value_rng - 1.0 );
-  //     Tin >> T[j][i];
-  //   } 
-  // }
-  // Tin.close();
-  // DMDAVecRestoreArray(da,U,&u);
-  // DMDAVecRestoreArray(da,Temperature,&T);  
-  // PetscRandomDestroy(&rng);
+  for (j=ys; j<ys+ym; j++) {
+    for (i=xs; i<xs+xm; i++) {
+      PetscRandomGetValueReal(rng , &value_rng);
+      u[j][i]     = 0.005 * ( 2.0 * value_rng - 1.0 );
+      T[j][i]     = 1.0;
+    } 
+  }
+  DMDAVecRestoreArray(da,U,&u);
+  DMDAVecRestoreArray(da,Temperature,&T);  
+  PetscRandomDestroy(&rng);
 
   // Compute temperature-dependent polymer limiters
   user->eps2_min = compute_eps2_from_chparams( user->X_max ,

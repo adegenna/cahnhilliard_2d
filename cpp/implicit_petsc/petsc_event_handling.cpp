@@ -10,18 +10,27 @@
 #include <petscsys.h>
 #include <petscis.h>
 #include <petscviewer.h>
+#include <petscviewerhdf5.h>
 
 void log_solution( Vec U , const std::string& outname ) {
 
   MPI_Comm       comm = PETSC_COMM_WORLD;
   PetscViewer    viewer;
-  PetscViewerCreate( comm , &viewer );
-  PetscViewerSetType( viewer , PETSCVIEWERASCII );
-  PetscViewerFileSetMode( viewer , FILE_MODE_WRITE );
-  PetscViewerFileSetName( viewer , outname.c_str() );
-  PetscViewerASCIIOpen( PETSC_COMM_WORLD , outname.c_str() , &viewer );
+  PetscObjectSetName((PetscObject) U, "state");
+
+  // PetscViewerCreate( comm , &viewer );
+  // PetscViewerSetType( viewer , PETSCVIEWERHDF5 );
+  // PetscViewerFileSetMode( viewer , FILE_MODE_WRITE );
+  
+  // PetscViewerHDF5Open( comm , outname.c_str() , FILE_MODE_WRITE , &viewer );
+  // PetscViewerHDF5PushGroup(viewer, "/stategroup");
+  // VecView( U , viewer );
+  // PetscViewerHDF5PopGroup(viewer);
+  // PetscViewerDestroy( &viewer );
+
+  PetscViewerBinaryOpen( comm , outname.c_str() , FILE_MODE_WRITE , &viewer );
   VecView( U , viewer );
-  PetscViewerDestroy( &viewer );
+  PetscViewerDestroy( &viewer );  
 
   return;
 
@@ -55,7 +64,7 @@ PetscErrorCode PostEventFunction_ResetM(TS ts,PetscInt nevents,PetscInt event_li
 
       PetscPrintf( PETSC_COMM_WORLD , "Logging solution at t = %5.4f seconds\n" , (double)t );
 
-      const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".out";
+      const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".bin";
 
       log_solution( U , outname );
       
@@ -122,7 +131,7 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 
       PetscPrintf( PETSC_COMM_WORLD , "Logging solution at t = %5.4f seconds\n" , (double)t );
 
-      const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".out";
+      const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".bin";
       
       log_solution( U , outname );
 

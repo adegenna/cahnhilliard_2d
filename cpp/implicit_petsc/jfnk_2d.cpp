@@ -101,23 +101,23 @@ int main(int argc,char **argv) {
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Solve nonlinear system
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  const std::string initial_soln = "c_" + std::to_string( 0.0 ).substr(0,6) + ".out";
+  const std::string initial_soln = "c_" + std::to_string( 0.0 ).substr(0,6) + ".bin";
   PetscPrintf( PETSC_COMM_WORLD , "Logging initial solution at t = 0 seconds\n" );
   log_solution( u , initial_soln );
 
   TSSolve(ts,u);
 
-  const std::string final_soln = "c_" + std::to_string( user.t_final ).substr(0,6) + ".out";
+  const std::string final_soln = "c_" + std::to_string( user.t_final ).substr(0,6) + ".bin";
   PetscPrintf( PETSC_COMM_WORLD , "Logging final solution at t = %5.4f seconds\n" , (double)user.t_final );
   log_solution( u , final_soln );
   
   PetscPrintf( PETSC_COMM_WORLD , "SIMULATION DONE\n\n" );
 
   // Output to filesystem that you are done
-  const std::string outname  = "complete_sim.out";
-  std::ofstream fout(outname);
-  fout << "whole simulation complete\n";
-  fout.close();
+  // const std::string outname  = "complete_sim.out";
+  // std::ofstream fout(outname);
+  // fout << "whole simulation complete\n";
+  // fout.close();
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Free work space.
