@@ -40,7 +40,6 @@ def parse_inputs_from_petscfile( petscfile ):
 def main( petscfile ):
     
     settings  = parse_inputs_from_petscfile( petscfile )
-    
     num_bin_files = int( settings.tf // settings.dt_out + 2 )
     
     for i in range( num_bin_files ):

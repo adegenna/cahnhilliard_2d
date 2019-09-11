@@ -2,8 +2,8 @@
 
 # Grid
 
--da_grid_x 64
--da_grid_y 64
+-da_grid_x 128
+-da_grid_y 128
 -Lx 1.0
 -Ly 1.0
 
@@ -16,7 +16,7 @@
 
 # Boundary conditions
 
--boundary 3
+-boundary 1
 -dirichlet_bc 0.0
 
 # Temporal scheme
@@ -26,8 +26,8 @@
 -ts_adapt_dt_max 0.1
 -ts_max_snes_failures -1
 -t_final 1.0
--dt_check 2
--dt_output 0.02
+-dt_check 0.04
+-dt_output 0.2
 
 # Petsc solver options
 

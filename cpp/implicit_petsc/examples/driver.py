@@ -69,8 +69,8 @@ def main():
 
     # Set temporal profile for parameter values
     num_changes                 = int( settings.tf / settings.dt )
-    #T_amp , T_x , T_y , T_sigma = generate_quarter_circle_laser_path( 1.0 , settings.nx , settings.ny , num_changes )
-    T_amp , T_x , T_y , T_sigma = generate_const_global_temperature( 0.5 , settings.nx , settings.ny , num_changes )
+    T_amp , T_x , T_y , T_sigma = generate_quarter_circle_laser_path( 1.0 , settings.nx , settings.ny , num_changes )
+    #T_amp , T_x , T_y , T_sigma = generate_const_global_temperature( 0.5 , settings.nx , settings.ny , num_changes )
 
     # Write initial temperature field to disk for petsc
     initial_T      = 1.0 * np.ones( settings.nx * settings.ny )
@@ -92,7 +92,7 @@ def main():
     while True:
         timestamp        = '_{:0.4f}.bin'.format( (count+1) * settings.dt )
         timestamp_final  = '_{:0.4f}.bin'.format( settings.tf )
-        petsc_done = os.path.exists( 'c' + timestamp )
+        petsc_done = os.path.exists( 'complete' + timestamp )
         sim_done   = os.path.exists( 'c' + timestamp_final )
         if sim_done:
             print("DRIVER PROGRAM DONE")
