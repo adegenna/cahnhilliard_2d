@@ -127,7 +127,7 @@ target_link_libraries( jfnk_2d
 )
 
 #############################################
-# Petsc implicit solver
+# Postprocessing
 #############################################
 
 add_executable( postprocess
@@ -138,6 +138,24 @@ add_executable( postprocess
 add_dependencies(postprocess petsc_external)
 
 target_link_libraries( postprocess
+  m
+  ${MPI_LIBRARIES}
+  ${HDF5_LIBRARIES}
+  ${PETSC_LIBRARIES}
+)
+
+#############################################
+# Preprocessing
+#############################################
+
+add_executable( preprocess
+  implicit_petsc/preprocess.cpp
+  implicit_petsc/utils_ch_implicit.cpp
+)
+
+add_dependencies( preprocess petsc_external )
+
+target_link_libraries( preprocess
   m
   ${MPI_LIBRARIES}
   ${HDF5_LIBRARIES}

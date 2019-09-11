@@ -68,7 +68,8 @@ int main(int argc,char **argv) {
   
   // Rewrite in serial to binary
   PetscViewer viewer_output;
-  const std::string fileoutname = solnfile.substr( 0 , solnfile.size()-4 ) + ".bin";
+  std::size_t found = solnfile.find_last_of("/\\.");
+  const std::string fileoutname = solnfile.substr( 0 , found ) + ".bin";
   PetscViewerCreate( comm , &viewer_output );
   PetscViewerSetType( viewer_output , PETSCVIEWERBINARY );
   PetscViewerFileSetMode( viewer_output , FILE_MODE_WRITE );
