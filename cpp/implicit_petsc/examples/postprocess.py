@@ -41,7 +41,7 @@ def main( petscfile ):
     
     settings  = parse_inputs_from_petscfile( petscfile )
     
-    num_bin_files = int( settings.tf // settings.dt_out + 1 )
+    num_bin_files = int( settings.tf // settings.dt_out + 2 )
     
     for i in range( num_bin_files ):
         timestamp  = '_{:0.4f}.bin'.format( i * settings.dt_out )

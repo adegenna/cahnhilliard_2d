@@ -8,8 +8,8 @@
 -Ly 1.0
 
 # Initial conditions
--initial_temperature_file input2.hdf5
--initial_soln_file c_mixedmorphology.hdf5
+-initial_temperature_file initial_temperature.bin
+-initial_soln_file initial_soln.bin
 
 # CH parameters
 -CH_m 0.1
