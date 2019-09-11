@@ -18,3 +18,9 @@ cpp/data/
 cpp/implicit_petsc/examples/*.out
 visualization/*.mp4
 visualization/*.png
+
+*.ascii
+*.bin
+*.bin.info
+*.hdf5
+*.out

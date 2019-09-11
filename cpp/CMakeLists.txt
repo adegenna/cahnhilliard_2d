@@ -14,9 +14,9 @@ if (OPENMP_FOUND)
 endif()
 
 # Set paths to external library files here
-set( MPI_LIBRARIES "/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/lib/libmpi.so" )
+set( MPI_LIBRARIES "/home/adegennaro/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/lib/libmpi.so" )
 message( STATUS "MPI_LIBRARIES ${MPI_LIBRARIES}")
-set( HDF5_LIBRARIES "/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/lib/libhdf5.so" )
+set( HDF5_LIBRARIES "/home/adegennaro/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/lib/libhdf5.so" )
 message( STATUS "HDF5_LIBRARIES ${HDF5_LIBRARIES}")
 
 set(CMAKE_CXX_STANDARD 11)
@@ -93,15 +93,15 @@ SWIG_LINK_LIBRARIES( cahnhilliard
 		     ch_src
 )
 		   
-# Copy the shared objects and Swig wrappers to cpp/swig/
-add_custom_target( mvcmd_so ALL
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/_cahnhilliard.so" "${CMAKE_SOURCE_DIR}/swig/_cahnhilliard.so"
-  DEPENDS "${CMAKE_SOURCE_DIR}/build/_cahnhilliard.so"
-)
-add_custom_target( mvcmd_py ALL
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/cahnhilliard.py" "${CMAKE_SOURCE_DIR}/swig/cahnhilliard.py"
-  DEPENDS "${CMAKE_SOURCE_DIR}/build/cahnhilliard.py"
-)
+# # Copy the shared objects and Swig wrappers to cpp/swig/
+# add_custom_target( mvcmd_so ALL
+#   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/_cahnhilliard.so" "${CMAKE_SOURCE_DIR}/swig/_cahnhilliard.so"
+#   DEPENDS "${CMAKE_SOURCE_DIR}/build/_cahnhilliard.so"
+# )
+# add_custom_target( mvcmd_py ALL
+#   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/cahnhilliard.py" "${CMAKE_SOURCE_DIR}/swig/cahnhilliard.py"
+#   DEPENDS "${CMAKE_SOURCE_DIR}/build/cahnhilliard.py"
+# )
 
 #############################################
 # Petsc implicit solver
@@ -126,8 +126,27 @@ target_link_libraries( jfnk_2d
   ${PETSC_LIBRARIES}
 )
 
-# Copy petsc implicit solver driver executable to implicit_petsc/examples/
-add_custom_target( mvcmd_implicit ALL
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/jfnk_2d" "${CMAKE_SOURCE_DIR}/implicit_petsc/examples/jfnk_2d"
-  DEPENDS "${CMAKE_SOURCE_DIR}/build/jfnk_2d"
-  )
+#############################################
+# Petsc implicit solver
+#############################################
+
+add_executable( postprocess
+  implicit_petsc/postprocess.cpp
+  implicit_petsc/utils_ch_implicit.cpp
+)
+
+add_dependencies(postprocess petsc_external)
+
+target_link_libraries( postprocess
+  m
+  ${MPI_LIBRARIES}
+  ${HDF5_LIBRARIES}
+  ${PETSC_LIBRARIES}
+)
+
+# # Copy petsc implicit solver driver executable to implicit_petsc/examples/
+# add_custom_target( mvcmd_implicit ALL
+#   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/jfnk_2d" "${CMAKE_SOURCE_DIR}/implicit_petsc/examples/jfnk_2d"
+#   DEPENDS "${CMAKE_SOURCE_DIR}/build/jfnk_2d"
+#   )
+
