@@ -27,7 +27,6 @@ int main(int argc,char **argv) {
   PetscReal      dt;
   SNES           snes;
 
-  //PetscInitialize( NULL , NULL , argv[1] , help );
   ierr = PetscInitialize(&argc,&argv,argv[1],help);if (ierr) return ierr;
 
   AppCtx         user = parse_petsc_options();
@@ -46,6 +45,10 @@ int main(int argc,char **argv) {
   DMSetFromOptions(da);
   DMSetUp(da);
   user.da = da;
+
+  // Rescale value of L_omega to match the user-specified domain size
+  PetscScalar L_domain = sqrtf( user.Lx * user.Ly );
+  user.L_omega        *= L_domain;
 
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Extract global vectors from DMDA;

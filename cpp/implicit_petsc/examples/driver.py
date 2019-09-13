@@ -50,7 +50,8 @@ def generate_quarter_circle_laser_path( amp , nx , ny , num_changes ):
     th          = np.linspace( 0.75 * np.pi , 1.75*np.pi , num_changes )
     T_x         = nx * ( 1 + 0.75 * np.cos( th ) )
     T_y         = ny * ( 1 + 0.75 * np.sin( th ) )
-    T_sigma     = np.linspace( nx // 2 , ny // 2 , num_changes )
+    sigma_temp  = 128./2.
+    T_sigma     = sigma_temp * np.ones( num_changes )
     
     return T_amp , T_x , T_y , T_sigma
 

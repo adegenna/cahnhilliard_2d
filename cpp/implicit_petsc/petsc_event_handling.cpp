@@ -208,13 +208,10 @@ void compute_new_temperature_profile( AppCtx* user , PetscScalar T_amp , PetscSc
   DM             da   =user->da;
   PetscInt       i,j,xs,ys,xm,ym,Mx,My;
   PetscScalar    **T;
-  PetscReal      hx,hy,x,y,r;
+  PetscReal      x,y,r;
   
   PetscFunctionBeginUser;
   DMDAGetInfo(da,PETSC_IGNORE,&Mx,&My,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
-
-  hx = (user->Lx)/(PetscReal)(Mx-1);
-  hy = (user->Ly)/(PetscReal)(My-1);
 
   /* Get pointers to vector data */
   DMDAVecGetArray(da,user->temperature,&T);

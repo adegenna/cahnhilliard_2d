@@ -37,6 +37,7 @@
 -ksp_atol 1e-9
 -ksp_rtol 1e-2
 -snes_atol 1e-8
+-snes_rtol 1e-3
 
 # Solver monitors
 

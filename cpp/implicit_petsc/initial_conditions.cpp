@@ -19,8 +19,9 @@ PetscErrorCode FormInitialSolution(Vec U , Vec Temperature , void *ptr)
   PetscFunctionBeginUser;
   DMDAGetInfo(da,PETSC_IGNORE,&Mx,&My,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
 
-  hx = (user->Lx)/(PetscReal)(Mx-1);
-  hy = (user->Ly)/(PetscReal)(My-1);
+  // NOTE: these CH eqns are dimensionless with domain length scale = 1. Physical domain size shows up in L_omega.
+  hx = 1.0/(PetscReal)(Mx-1);
+  hy = 1.0/(PetscReal)(My-1);
 
   // Interior
   PetscViewer viewer_T , viewer_U;

@@ -26,8 +26,9 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
   
   DMDAGetInfo(da,PETSC_IGNORE,&Mx,&My,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
 
-  hx = (user->Lx)/(PetscReal)(Mx-1); sx = 1.0/(hx*hx);
-  hy = (user->Ly)/(PetscReal)(My-1); sy = 1.0/(hy*hy);
+  // NOTE: these CH eqns are dimensionless with domain length scale = 1. Physical domain size shows up in L_omega.
+  hx = 1.0/(PetscReal)(Mx-1); sx = 1.0/(hx*hx);
+  hy = 1.0/(PetscReal)(My-1); sy = 1.0/(hy*hy);
 
   /*
      Scatter ghost points to local vector,using the 2-step process
