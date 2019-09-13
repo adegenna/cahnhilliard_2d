@@ -17,6 +17,7 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
   PetscReal c_i,c_im2,c_im1,c_ip1,c_ip2,c_jm2,c_jm1,c_jp1,c_jp2, c_ul,c_ur,c_bl,c_br;
   PetscReal l_i,l_ip1,l_im1,l_jp1,l_jm1;
   PetscReal dxx,dyy,dxxxx,dyyyy,dxxyy,rhs_ij;
+  PetscScalar q_im1,q_ip1,q_jm1,q_jp1,q_0;
   PetscReal sigma,m,eps_2;
 
   PetscFunctionBeginUser;
@@ -62,16 +63,14 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
       c_i   = uarray[j][i];
       
       /* Boundary conditions */
-      ThirteenPointStencil stencil = get_thirteen_point_stencil( user , uarray , Mx , My , i , j );
+      ThirteenPointStencil stencil      = get_thirteen_point_stencil( user , uarray      , Mx , My , i , j );
+      ThirteenPointStencil stencil_eps2 = get_thirteen_point_stencil( user , eps_2_array , Mx , My , i , j );
       
       // dc/dt = laplacian( c^3 - c ) - eps_2*biharm(c) - sigma*(c - m)
-
-      eps_2 = eps_2_array[j][i];
       sigma = sigma_array[j][i];
       m     = user->m;
       
       // Term: laplacian( c^3 - c )
-
       l_i     = stencil.c_i*stencil.c_i*stencil.c_i       - stencil.c_i;
       l_im1   = stencil.c_im1*stencil.c_im1*stencil.c_im1 - stencil.c_im1;
       l_ip1   = stencil.c_ip1*stencil.c_ip1*stencil.c_ip1 - stencil.c_ip1;
@@ -80,15 +79,23 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
 
       dxx     = sx * ( l_ip1 + l_im1 - 2.0 * l_i );
       dyy     = sy * ( l_jp1 + l_jm1 - 2.0 * l_i );
-	
+      
       rhs_ij  = dxx + dyy;
 
+      // Term: laplacian( -eps_2 * laplacian( c ) ) = laplacian( q )
+      q_im1   = ( -stencil_eps2.c_im1 ) * ( sx * ( stencil.c_im2 + stencil.c_i   - 2.0*stencil.c_im1 ) + sy * ( stencil.c_ul  + stencil.c_bl  - 2.0*stencil.c_im1 ) );
+      q_ip1   = ( -stencil_eps2.c_ip1 ) * ( sx * ( stencil.c_i   + stencil.c_ip2 - 2.0*stencil.c_ip1 ) + sy * ( stencil.c_ur  + stencil.c_br  - 2.0*stencil.c_ip1 ) );
+      q_jm1   = ( -stencil_eps2.c_jm1 ) * ( sx * ( stencil.c_ul  + stencil.c_ur  - 2.0*stencil.c_jm1 ) + sy * ( stencil.c_jm2 + stencil.c_i   - 2.0*stencil.c_jm1 ) );
+      q_jp1   = ( -stencil_eps2.c_jp1 ) * ( sx * ( stencil.c_bl  + stencil.c_br  - 2.0*stencil.c_jp1 ) + sy * ( stencil.c_jp2 + stencil.c_i   - 2.0*stencil.c_jp1 ) );
+      q_0     = ( -stencil_eps2.c_i   ) * ( sx * ( stencil.c_im1 + stencil.c_ip1 - 2.0*stencil.c_i   ) + sy * ( stencil.c_jm1 + stencil.c_jp1 - 2.0*stencil.c_i   ) );
+      
+      rhs_ij += sx * ( q_im1 + q_ip1 - 2.0*q_0 ) + sy * ( q_jm1 + q_jp1 - 2.0*q_0 ); // laplacian( q )
+      
       // Term: -eps_2*biharm(c)
-      dxxxx = sx * sx * (stencil.c_ip2 - 4.0*stencil.c_ip1 + 6.0*stencil.c_i - 4.0*stencil.c_im1 + stencil.c_im2);
-      dyyyy = sy * sy * (stencil.c_jp2 - 4.0*stencil.c_jp1 + 6.0*stencil.c_i - 4.0*stencil.c_jm1 + stencil.c_jm2);
-      dxxyy = sx * sy * 2 * (4*stencil.c_i - 2*(stencil.c_im1 + stencil.c_ip1 + stencil.c_jm1 + stencil.c_jp1) + stencil.c_ul + stencil.c_ur + stencil.c_bl + stencil.c_br );	// mixed term 2*u_xxyy
-
-      rhs_ij += -eps_2 * ( dxxxx + dyyyy + dxxyy );
+      // dxxxx = sx * sx * (stencil.c_ip2 - 4.0*stencil.c_ip1 + 6.0*stencil.c_i - 4.0*stencil.c_im1 + stencil.c_im2);
+      // dyyyy = sy * sy * (stencil.c_jp2 - 4.0*stencil.c_jp1 + 6.0*stencil.c_i - 4.0*stencil.c_jm1 + stencil.c_jm2);
+      // dxxyy = sx * sy * 2 * (4*stencil.c_i - 2*(stencil.c_im1 + stencil.c_ip1 + stencil.c_jm1 + stencil.c_jp1) + stencil.c_ul + stencil.c_ur + stencil.c_bl + stencil.c_br );	// mixed term 2*u_xxyy
+      // rhs_ij += -eps_2 * ( dxxxx + dyyyy + dxxyy );
 
       // Term: -sigma*(c - m)
       rhs_ij += -sigma * ( stencil.c_i - m );
