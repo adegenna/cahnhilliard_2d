@@ -34,7 +34,7 @@ int main(int argc,char **argv) {
   DMDACreate3d( PETSC_COMM_WORLD, 
                 DM_BOUNDARY_NONE , DM_BOUNDARY_NONE , DM_BOUNDARY_NONE ,  // type of boundary nodes
                 DMDA_STENCIL_BOX,                                         // type of stencil
-                -1 , -1 , -1 ,                                            // global dimns of array
+                11 , 11 , 11 ,                                            // global dimns of array
                 PETSC_DECIDE , PETSC_DECIDE , PETSC_DECIDE ,              // #procs in each dimn
                 1,                                                        // DOF per node
                 2,                                                        // Stencil width

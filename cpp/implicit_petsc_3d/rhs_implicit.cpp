@@ -56,7 +56,7 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
                   &xm , &ym , &zm );
   
   /* Compute function over the locally owned part of the grid */
-  for ( k = zs ; k < zs+ym ; k++ ) {
+  for ( k = zs ; k < zs+zm ; k++ ) {
     for ( j = ys ; j < ys+ym ; j++ ) {
       for ( i = xs ; i < xs+xm ; i++ ) {
 
