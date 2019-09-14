@@ -104,7 +104,7 @@ SWIG_LINK_LIBRARIES( cahnhilliard
 # )
 
 #############################################
-# Petsc implicit solver
+# Petsc-2D implicit solver
 #############################################
 
 add_executable( jfnk_2d
@@ -120,6 +120,29 @@ add_executable( jfnk_2d
 add_dependencies(jfnk_2d petsc_external)
 
 target_link_libraries( jfnk_2d
+  m
+  ${MPI_LIBRARIES}
+  ${HDF5_LIBRARIES}
+  ${PETSC_LIBRARIES}
+)
+
+#############################################
+# Petsc-3D implicit solver
+#############################################
+
+add_executable( jfnk_3d
+  implicit_petsc_3d/jfnk_3d.cpp
+  implicit_petsc_3d/utils_ch_implicit.cpp
+  implicit_petsc_3d/boundary_conditions.cpp
+  implicit_petsc_3d/initial_conditions.cpp
+  implicit_petsc_3d/rhs_implicit.cpp
+  implicit_petsc_3d/petsc_event_handling.cpp
+  implicit_petsc_3d/temperature_dependence.cpp
+)
+
+add_dependencies(jfnk_3d petsc_external)
+
+target_link_libraries( jfnk_3d
   m
   ${MPI_LIBRARIES}
   ${HDF5_LIBRARIES}

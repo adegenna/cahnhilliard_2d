@@ -18,16 +18,6 @@ void log_solution( Vec U , const std::string& outname ) {
   PetscViewer    viewer;
   PetscObjectSetName((PetscObject) U, "state");
 
-  // PetscViewerCreate( comm , &viewer );
-  // PetscViewerSetType( viewer , PETSCVIEWERHDF5 );
-  // PetscViewerFileSetMode( viewer , FILE_MODE_WRITE );
-  
-  // PetscViewerHDF5Open( comm , outname.c_str() , FILE_MODE_WRITE , &viewer );
-  // PetscViewerHDF5PushGroup(viewer, "/stategroup");
-  // VecView( U , viewer );
-  // PetscViewerHDF5PopGroup(viewer);
-  // PetscViewerDestroy( &viewer );
-
   PetscViewerBinaryOpen( comm , outname.c_str() , FILE_MODE_WRITE , &viewer );
   VecView( U , viewer );
   PetscViewerDestroy( &viewer );  
@@ -154,15 +144,6 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
       PetscViewerBinaryOpen( comm , outname.c_str() , FILE_MODE_WRITE , &viewer_out );
       VecView( U , viewer_out );
       PetscViewerDestroy( &viewer_out );
-
-      // PetscMPIInt myrank;
-      // MPI_Comm_rank( comm , &myrank );
-      // if ( myrank == 0 ) {
-      // 	std::ofstream output( outname );  
-      // 	output << "";
-      // 	output.close();
-      // }
-      // PetscBarrier( NULL );
        
       // Wait until receive a new value of parameters from an input file
       while(true) {
@@ -206,27 +187,34 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 void compute_new_temperature_profile( AppCtx* user , PetscScalar T_amp , PetscScalar T_x , PetscScalar T_y , PetscScalar T_sigma  ) {
 
   DM             da   =user->da;
-  PetscInt       i,j,xs,ys,xm,ym,Mx,My;
+  PetscInt       i,j,k,xs,ys,zs,xm,ym,zm,Mx,My,Mz;
   PetscScalar    **T;
-  PetscReal      x,y,r;
+  PetscReal      x,y,z,r;
   
   PetscFunctionBeginUser;
-  DMDAGetInfo(da,PETSC_IGNORE,&Mx,&My,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
+  DMDAGetInfo( da ,
+	       PETSC_IGNORE ,
+	       &Mx , &My , &Mz ,
+	       PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
 
   /* Get pointers to vector data */
   DMDAVecGetArray(da,user->temperature,&T);
 
   /* Get local grid boundaries */
-  DMDAGetCorners(da,&xs,&ys,NULL,&xm,&ym,NULL);
+  DMDAGetCorners( da ,
+		  &xs , &ys , &zs ,
+		  &xm , &ym , &zm );
 
   // Interior
-  for (j=ys; j<ys+ym; j++) {
-    for (i=xs; i<xs+xm; i++) {
-      T[j][i]     = T_amp * PetscExpReal( -0.5 * ( (j-T_x)*(j-T_x) + (i-T_y)*(i-T_y) ) / (T_sigma * T_sigma) );
-      T[j][i]     = std::max( T[j][i] , 0.5 );
+  for (k=zs; k<zs+zm; k++) {
+    for (j=ys; j<ys+ym; j++) {
+      for (i=xs; i<xs+xm; i++) {
+	T[k][j][i]     = T_amp * PetscExpReal( -0.5 * ( (k-T_z)*(k-T_z) + (j-T_x)*(j-T_x) + (i-T_y)*(i-T_y) ) / (T_sigma * T_sigma) );
+	T[k][j][i]     = std::max( T[k][j][i] , 0.5 );
+      }
     }
   }
-
+  
   /* Restore vectors */
   DMDAVecRestoreArray(da,user->temperature,&T);
   

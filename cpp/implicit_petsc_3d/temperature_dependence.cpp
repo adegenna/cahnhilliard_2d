@@ -47,7 +47,7 @@ PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx ) {
   AppCtx         *user = (AppCtx*)ctx;
   DM             da    = (DM)user->da;
 
-  PetscInt       i,j,xs,ys,xm,ym,Mx,My;
+  PetscInt       i,j,k,xs,ys,zs,xm,ym,zm,Mx,My,Mz;
 
   PetscScalar    **tarray , **xarray , **eps2array , **sigmaarray;
   Vec            local_temperature , local_X, local_eps2, local_sigma;
@@ -58,14 +58,12 @@ PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx ) {
   DMGetLocalVector(da,&local_temperature);
   DMGetLocalVector(da,&local_eps2);
   DMGetLocalVector(da,&local_sigma);
-
-  DMDAGetInfo(da,PETSC_IGNORE,&Mx,&My,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);  
-  /*
-     Scatter ghost points to local vector,using the 2-step process
-        DMGlobalToLocalBegin(),DMGlobalToLocalEnd().
-     By placing code between these two statements, computations can be
-     done while messages are in transition.
-  */
+  
+  DMDAGetInfo( da ,
+	       PETSC_IGNORE ,
+	       &Mx , &My , &Mz ,
+	       PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);  
+  
   DMGlobalToLocalBegin( da , user->temperature , INSERT_VALUES , local_temperature );
   DMGlobalToLocalEnd( da ,   user->temperature , INSERT_VALUES , local_temperature );
   DMGlobalToLocalBegin( da , user->X , INSERT_VALUES , local_X );
@@ -75,7 +73,6 @@ PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx ) {
   DMGlobalToLocalBegin( da , user->sigma , INSERT_VALUES , local_sigma );
   DMGlobalToLocalEnd( da ,   user->sigma , INSERT_VALUES , local_sigma );
   
-
   /* Get pointers to vector data */
   DMDAVecGetArrayRead( da , local_temperature , &tarray );
   DMDAVecGetArray( da , local_X , &xarray );
@@ -83,33 +80,36 @@ PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx ) {
   DMDAVecGetArray( da , local_sigma , &sigmaarray );
   
   /* Get local grid boundaries */
-  DMDAGetCorners( da , &xs , &ys , NULL , &xm , &ym , NULL );
+  DMDAGetCorners( da ,
+		  &xs , &ys , &zs ,
+		  &xm , &ym , &zm );
 
   /* Compute function over the locally owned part of the grid */
-  PetscReal Xji;
-  for (j=ys; j<ys+ym; j++) {
-    for (i=xs; i<xs+xm; i++) {
+  for (k=zs; k<zs+zm; k++) {
+    for (j=ys; j<ys+ym; j++) {
+      for (i=xs; i<xs+xm; i++) {
 
-      xarray[j][i]    = convert_temperature_to_flory_huggins( tarray[j][i] ,
-							      user->X_min ,
-							      user->X_max ,
-							      user->T_min ,
-							      user->T_max );
+	xarray[k][j][i]    = convert_temperature_to_flory_huggins( tarray[k][j][i] ,
+								   user->X_min ,
+								   user->X_max ,
+								   user->T_min ,
+								   user->T_max );
       
-      eps2array[j][i] = compute_eps2_from_chparams( xarray[j][i] ,
-						    user->L_kuhn ,
-						    user->m ,
-						    user->L_omega );
+	eps2array[k][j][i] = compute_eps2_from_chparams( xarray[k][j][i] ,
+							 user->L_kuhn ,
+							 user->m ,
+							 user->L_omega );
+	
+	sigmaarray[k][j][i] = compute_sigma_from_chparams( xarray[k][j][i] ,
+							   user->L_kuhn ,
+							   user->m ,
+							   user->L_omega ,
+							   user->N );
 
-      sigmaarray[j][i] = compute_sigma_from_chparams( xarray[j][i] ,
-						      user->L_kuhn ,
-						      user->m ,
-						      user->L_omega ,
-						      user->N );
-
-      eps2array[j][i]   = std::min( std::max( eps2array[j][i]  , user->eps2_min )   , user->eps2_max );
-      sigmaarray[j][i]  = std::min( std::max( sigmaarray[j][i] , user->sigma_min )  , user->sigma_max );
+	eps2array[k][j][i]   = std::min( std::max( eps2array[k][j][i]  , user->eps2_min )   , user->eps2_max );
+	sigmaarray[k][j][i]  = std::min( std::max( sigmaarray[k][j][i] , user->sigma_min )  , user->sigma_max );
       
+      }
     }
   }
 
@@ -131,7 +131,6 @@ PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx ) {
   DMRestoreLocalVector(da,&local_eps2);
   DMRestoreLocalVector(da,&local_sigma);
 
-  PetscLogFlops(11.0*ym*xm);
   PetscFunctionReturn(0);
       
 }

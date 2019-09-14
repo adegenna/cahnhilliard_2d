@@ -61,23 +61,19 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
       for ( i = xs ; i < xs+xm ; i++ ) {
 
         set_boundary_ghost_nodes( user , uarray , Mx , My , Mz , i , j , k );
-      
-        /* Boundary conditions */
-        TwentyfivePointStencil stencil      = get_twentyfive_point_stencil( user , uarray      , Mx , My , Mz , i , j , k );
-        TwentyfivePointStencil stencil_eps2 = get_twentyfive_point_stencil( user , eps_2_array , Mx , My , Mz , i , j , k );
-        
+	
         // dc/dt = laplacian( c^3 - c ) - laplacian( eps_2 * laplacian(c) ) - sigma*(c - m)
         sigma = sigma_array[k][j][i];
         m     = user->m;
       
         // Term: laplacian( c^3 - c )
-        l_i     = stencil.c_i   * stencil.c_i   * stencil.c_i   - stencil.c_i;
-        l_im1   = stencil.c_im1 * stencil.c_im1 * stencil.c_im1 - stencil.c_im1;
-        l_ip1   = stencil.c_ip1 * stencil.c_ip1 * stencil.c_ip1 - stencil.c_ip1;
-        l_jm1   = stencil.c_jm1 * stencil.c_jm1 * stencil.c_jm1 - stencil.c_jm1;
-        l_jp1   = stencil.c_jp1 * stencil.c_jp1 * stencil.c_jp1 - stencil.c_jp1;
-        l_km1   = stencil.c_km1 * stencil.c_km1 * stencil.c_km1 - stencil.c_km1;
-        l_kp1   = stencil.c_kp1 * stencil.c_kp1 * stencil.c_kp1 - stencil.c_kp1;
+        l_i     = uarray[k][j][i]   * uarray[k][j][i]   * uarray[k][j][i]   - uarray[k][j][i];
+        l_im1   = uarray[k][j][i-1] * uarray[k][j][i-1] * uarray[k][j][i-1] - uarray[k][j][i-1];
+        l_ip1   = uarray[k][j][i+1] * uarray[k][j][i+1] * uarray[k][j][i+1] - uarray[k][j][i+1];
+        l_jm1   = uarray[k][j-1][i] * uarray[k][j-1][i] * uarray[k][j-1][i] - uarray[k][j-1][i];
+        l_jp1   = uarray[k][j+1][i] * uarray[k][j+1][i] * uarray[k][j+1][i] - uarray[k][j+1][i];
+        l_km1   = uarray[k-1][j][i] * uarray[k-1][j][i] * uarray[k-1][j][i] - uarray[k-1][j][i];
+        l_kp1   = uarray[k+1][j][i] * uarray[k+1][j][i] * uarray[k+1][j][i] - uarray[k+1][j][i];
         
         dxx     = sx * ( l_ip1 + l_im1 - 2.0 * l_i );
         dyy     = sy * ( l_jp1 + l_jm1 - 2.0 * l_i );
@@ -101,17 +97,17 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
         rhs_ijk += dxx + dyy + dzz; // laplacian( q )
       
         // Term: -sigma*(c - m)
-        rhs_ijk += -sigma * ( stencil.c_i - m );
+        rhs_ijk += -sigma * ( uarray[k][j][i] - m );
 
         // Form f
         if ( user->boundary == 1 ) // Neumann: reset residuals explicitly 
           f[k][j][i] = reset_boundary_residual_values_for_neumann_bc( uarray , rhs_ijk , udot[k][j][i] , Mx , My , Mz , i , j , k );
 
-        else if ( user->boundary == 3 ) // Bottom dirichlet, rest Neumann
-          f[k][j][i] = reset_boundary_residual_values_for_dirichlet_bottom_neumann_remainder_bc( uarray , rhs_ijk , udot[k][j][i] , Mx , My , Mz , i , j , k );
+        // else if ( user->boundary == 3 ) // Bottom dirichlet, rest Neumann
+        //   f[k][j][i] = reset_boundary_residual_values_for_dirichlet_bottom_neumann_remainder_bc( uarray , rhs_ijk , udot[k][j][i] , Mx , My , Mz , i , j , k );
 
-        else if ( user->boundary == 4 ) // Bottom/top dirichlet, rest Neumann
-          f[k][j][i] = reset_boundary_residual_values_for_dirichlet_topandbottom_neumann_remainder_bc( uarray , rhs_ijk , udot[k][j][i] , Mx , My , Mz , i , j , k );
+        // else if ( user->boundary == 4 ) // Bottom/top dirichlet, rest Neumann
+        //   f[k][j][i] = reset_boundary_residual_values_for_dirichlet_topandbottom_neumann_remainder_bc( uarray , rhs_ijk , udot[k][j][i] , Mx , My , Mz , i , j , k );
       
         else // Dirichlet or periodic: just compute with ghost nodes
           f[k][j][i] = udot[k][j][i] - rhs_ijk;

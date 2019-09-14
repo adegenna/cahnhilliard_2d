@@ -17,14 +17,14 @@ def read_mpi_soln_file( statefile , timestamp , n ):
     return c
 
 t0 = 0.00
-tf = 0.18
+tf = 1.00
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/C_'
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/swig/C_'
-#statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/data/mcruns/mc_43/C_'
-statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/implicit_petsc/examples/c_'
+statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/data/mixingmorphologies/dots/c_'
+#statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/implicit_petsc/examples/c_'
 
-nx = 128
-ny = 128
+nx = 64
+ny = 64
 
 x     = np.arange(nx)
 y     = np.arange(ny)
@@ -39,7 +39,7 @@ ax    = fig.gca()
 def animate(i):
     print(i*tstep + t0)
     #w = np.genfromtxt(statefile + str(int(i*tstep)) + '.out' )
-    timestamp = '{:0.4f}.out'.format( (i*tstep + t0) )
+    timestamp = '{:0.4f}.ascii'.format( (i*tstep + t0) )
     w = read_mpi_soln_file( statefile , timestamp , nx*ny )
     #w = np.genfromtxt(statefile + timestamp , skip_header=3 )
     w = w.reshape([nx,ny],order='C');

@@ -10,18 +10,22 @@ PetscErrorCode FormInitialSolution(Vec U , Vec Temperature , void *ptr)
   AppCtx         *user=(AppCtx*)ptr;
   DM             da   =user->da;
   PetscErrorCode ierr;
-  PetscInt       i,j,xs,ys,xm,ym,Mx,My;
+  PetscInt       i,j,k,xs,ys,zs,xm,ym,zm,Mx,My,Mz;
   PetscScalar    **u , **T;
-  PetscReal      hx,hy,x,y,r;
-  PetscRandom rng;
-  PetscReal value_rng;
+  PetscReal      hx,hy,hz,x,y,z,r;
+  PetscRandom    rng;
+  PetscReal      value_rng;
 
   PetscFunctionBeginUser;
-  DMDAGetInfo(da,PETSC_IGNORE,&Mx,&My,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
+  DMDAGetInfo( da ,
+	       PETSC_IGNORE ,
+	       &Mx , &My , &Mz ,
+	       PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
 
   // NOTE: these CH eqns are dimensionless with domain length scale = 1. Physical domain size shows up in L_omega.
   hx = 1.0/(PetscReal)(Mx-1);
   hy = 1.0/(PetscReal)(My-1);
+  hz = 1.0/(PetscReal)(Mz-1);
 
   // Interior
   PetscViewer viewer_T , viewer_U;

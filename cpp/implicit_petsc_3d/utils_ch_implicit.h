@@ -6,16 +6,6 @@
 #include <petscts.h>
 #include <stdio.h>
 
-class ThirteenPointStencil {
-
-  public:
-
-    ThirteenPointStencil() { };
-   ~ThirteenPointStencil() { };
-    PetscReal c_i,c_im2,c_im1,c_ip1,c_ip2,c_jm2,c_jm1,c_jp1,c_jp2, c_ul,c_ur,c_bl,c_br;
-
-};
-
 /* AppCtx: used by FormIFunction() and FormIJacobian() */
 typedef struct {
   DM        da;
