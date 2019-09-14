@@ -3,9 +3,9 @@
 
 #include "utils_ch_implicit.h"
 
-void set_boundary_ghost_nodes( AppCtx* user , PetscScalar** uarray , PetscInt Mx , PetscInt My , PetscInt Mz , PetscInt i , PetscInt j , PetscInt k );
+void set_boundary_ghost_nodes( AppCtx* user , PetscScalar*** uarray , PetscInt Mx , PetscInt My , PetscInt Mz , PetscInt i , PetscInt j , PetscInt k );
 
-PetscReal reset_boundary_residual_values_for_neumann_bc( PetscReal** uarray ,
+PetscReal reset_boundary_residual_values_for_neumann_bc( PetscReal*** uarray ,
 							 PetscReal rhs_ijk ,
 							 PetscReal udot_ijk ,
 							 PetscInt Mx , PetscInt My , PetscInt Mz ,
@@ -22,16 +22,5 @@ PetscReal reset_boundary_residual_values_for_dirichlet_topandbottom_neumann_rema
 											  PetscReal udot_ij ,
 											  PetscInt Mx , PetscInt My ,
 											  PetscInt i , PetscInt j );
-
-ThirteenPointStencil apply_dirichlet_bc( AppCtx* user ,
-					 PetscReal** uarray ,
-					 PetscInt Mx , PetscInt My ,
-					 PetscInt i , PetscInt j );
-
-ThirteenPointStencil apply_neumann_bc( AppCtx* user ,
-				       PetscReal** uarray ,
-				       PetscInt Mx , PetscInt My ,
-				       PetscInt i , PetscInt j );
-
 
 #endif

@@ -27,26 +27,10 @@ int main(int argc,char **argv) {
   const std::string solnfile = argv[2];
 
   AppCtx         user = parse_petsc_options();
-
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-     Create distributed array (DMDA) to manage parallel grid and vectors
-  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */  
-  // DMDACreate2d(PETSC_COMM_WORLD, 
-  //              DM_BOUNDARY_GHOSTED, DM_BOUNDARY_GHOSTED,    // type of boundary nodes
-  //              DMDA_STENCIL_BOX,                // type of stencil
-  //              11,11,                           // global dimns of array
-  //              PETSC_DECIDE,PETSC_DECIDE,       // #procs in each dimn
-  //              1,                               // DOF per node
-  //              2,                               // Stencil width
-  //              NULL,NULL,&da);
-  // DMSetFromOptions(da);
-  // DMSetUp(da);
-  // user.da = da;
-
+  
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Convert parallel binary --> serial ascii
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  //DMCreateGlobalVector(da,&U);
   
   MPI_Comm       comm = PETSC_COMM_WORLD;
   VecCreate( comm , &U );
@@ -68,7 +52,6 @@ int main(int argc,char **argv) {
   PetscViewerDestroy( &viewer_output );
 
   VecDestroy(&U);
-  //DMDestroy(&da);
 
   PetscFinalize();
   return ierr;

@@ -11,9 +11,9 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
   DM             da   = (DM)user->da;
   PetscInt       i,j,k,Mx,My,Mz,xs,ys,zs,xm,ym,zm;
   PetscScalar      hx,hy,hz,sx,sy,sz;
-  PetscScalar    u,**uarray,**f,**udot, **eps_2_array, **sigma_array;
+  PetscScalar    u,***uarray,***f,***udot, ***eps_2_array, ***sigma_array;
   Vec            localU, local_eps_2, local_sigma;
-  PetscScalar l_i,l_ip1,l_im1,l_jp1,l_jm1;
+  PetscScalar l_i,l_ip1,l_im1,l_jp1,l_jm1,l_km1,l_kp1;
   PetscScalar dxx,dyy,dzz,rhs_ijk;
   PetscScalar q_im1,q_ip1,q_jm1,q_jp1,q_km1,q_kp1,q_0;
   PetscScalar sigma,m,eps_2;
@@ -82,13 +82,13 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
         rhs_ijk  = dxx + dyy + dzz;
 
         // Term: laplacian( -eps_2 * laplacian( c ) ) = laplacian( q )
-        q_im1   = ( -eps2[k][j][i-1] ) * ( sx * ( uarray[k][j][i-2]   + uarray[k][j][i]     - 2.0*uarray[k][j][i-1] ) + sy * ( uarray[k][j-1][i-1] + uarray[k][j+1][i-1] - 2.0*uarray[k][j][i-1] ) + sz * ( uarray[k-1][j][i-1] + uarray[k+1][j][i-1] - 2.0*uarray[k][j][i-1]  ) );
-        q_ip1   = ( -eps2[k][j][i+1] ) * ( sx * ( uarray[k][j][i+2]   + uarray[k][j][i]     - 2.0*uarray[k][j][i+1] ) + sy * ( uarray[k][j-1][i+1] + uarray[k][j+1][i+1] - 2.0*uarray[k][j][i+1] ) + sz * ( uarray[k-1][j][i+1] + uarray[k+1][j][i+1] - 2.0*uarray[k][j][i+1]  ) );
-        q_jm1   = ( -eps2[k][j-1][i] ) * ( sx * ( uarray[k][j-1][i-1] + uarray[k][j-1][i+1] - 2.0*uarray[k][j-1][i] ) + sy * ( uarray[k][j-2][i]   + uarray[k][j][i]     - 2.0*uarray[k][j-1][i] ) + sz * ( uarray[k+1][j-1][i] + uarray[k-1][j-1][i] - 2.0*uarray[k][j-1][i]  ) );
-        q_jp1   = ( -eps2[k][j+1][i] ) * ( sx * ( uarray[k][j+1][i-1] + uarray[k][j+1][i+1] - 2.0*uarray[k][j+1][i] ) + sy * ( uarray[k][j][i]     + uarray[k][j+2][i]   - 2.0*uarray[k][j+1][i] ) + sz * ( uarray[k-1][j+1][i] + uarray[k+1][j+1][i] - 2.0*uarray[k][j+1][i]  ) );
-        q_km1   = ( -eps2[k-1][j][i] ) * ( sx * ( uarray[k-1][j][i-1] + uarray[k-1][j][i+1] - 2.0*uarray[k-1][j][i] ) + sy * ( uarray[k-1][j-1][i] + uarray[k-1][j+1][i] - 2.0*uarray[k-1][j][i] ) + sz * ( uarray[k-2][j][i]   + uarray[k][j][i]     - 2.0*uarray[k-1][j][i]  ) );
-        q_kp1   = ( -eps2[k+1][j][i] ) * ( sx * ( uarray[k+1][j][i-1] + uarray[k+1][j][i+1] - 2.0*uarray[k+1][j][i] ) + sy * ( uarray[k+1][j-1][i] + uarray[k+1][j+1][i] - 2.0*uarray[k+1][j][i] ) + sz * ( uarray[k][j][i]     + uarray[k+2][j][i]   - 2.0*uarray[k+1][j][i]  ) );
-        q_0     = ( -eps2[k][j][i]   ) * ( sx * ( uarray[k][j][i-1]   + uarray[k][j][i+1]   - 2.0*uarray[k][j][i] )   + sy * ( uarray[k][j-1][i]   + uarray[k][j+1][i]   - 2.0*uarray[k][j][i] )   + sz * ( uarray[k-1][j][i]   + uarray[k+1][j][i]   - 2.0*uarray[k][j][i]    ) );
+        q_im1   = ( -eps_2_array[k][j][i-1] ) * ( sx * ( uarray[k][j][i-2]   + uarray[k][j][i]     - 2.0*uarray[k][j][i-1] ) + sy * ( uarray[k][j-1][i-1] + uarray[k][j+1][i-1] - 2.0*uarray[k][j][i-1] ) + sz * ( uarray[k-1][j][i-1] + uarray[k+1][j][i-1] - 2.0*uarray[k][j][i-1]  ) );
+        q_ip1   = ( -eps_2_array[k][j][i+1] ) * ( sx * ( uarray[k][j][i+2]   + uarray[k][j][i]     - 2.0*uarray[k][j][i+1] ) + sy * ( uarray[k][j-1][i+1] + uarray[k][j+1][i+1] - 2.0*uarray[k][j][i+1] ) + sz * ( uarray[k-1][j][i+1] + uarray[k+1][j][i+1] - 2.0*uarray[k][j][i+1]  ) );
+        q_jm1   = ( -eps_2_array[k][j-1][i] ) * ( sx * ( uarray[k][j-1][i-1] + uarray[k][j-1][i+1] - 2.0*uarray[k][j-1][i] ) + sy * ( uarray[k][j-2][i]   + uarray[k][j][i]     - 2.0*uarray[k][j-1][i] ) + sz * ( uarray[k+1][j-1][i] + uarray[k-1][j-1][i] - 2.0*uarray[k][j-1][i]  ) );
+        q_jp1   = ( -eps_2_array[k][j+1][i] ) * ( sx * ( uarray[k][j+1][i-1] + uarray[k][j+1][i+1] - 2.0*uarray[k][j+1][i] ) + sy * ( uarray[k][j][i]     + uarray[k][j+2][i]   - 2.0*uarray[k][j+1][i] ) + sz * ( uarray[k-1][j+1][i] + uarray[k+1][j+1][i] - 2.0*uarray[k][j+1][i]  ) );
+        q_km1   = ( -eps_2_array[k-1][j][i] ) * ( sx * ( uarray[k-1][j][i-1] + uarray[k-1][j][i+1] - 2.0*uarray[k-1][j][i] ) + sy * ( uarray[k-1][j-1][i] + uarray[k-1][j+1][i] - 2.0*uarray[k-1][j][i] ) + sz * ( uarray[k-2][j][i]   + uarray[k][j][i]     - 2.0*uarray[k-1][j][i]  ) );
+        q_kp1   = ( -eps_2_array[k+1][j][i] ) * ( sx * ( uarray[k+1][j][i-1] + uarray[k+1][j][i+1] - 2.0*uarray[k+1][j][i] ) + sy * ( uarray[k+1][j-1][i] + uarray[k+1][j+1][i] - 2.0*uarray[k+1][j][i] ) + sz * ( uarray[k][j][i]     + uarray[k+2][j][i]   - 2.0*uarray[k+1][j][i]  ) );
+        q_0     = ( -eps_2_array[k][j][i]   ) * ( sx * ( uarray[k][j][i-1]   + uarray[k][j][i+1]   - 2.0*uarray[k][j][i] )   + sy * ( uarray[k][j-1][i]   + uarray[k][j+1][i]   - 2.0*uarray[k][j][i] )   + sz * ( uarray[k-1][j][i]   + uarray[k+1][j][i]   - 2.0*uarray[k][j][i]    ) );
 
         dxx     = sx * ( q_im1 + q_ip1 - 2.0*q_0 );
         dyy     = sy * ( q_jm1 + q_jp1 - 2.0*q_0 );

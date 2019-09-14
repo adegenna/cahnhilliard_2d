@@ -155,17 +155,18 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 	  std::this_thread::sleep_for( std::chrono::milliseconds(100) ); // Give the driver time to finish writing the new parameters
 
 	  std::ifstream fin(name);
-	  PetscScalar T_amp , T_x , T_y , T_sigma;
+	  PetscScalar T_amp , T_x , T_y , T_z , T_sigma;
 	  fin >> T_amp;
 	  fin >> T_x;
 	  fin >> T_y;
+	  fin >> T_z;
 	  fin >> T_sigma;
         
-	  compute_new_temperature_profile( app , T_amp , T_x , T_y , T_sigma );
+	  compute_new_temperature_profile( app , T_amp , T_x , T_y , T_z , T_sigma );
           
 	  app->dt_counter += 1;
         
-	  PetscPrintf( PETSC_COMM_WORLD , "Changing (T_amp, T_x, T_y, T_sigma) at t = %5.4f seconds to ( %5.4f , %5.4f , %5.4f , %5.4f)\n" , (double)t , (double)T_amp , (double)T_x , (double)T_y , (double)T_sigma );
+	  PetscPrintf( PETSC_COMM_WORLD , "Changing (T_amp, T_x, T_y, T_z, T_sigma) at t = %5.4f seconds to ( %5.4f , %5.4f , %5.4f , %5.4f , %5.4f)\n" , (double)t , (double)T_amp , (double)T_x , (double)T_y , (double)T_z , (double)T_sigma );
 
 	  fin.close();        
 	  break;
@@ -184,11 +185,11 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 
 }
 
-void compute_new_temperature_profile( AppCtx* user , PetscScalar T_amp , PetscScalar T_x , PetscScalar T_y , PetscScalar T_sigma  ) {
+void compute_new_temperature_profile( AppCtx* user , PetscScalar T_amp , PetscScalar T_x , PetscScalar T_y , PetscScalar T_z , PetscScalar T_sigma  ) {
 
   DM             da   =user->da;
   PetscInt       i,j,k,xs,ys,zs,xm,ym,zm,Mx,My,Mz;
-  PetscScalar    **T;
+  PetscScalar    ***T;
   PetscReal      x,y,z,r;
   
   PetscFunctionBeginUser;

@@ -31,14 +31,14 @@ int main(int argc,char **argv) {
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create distributed array (DMDA) to manage parallel grid and vectors
   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */  
-  DMDACreate2d(PETSC_COMM_WORLD, 
-               DM_BOUNDARY_NONE, DM_BOUNDARY_NONE,    // type of boundary nodes
-               DMDA_STENCIL_BOX,                // type of stencil
-               11,11,                           // global dimns of array
-               PETSC_DECIDE,PETSC_DECIDE,       // #procs in each dimn
-               1,                               // DOF per node
-               2,                               // Stencil width
-               NULL,NULL,&da);
+  DMDACreate3d( PETSC_COMM_WORLD, 
+                DM_BOUNDARY_NONE , DM_BOUNDARY_NONE , DM_BOUNDARY_NONE ,  // type of boundary nodes
+                DMDA_STENCIL_BOX,                                         // type of stencil
+                -1 , -1 , -1 ,                                            // global dimns of array
+                PETSC_DECIDE , PETSC_DECIDE , PETSC_DECIDE ,              // #procs in each dimn
+                1,                                                        // DOF per node
+                2,                                                        // Stencil width
+                NULL , NULL , NULL , &da );
   DMSetFromOptions(da);
   DMSetUp(da);
   user.da = da;
@@ -50,17 +50,22 @@ int main(int argc,char **argv) {
   MPI_Comm    comm = PETSC_COMM_WORLD;
 
   // Get Vec --> C array
-  PetscScalar **uarray;
-  PetscInt Mx,My;
-  DMDAGetInfo(da,PETSC_IGNORE,&Mx,&My,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
+  PetscScalar ***uarray;
+  PetscInt Mx,My,Mz;
+  DMDAGetInfo( da , 
+	       PETSC_IGNORE , 
+	       &Mx , &My , &Mz , 
+	       PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
   DMDAVecGetArray(da,U,&uarray);
 
   // Read original ascii file in serial using std::ifstream
   std::ifstream Uin;
   Uin.open( solnfile );
-  for (int j=0; j<My; j++) {
-    for (int i=0; i<Mx; i++) {
-      Uin >> uarray[j][i];
+  for (int k=0; k<Mz; k++) {
+    for (int j=0; j<My; j++) {
+      for (int i=0; i<Mx; i++) {
+	Uin >> uarray[k][j][i];
+      }
     }
   }
   Uin.close();

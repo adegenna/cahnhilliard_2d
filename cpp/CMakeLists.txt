@@ -185,6 +185,24 @@ target_link_libraries( preprocess
   ${PETSC_LIBRARIES}
 )
 
+#############################################
+# Preprocessing-3d
+#############################################
+
+add_executable( preprocess_3d
+  implicit_petsc_3d/preprocess.cpp
+  implicit_petsc_3d/utils_ch_implicit.cpp
+)
+
+add_dependencies( preprocess_3d petsc_external )
+
+target_link_libraries( preprocess_3d
+  m
+  ${MPI_LIBRARIES}
+  ${HDF5_LIBRARIES}
+  ${PETSC_LIBRARIES}
+)
+
 # # Copy petsc implicit solver driver executable to implicit_petsc/examples/
 # add_custom_target( mvcmd_implicit ALL
 #   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/jfnk_2d" "${CMAKE_SOURCE_DIR}/implicit_petsc/examples/jfnk_2d"

@@ -49,7 +49,7 @@ PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx ) {
 
   PetscInt       i,j,k,xs,ys,zs,xm,ym,zm,Mx,My,Mz;
 
-  PetscScalar    **tarray , **xarray , **eps2array , **sigmaarray;
+  PetscScalar    ***tarray , ***xarray , ***eps2array , ***sigmaarray;
   Vec            local_temperature , local_X, local_eps2, local_sigma;
 
   PetscFunctionBeginUser;

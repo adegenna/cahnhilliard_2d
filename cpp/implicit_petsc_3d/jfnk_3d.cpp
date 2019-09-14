@@ -47,7 +47,7 @@ int main(int argc,char **argv) {
   user.da = da;
 
   // Rescale value of L_omega to match the user-specified domain size
-  PetscScalar L_domain = powf( user.Lx * user.Ly * user.Lz , 1./3. )
+  PetscScalar L_domain = powf( user.Lx * user.Ly * user.Lz , 1./3. );
   user.L_omega        *= L_domain;
 
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

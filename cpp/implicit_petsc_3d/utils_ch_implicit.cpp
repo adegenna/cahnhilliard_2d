@@ -15,6 +15,7 @@ AppCtx parse_petsc_options( ) {
   // Grid
   PetscOptionsGetReal(NULL,NULL,"-Lx",&user.Lx,NULL);
   PetscOptionsGetReal(NULL,NULL,"-Ly",&user.Ly,NULL);
+  PetscOptionsGetReal(NULL,NULL,"-Lz",&user.Lz,NULL);
 
   // Boundary conditions
   PetscOptionsGetInt(NULL,NULL,"-boundary",&user.boundary,NULL);

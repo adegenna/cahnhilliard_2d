@@ -11,7 +11,7 @@ typedef struct {
   DM        da;
   PetscReal c;
   PetscInt  boundary;            /* Type of boundary condition */
-  PetscReal Lx, Ly;            // Length of domain in each direction
+  PetscReal Lx, Ly, Lz;        // Length of domain in each direction
   PetscReal t_final;           // Final time of simulation
   PetscReal dirichlet_bc;      // Value of dirichlet bc
   PetscReal dt_check;          // Value of time increment where you change the parameters/temperature
