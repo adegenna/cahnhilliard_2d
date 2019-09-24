@@ -12,7 +12,7 @@
 #include <petscviewer.h>
 #include <petscviewerhdf5.h>
 
-void log_solution( Vec U , const std::string& outname ) {
+PetscErrorCode log_solution( Vec U , const std::string& outname ) {
 
   PetscFunctionBeginUser;
   
@@ -193,7 +193,7 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 
 }
 
-void compute_new_temperature_profile( AppCtx* user , PetscScalar T_amp , PetscScalar T_x , PetscScalar T_y , PetscScalar T_z , PetscScalar T_sigma  ) {
+PetscErrorCode compute_new_temperature_profile( AppCtx* user , PetscScalar T_amp , PetscScalar T_x , PetscScalar T_y , PetscScalar T_z , PetscScalar T_sigma  ) {
 
   DM             da   =user->da;
   PetscInt       i,j,k,xs,ys,zs,xm,ym,zm,Mx,My,Mz;
