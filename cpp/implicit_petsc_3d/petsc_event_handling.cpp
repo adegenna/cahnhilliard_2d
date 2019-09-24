@@ -14,6 +14,8 @@
 
 void log_solution( Vec U , const std::string& outname ) {
 
+  PetscFunctionBeginUser;
+  
   MPI_Comm       comm = PETSC_COMM_WORLD;
   PetscViewer    viewer;
   PetscObjectSetName((PetscObject) U, "state");
@@ -21,8 +23,8 @@ void log_solution( Vec U , const std::string& outname ) {
   PetscViewerBinaryOpen( comm , outname.c_str() , FILE_MODE_WRITE , &viewer );
   VecView( U , viewer );
   PetscViewerDestroy( &viewer );  
-
-  return;
+  
+  PetscFunctionReturn(0);
 
 }
 
@@ -31,6 +33,8 @@ PetscErrorCode EventFunction( TS ts , PetscReal t , Vec U , PetscScalar *fvalue 
 
   AppCtx            *app=(AppCtx*)ctx;
   PetscErrorCode    ierr;
+  
+  PetscFunctionBeginUser;
 
   // Event 1: stop for driver program 
   fvalue[0] = t - (app->dt_counter + 1) * app->dt_check;
@@ -38,7 +42,7 @@ PetscErrorCode EventFunction( TS ts , PetscReal t , Vec U , PetscScalar *fvalue 
   // Event 2: output solution
   fvalue[1] = t - (app->dt_output_counter + 1) * app->dt_output;
 
-  return(0);
+  PetscFunctionReturn(0);
 
 }
 
@@ -46,6 +50,8 @@ PetscErrorCode PostEventFunction_ResetM(TS ts,PetscInt nevents,PetscInt event_li
 
   AppCtx         *app=(AppCtx*)ctx;
   PetscReal       m, m_new;
+
+  PetscFunctionBeginUser;
   
   for (int i=0; i<nevents; i++) {
     
@@ -106,13 +112,15 @@ PetscErrorCode PostEventFunction_ResetM(TS ts,PetscInt nevents,PetscInt event_li
     
   }
 
-  return(0);
+  PetscFunctionReturn(0);
 
 }
 
 PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt nevents,PetscInt event_list[],PetscReal t,Vec U,PetscBool forwardsolve,void* ctx) {
 
   AppCtx         *app = (AppCtx*)ctx;
+
+  PetscFunctionBeginUser;
 
   for (int i=0; i<nevents; i++) {
     
@@ -181,7 +189,7 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
     
   }
 
-  return(0);
+  PetscFunctionReturn(0);
 
 }
 
@@ -219,7 +227,7 @@ void compute_new_temperature_profile( AppCtx* user , PetscScalar T_amp , PetscSc
   /* Restore vectors */
   DMDAVecRestoreArray(da,user->temperature,&T);
   
-  return;
+  PetscFunctionReturn(0);
 
 
 }
