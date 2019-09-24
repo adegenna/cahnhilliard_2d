@@ -7,6 +7,7 @@ static char help[] = "JFNK implicit solver for 2D CH with PETSc \n";
 #include <petscvec.h>
 #include <petscviewer.h>
 #include <petscsys.h>
+#include <petscksp.h>
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
@@ -26,6 +27,7 @@ int main(int argc,char **argv) {
   DM             da;
   PetscReal      dt;
   SNES           snes;
+  KSP            ksp;
 
   ierr = PetscInitialize(&argc,&argv,argv[1],help);if (ierr) return ierr;
 
@@ -92,6 +94,9 @@ int main(int argc,char **argv) {
    Sets various TS parameters from user options
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   TSSetFromOptions(ts);
+  SNESSetFromOptions(snes);
+  SNESGetKSP(snes,&ksp);
+  KSPSetFromOptions(ksp);
   PetscOptionsView( NULL , PETSC_VIEWER_STDOUT_WORLD );
 
   /* Set directions and terminate flags for the two events */
