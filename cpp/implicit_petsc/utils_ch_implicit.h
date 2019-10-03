@@ -18,7 +18,8 @@ class ThirteenPointStencil {
 
 /* AppCtx: used by FormIFunction() and FormIJacobian() */
 typedef struct {
-  DM        da;
+  DM        da_c , pack;
+  PetscInt  physics = 0;       // 0: CH only; 1: coupled CH-thermal
   PetscReal c;
   PetscInt  boundary;            /* Type of boundary condition */
   PetscReal Lx, Ly;            // Length of domain in each direction
@@ -43,6 +44,7 @@ typedef struct {
   PetscScalar T_max     = 1.0;
   std::string initial_temperature_file = "initial_temperature.dat"; // File that holds the initial temperature field
   std::string initial_soln_file        = "initial_soln.dat"; // File that holds the initial solution field
+  PetscScalar D_T       = 1.0;  // Thermal diffusion coefficient
   
   // CH paramater defaults
   PetscScalar m         = 0.1;  // CH parameter: value of m (avg concentration)

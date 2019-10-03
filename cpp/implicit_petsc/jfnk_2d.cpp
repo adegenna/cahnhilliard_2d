@@ -7,6 +7,7 @@ static char help[] = "JFNK implicit solver for 2D CH with PETSc \n";
 #include <petscvec.h>
 #include <petscviewer.h>
 #include <petscsys.h>
+#include <petscdmcomposite.h>
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
@@ -20,10 +21,10 @@ static char help[] = "JFNK implicit solver for 2D CH with PETSc \n";
 int main(int argc,char **argv) {
   
   TS             ts;                   /* nonlinear solver */
-  Vec            u,c,r;                /* solution, residual vectors */
+  Vec            u,c,r,r_c;            /* solution, residual vectors */
   Mat            J,Jmf = NULL;         /* Jacobian matrices */
   PetscErrorCode ierr;
-  DM             da_c;
+  DM             da_c , da_T , pack;
   PetscReal      dt;
   SNES           snes;
   KSP            ksp;
@@ -58,8 +59,8 @@ int main(int argc,char **argv) {
   DMDAGetInfo( da_c , NULL, &nx,&ny,NULL, &sizes_x,&sizes_y,NULL, NULL,NULL,NULL,NULL,NULL,NULL );
   PetscMalloc1( sizes_x , &lxT );
   PetscMalloc1( sizes_y , &lyT );
-  PetscMemcpy( lxT , lxc , sizes*sizeof(*lxT) );
-  PetscMemcpy( lyT , lyc , sizes*sizeof(*lyT) );
+  PetscMemcpy( lxT , lxc , sizes_x*sizeof(*lxT) );
+  PetscMemcpy( lyT , lyc , sizes_y*sizeof(*lyT) );
   lxT[0]--;
   lyT[0]--;
   
@@ -100,8 +101,8 @@ int main(int argc,char **argv) {
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   DMCreateGlobalVector( da_c , &c );
   DMCreateGlobalVector( pack , &u );
-  VecDuplicate( c , &r );
-  VecDuplicate( c , &r );
+  VecDuplicate( c , &r_c ); // Residual used for CH-only calculations
+  VecDuplicate( u , &r );   // Residual used for coupled calculations
   VecDuplicate(c,&user.eps_2);
   VecDuplicate(c,&user.sigma);
   VecDuplicate(c,&user.temperature);
@@ -123,41 +124,48 @@ int main(int argc,char **argv) {
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set options based on type of physics
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  if (user.physics = 0) {
+  if (user.physics == 0) {
     // CH only
-
-    VecDuplicate( c , &r );
-
+    
     // TS
-    TSSetDM(ts,da_c);
-    TSSetIFunction(ts,r,FormIFunction,&user);
-    FormInitialSolution( u , user.temperature , &user );
-    TSSetSolution(ts,u);
+    TSSetDM( ts , pack );
+    TSSetIFunction( ts , r_c , FormIFunction , &user );
+    FormInitialSolution( u , &user );
+    TSSetSolution( ts , c );
 
     // SNES
-    DMSetMatType(da_c,MATAIJ);
-    DMCreateMatrix(da_c,&J);
-    TSGetSNES(ts,&snes);
-    MatCreateSNESMF(snes,&Jmf);
-    SNESSetJacobian(snes,Jmf,J,SNESComputeJacobianDefaultColor,0);
+    DMSetMatType( da_c , MATAIJ );
+    DMCreateMatrix( da_c , &J );
+    TSGetSNES( ts , &snes );
+    MatCreateSNESMF( snes , &Jmf );
+    SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
     
   }
   else if (user.physics == 1) {
     // Coupled CH + thermal
-    
-    VecDuplicate( u , &r );
 
+    // TS
+    TSSetDM( ts , pack );
+    TSSetIFunction( ts , r , FormIFunction_CHthermal , &user );
+    FormInitialSolution( u , &user );
+    TSSetSolution( ts , u );
+
+    // SNES
+    DMSetMatType( pack , MATAIJ );
+    DMCreateMatrix( pack , &J );
+    TSGetSNES( ts , &snes );
+    MatCreateSNESMF( snes , &Jmf );
+    SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
+    
   }
 
-  /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   Set things from user-provided PETSc options
-   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+  // User-options
   TSSetFromOptions(ts);
   SNESSetFromOptions(snes);
   SNESGetKSP(snes,&ksp);
   KSPSetFromOptions(ksp);
   PetscOptionsView( NULL , PETSC_VIEWER_STDOUT_WORLD );  
-
+  
   // Setup event handling
   PetscInt       direction[2];
   PetscBool      terminate[2];
@@ -170,13 +178,13 @@ int main(int argc,char **argv) {
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   const std::string initial_soln = "c_" + std::to_string( 0.0 ).substr(0,6) + ".bin";
   PetscPrintf( PETSC_COMM_WORLD , "Logging initial solution at t = 0 seconds\n" );
-  log_solution( u , initial_soln );
+  log_solution( c , initial_soln );
 
-  TSSolve(ts,u);
+  TSSolve( ts , c );
 
   const std::string final_soln = "c_" + std::to_string( user.t_final ).substr(0,6) + ".bin";
   PetscPrintf( PETSC_COMM_WORLD , "Logging final solution at t = %5.4f seconds\n" , (double)user.t_final );
-  log_solution( u , final_soln );
+  log_solution( c , final_soln );
   
   PetscPrintf( PETSC_COMM_WORLD , "SIMULATION DONE\n\n" );
   
@@ -187,6 +195,7 @@ int main(int argc,char **argv) {
   MatDestroy(&Jmf);
   VecDestroy(&u);
   VecDestroy(&c);
+  VecDestroy(&r_c);
   VecDestroy(&r);
   VecDestroy(&user.eps_2);
   VecDestroy(&user.sigma);

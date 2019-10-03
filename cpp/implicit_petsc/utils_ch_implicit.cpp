@@ -10,8 +10,9 @@ AppCtx parse_petsc_options( ) {
   
   /* Initialize user application context */
 
-  user.da           = NULL;
-
+  user.da_c           = NULL;
+  user.pack           = NULL;
+  
   // Grid
   PetscOptionsGetReal(NULL,NULL,"-Lx",&user.Lx,NULL);
   PetscOptionsGetReal(NULL,NULL,"-Ly",&user.Ly,NULL);
@@ -29,6 +30,7 @@ AppCtx parse_petsc_options( ) {
   char tempfile[PETSC_MAX_PATH_LEN];
   PetscOptionsGetString(NULL,NULL,"-initial_temperature_file",tempfile,sizeof(tempfile),NULL);
   user.initial_temperature_file = std::string(tempfile);
+  PetscOptionsGetReal(NULL,NULL,"-D_T",&user.D_T,NULL);  
 
   // CH options
   PetscOptionsGetReal(NULL,NULL,"-CH_m",&user.m,NULL);

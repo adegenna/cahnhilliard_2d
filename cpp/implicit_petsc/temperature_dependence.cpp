@@ -45,7 +45,7 @@ PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx ) {
 
   PetscErrorCode ierr;
   AppCtx         *user = (AppCtx*)ctx;
-  DM             da    = (DM)user->da;
+  DM             da    = (DM)user->da_c;
 
   PetscInt       i,j,xs,ys,xm,ym,Mx,My;
 

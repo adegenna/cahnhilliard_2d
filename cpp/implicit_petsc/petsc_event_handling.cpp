@@ -123,6 +123,11 @@ PetscErrorCode PostEventFunction_ResetM(TS ts,PetscInt nevents,PetscInt event_li
 PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt nevents,PetscInt event_list[],PetscReal t,Vec U,PetscBool forwardsolve,void* ctx) {
 
   AppCtx         *app = (AppCtx*)ctx;
+  Vec            U_c , U_T;
+  DM             da_c , da_T;
+  
+  DMCompositeGetEntries( app->pack , &da_c , &da_T );
+  DMCompositeGetAccess( app->pack , U , &U_c , &U_T );
 
   for (int i=0; i<nevents; i++) {
     
@@ -131,10 +136,12 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 
       PetscPrintf( PETSC_COMM_WORLD , "Logging solution at t = %5.4f seconds\n" , (double)t );
 
-      const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".bin";
+      const std::string outname_C = "c_"           + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".bin";
+      const std::string outname_T = "temperature_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".bin";
       
-      log_solution( U , outname );
-
+      log_solution( U_c , outname_C );
+      log_solution( U_T , outname_T );
+                    
       app->dt_output_counter += 1;
 
     }
@@ -180,7 +187,7 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 	  fin >> T_y;
 	  fin >> T_sigma;
         
-	  compute_new_temperature_profile( app , T_amp , T_x , T_y , T_sigma );
+	  compute_new_temperature_profile( app , U , T_amp , T_x , T_y , T_sigma );
           
 	  app->dt_counter += 1;
         
@@ -203,21 +210,24 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 
 }
 
-void compute_new_temperature_profile( AppCtx* user , PetscScalar T_amp , PetscScalar T_x , PetscScalar T_y , PetscScalar T_sigma  ) {
+void compute_new_temperature_profile( AppCtx* user , Vec U , PetscScalar T_amp , PetscScalar T_x , PetscScalar T_y , PetscScalar T_sigma  ) {
 
-  DM             da   =user->da;
+  DM             pack = user->pack;
   PetscInt       i,j,xs,ys,xm,ym,Mx,My;
   PetscScalar    **T;
   PetscReal      x,y,r;
-  
+  Vec            U_c , U_T;
+
   PetscFunctionBeginUser;
-  DMDAGetInfo(da,PETSC_IGNORE,&Mx,&My,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
 
-  /* Get pointers to vector data */
-  DMDAVecGetArray(da,user->temperature,&T);
+  DMCompositeGetEntries( pack , &da_c , &da_T );
+  DMCompositeGetAccess( pack , U , &U_c , &U_T );
+  
+  DMDAGetInfo(da_T,PETSC_IGNORE,&Mx,&My,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
 
-  /* Get local grid boundaries */
-  DMDAGetCorners(da,&xs,&ys,NULL,&xm,&ym,NULL);
+  DMDAVecGetArray( da_T , U_T , &T );
+
+  DMDAGetCorners(da_T,&xs,&ys,NULL,&xm,&ym,NULL);
 
   // Interior
   for (j=ys; j<ys+ym; j++) {
@@ -228,8 +238,9 @@ void compute_new_temperature_profile( AppCtx* user , PetscScalar T_amp , PetscSc
   }
 
   /* Restore vectors */
-  DMDAVecRestoreArray(da,user->temperature,&T);
-  
+  DMDAVecRestoreArray( da , U_T , &T );
+  DMCompositeRestoreAccess( pack , U , &U_c , &U_T );
+
   return;
 
 

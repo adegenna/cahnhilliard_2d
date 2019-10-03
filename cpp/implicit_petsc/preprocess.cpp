@@ -41,7 +41,7 @@ int main(int argc,char **argv) {
                NULL,NULL,&da);
   DMSetFromOptions(da);
   DMSetUp(da);
-  user.da = da;
+  user.da_c = da;
 
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Convert parallel binary --> serial ascii
