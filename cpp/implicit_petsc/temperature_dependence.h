@@ -25,7 +25,7 @@ double compute_sigma_from_chparams( const double X ,
 				    const double L_omega ,
 				    const double N );
 
-PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx );
+PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx , Vec U );
 
 
 #endif

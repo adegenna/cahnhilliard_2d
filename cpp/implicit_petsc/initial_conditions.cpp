@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <petscviewerhdf5.h>
+#include <petscdmcomposite.h>
 
 PetscErrorCode FormInitialSolution(Vec U , void *ptr)
 {

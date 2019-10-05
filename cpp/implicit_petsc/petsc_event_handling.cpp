@@ -11,6 +11,7 @@
 #include <petscis.h>
 #include <petscviewer.h>
 #include <petscviewerhdf5.h>
+#include <petscdmcomposite.h>
 
 void log_solution( Vec U , const std::string& outname ) {
 
@@ -47,74 +48,6 @@ PetscErrorCode EventFunction( TS ts , PetscReal t , Vec U , PetscScalar *fvalue 
   
   // Event 2: output solution
   fvalue[1] = t - (app->dt_output_counter + 1) * app->dt_output;
-
-  return(0);
-
-}
-
-PetscErrorCode PostEventFunction_ResetM(TS ts,PetscInt nevents,PetscInt event_list[],PetscReal t,Vec U,PetscBool forwardsolve,void* ctx) {
-
-  AppCtx         *app=(AppCtx*)ctx;
-  PetscReal       m, m_new;
-  
-  for (int i=0; i<nevents; i++) {
-    
-    // Log solution
-    if ( (event_list[i] == 1) && ( t < app->t_final ) ) {
-
-      PetscPrintf( PETSC_COMM_WORLD , "Logging solution at t = %5.4f seconds\n" , (double)t );
-
-      const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".bin";
-
-      log_solution( U , outname );
-      
-      app->dt_output_counter += 1;
-
-    }
-
-    // Look for new input parameters from driver
-    if ( (event_list[i] == 0) && ( t < app->t_final ) ) {
-
-      const std::string name     = "m_" + std::to_string( (app->dt_counter + 1) * app->dt_check ).substr(0,6) + ".out";
-      const std::string petscout = "Attempting to read new m at t = %5.4f seconds from file " + name + "\n";
-      PetscPrintf( PETSC_COMM_WORLD , petscout.c_str() , (double)t );
-
-      // Output to file that you are ready for a new value
-      const std::string outname  = "complete_" + std::to_string( (app->dt_counter + 1) * app->dt_check ).substr(0,6) + ".out";
-      std::ofstream fout(outname);
-      fout << "complete\n";
-      fout.close();
-
-      // Wait until receive a new value of m from an input file
-      while(true) {
-
-        if (FILE *file = fopen(name.c_str(), "r") ) {
-
-          fclose(file);
-        
-          std::this_thread::sleep_for( std::chrono::milliseconds(100) ); // Give the driver time to finish writing the new parameters
-
-          std::ifstream fin(name);
-          PetscReal m_new;
-          fin >> m_new;
-        
-          app->m           = m_new;
-          app->dt_counter += 1;
-        
-          PetscPrintf( PETSC_COMM_WORLD , "Changing m at t = %5.4f seconds to m = %5.4f\n" , (double)t , (double)app->m );
-
-          fin.close();        
-          break;
-        
-        }
-
-      }
-      
-      // Recompute ch parameters based on new temperature
-      compute_eps2_and_sigma_from_temperature( ctx );
-    }
-    
-  }
 
   return(0);
 
@@ -201,7 +134,7 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
       }
 
       // Recompute ch parameters based on new temperature
-      compute_eps2_and_sigma_from_temperature( ctx );
+      compute_eps2_and_sigma_from_temperature( ctx , U );
     }
     
   }
@@ -213,6 +146,7 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 void compute_new_temperature_profile( AppCtx* user , Vec U , PetscScalar T_amp , PetscScalar T_x , PetscScalar T_y , PetscScalar T_sigma  ) {
 
   DM             pack = user->pack;
+  DM             da_c , da_T;
   PetscInt       i,j,xs,ys,xm,ym,Mx,My;
   PetscScalar    **T;
   PetscReal      x,y,r;
@@ -238,7 +172,7 @@ void compute_new_temperature_profile( AppCtx* user , Vec U , PetscScalar T_amp ,
   }
 
   /* Restore vectors */
-  DMDAVecRestoreArray( da , U_T , &T );
+  DMDAVecRestoreArray( da_T , U_T , &T );
   DMCompositeRestoreAccess( pack , U , &U_c , &U_T );
 
   return;

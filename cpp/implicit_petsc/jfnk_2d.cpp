@@ -22,6 +22,7 @@ int main(int argc,char **argv) {
   
   TS             ts;                   /* nonlinear solver */
   Vec            u,c,r,r_c;            /* solution, residual vectors */
+  Vec            U_c , U_T;
   Mat            J,Jmf = NULL;         /* Jacobian matrices */
   PetscErrorCode ierr;
   DM             da_c , da_T , pack;
@@ -118,20 +119,25 @@ int main(int argc,char **argv) {
   dt   = 0.005;
   TSSetTimeStep(ts,dt);
 
+  // Initial solution
+  FormInitialSolution( u , &user );
+  
   // Thermal CH parameters
-  compute_eps2_and_sigma_from_temperature( &user );
+  compute_eps2_and_sigma_from_temperature( &user , u );
 
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set options based on type of physics
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   if (user.physics == 0) {
     // CH only
+
+    // Unpack the stuff you need
+    DMCompositeGetAccess( pack , u , &U_c , &U_T );
     
     // TS
-    TSSetDM( ts , pack );
-    TSSetIFunction( ts , r_c , FormIFunction , &user );
-    FormInitialSolution( u , &user );
-    TSSetSolution( ts , c );
+    TSSetDM( ts , da_c );
+    TSSetIFunction( ts , r_c , FormIFunction_CH , &user );
+    TSSetSolution( ts , U_c );
 
     // SNES
     DMSetMatType( da_c , MATAIJ );
@@ -139,6 +145,9 @@ int main(int argc,char **argv) {
     TSGetSNES( ts , &snes );
     MatCreateSNESMF( snes , &Jmf );
     SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
+
+    // Restore
+    DMCompositeRestoreAccess( pack , u , &U_c , &U_T );
     
   }
   else if (user.physics == 1) {
@@ -146,8 +155,7 @@ int main(int argc,char **argv) {
 
     // TS
     TSSetDM( ts , pack );
-    TSSetIFunction( ts , r , FormIFunction_CHthermal , &user );
-    FormInitialSolution( u , &user );
+    TSSetIFunction( ts , r , FormIFunction_CH_coupled , &user );
     TSSetSolution( ts , u );
 
     // SNES

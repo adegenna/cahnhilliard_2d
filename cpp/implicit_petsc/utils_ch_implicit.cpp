@@ -37,6 +37,7 @@ AppCtx parse_petsc_options( ) {
   char tempfile_U[PETSC_MAX_PATH_LEN];
   PetscOptionsGetString(NULL,NULL,"-initial_soln_file",tempfile_U,sizeof(tempfile_U),NULL);
   user.initial_soln_file = std::string(tempfile_U);
+  PetscOptionsGetInt(NULL,NULL,"-physics",&user.physics,NULL);
 
   return user;
   
