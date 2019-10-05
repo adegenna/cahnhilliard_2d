@@ -86,7 +86,6 @@ PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx , Vec U ) {
   DMDAGetCorners( da_c , &xs , &ys , NULL , &xm , &ym , NULL );
 
   /* Compute function over the locally owned part of the grid */
-  PetscReal Xji;
   for (j=ys; j<ys+ym; j++) {
     for (i=xs; i<xs+xm; i++) {
 

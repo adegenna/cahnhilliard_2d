@@ -60,20 +60,30 @@ int main(int argc,char **argv) {
   DMDAGetInfo( da_c , NULL, &nx,&ny,NULL, &sizes_x,&sizes_y,NULL, NULL,NULL,NULL,NULL,NULL,NULL );
   PetscMalloc1( sizes_x , &lxT );
   PetscMalloc1( sizes_y , &lyT );
-  PetscMemcpy( lxT , lxc , sizes_x*sizeof(*lxT) );
-  PetscMemcpy( lyT , lyc , sizes_y*sizeof(*lyT) );
-  lxT[0]--;
-  lyT[0]--;
-  
+  PetscMemcpy( lxT , lxc , sizes_x*sizeof(*lxc) );
+  PetscMemcpy( lyT , lyc , sizes_y*sizeof(*lyc) );
+  //lxT[0] -= 2;
+  //lyT[0] -= 2;
+  for (int i=0; i<sizes_x ; i++) {
+    PetscPrintf( PETSC_COMM_WORLD , "%d , " , (int)lxT[i] );
+  }
+  PetscPrintf( PETSC_COMM_WORLD , "\n" );
+  for (int i=0; i<sizes_y ; i++) {
+    PetscPrintf( PETSC_COMM_WORLD , "%d , " , (int)lyT[i] );
+  }
+
+  PetscPrintf( PETSC_COMM_WORLD , "nx , ny = %d , %d\n" , (int)nx , (int)ny );
+  PetscPrintf( PETSC_COMM_WORLD , "sizes_x , sizes_y = %d , %d\n" , (int)sizes_x , (int)sizes_y );
+
   // DM for temperature T
   DMDACreate2d(PETSC_COMM_WORLD, 
                DM_BOUNDARY_GHOSTED, DM_BOUNDARY_GHOSTED,    // type of boundary nodes
-               DMDA_STENCIL_STAR,                // type of stencil
+               DMDA_STENCIL_BOX,                // type of stencil
                nx,ny,                           // global dimns of array
-               PETSC_DECIDE,PETSC_DECIDE,       // #procs in each dimn
+               sizes_x,sizes_y,                 // #procs in each dimn
                1,                               // DOF per node
-               1,                               // Stencil width
-               NULL,NULL,&da_T);
+               2,                               // Stencil width
+               lxT,lyT,&da_T);
   DMSetFromOptions(da_T);
   DMSetOptionsPrefix(da_T,"T_");
   DMSetUp(da_T);
@@ -128,6 +138,7 @@ int main(int argc,char **argv) {
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set options based on type of physics
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+  
   if (user.physics == 0) {
     // CH only
 
@@ -184,6 +195,7 @@ int main(int argc,char **argv) {
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Solve nonlinear system
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
   const std::string initial_soln = "c_" + std::to_string( 0.0 ).substr(0,6) + ".bin";
   PetscPrintf( PETSC_COMM_WORLD , "Logging initial solution at t = 0 seconds\n" );
   log_solution( c , initial_soln );

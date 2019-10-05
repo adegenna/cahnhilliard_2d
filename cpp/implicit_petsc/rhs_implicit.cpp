@@ -228,11 +228,9 @@ PetscErrorCode FormIFunction_CH_coupled(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,v
   DMDAVecRestoreArrayRead(da_c,Udot_c,&udot_c);
   DMDAVecRestoreArrayRead(da_T,local_T,&Tarray);
   DMDAVecRestoreArrayRead(da_T,Udot_T,&udot_T);
-  
+
   DMDAVecRestoreArray(da_c,F_c,&f_c);
-  DMDAVecRestoreArray(da_c,Udot_c,&udot_c);
   DMDAVecRestoreArray(da_T,F_T,&f_T);
-  DMDAVecRestoreArray(da_T,Udot_T,&udot_T);
   
   DMCompositeRestoreAccess(  pack , U        , &U_c , &U_T );
   DMCompositeRestoreAccess(  pack , Udot     , &Udot_c , &Udot_T );
