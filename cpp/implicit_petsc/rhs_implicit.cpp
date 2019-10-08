@@ -1,6 +1,7 @@
 #include <petscdmcomposite.h>
 #include "rhs_implicit.h"
 #include "boundary_conditions.h"
+#include "temperature_dependence.h"
 
 PetscErrorCode FormLocal_CH( DMDALocalInfo *info ,
                              PetscScalar **uarray ,
@@ -8,9 +9,7 @@ PetscErrorCode FormLocal_CH( DMDALocalInfo *info ,
                              PetscScalar **sigma_array ,
                              PetscScalar **f , 
                              PetscScalar** udot ,
-                             void *ctx ) {
-
-  AppCtx         *user = (AppCtx*)ctx;
+                             AppCtx *user ) {
     
   // NOTE: these CH eqns are dimensionless with domain length scale = 1. Physical domain size shows up in L_omega.
   PetscScalar hx = 1.0 / (PetscReal)(info->mx-1);
@@ -23,7 +22,7 @@ PetscErrorCode FormLocal_CH( DMDALocalInfo *info ,
     for (int i=info->xs; i<info->xs+info->xm; i++) {
 
       set_boundary_ghost_nodes( user , uarray , info->mx , info->my , i , j );
-
+      
       /* Boundary conditions */
       ThirteenPointStencil stencil      = get_thirteen_point_stencil( user , uarray      , info->mx , info->my , i , j );
       ThirteenPointStencil stencil_eps2 = get_thirteen_point_stencil( user , eps_2_array , info->mx , info->my , i , j );
@@ -68,6 +67,7 @@ PetscErrorCode FormLocal_CH( DMDALocalInfo *info ,
       
       else // Dirichlet or periodic: just compute with ghost nodes
         f[j][i] = udot[j][i] - rhs_ij;
+
     }
 
   }
@@ -80,10 +80,8 @@ PetscErrorCode FormLocal_thermal( DMDALocalInfo *info ,
                                   PetscScalar **Tarray ,
                                   PetscScalar **f , 
                                   PetscScalar** udot ,
-                                  void *ctx ) {
+                                  AppCtx *user ) {
 
-  AppCtx         *user = (AppCtx*)ctx;
-    
   // NOTE: these CH eqns are dimensionless with domain length scale = 1. Physical domain size shows up in L_omega.
   PetscScalar hx = 1.0 / (PetscReal)(info->mx-1);
   PetscScalar sx = 1.0 / (hx*hx);
@@ -94,10 +92,12 @@ PetscErrorCode FormLocal_thermal( DMDALocalInfo *info ,
   for (int j=info->ys; j<info->ys+info->ym; j++) {
     for (int i=info->xs; i<info->xs+info->xm; i++) {
 
+      //PetscPrintf( PETSC_COMM_WORLD , "T: %d , %d , %5.8f \n" , i , j , (double)Tarray[j][i] );
+
       set_boundary_ghost_nodes( user , Tarray , info->mx , info->my , i , j );
 
       /* Boundary conditions */
-      ThirteenPointStencil stencil      = get_thirteen_point_stencil( user , Tarray      , info->mx , info->my , i , j );
+      //ThirteenPointStencil stencil      = get_thirteen_point_stencil( user , Tarray      , info->mx , info->my , i , j );
       
       // dT/dt = D_T * laplacian( T ) + S
       
@@ -106,7 +106,7 @@ PetscErrorCode FormLocal_thermal( DMDALocalInfo *info ,
       PetscScalar dyy     = sy * ( Tarray[j+1][i] + Tarray[j-1][i] - 2.0 * Tarray[j][i] );
       
       PetscScalar rhs_ij  = user->D_T * ( dxx + dyy );
-
+      
       // Form f
       // Neumann: reset residuals explicitly 
       f[j][i] = reset_boundary_residual_values_for_neumann_bc( Tarray , rhs_ij , udot[j][i] , info->mx , info->my , i , j );
@@ -170,7 +170,44 @@ PetscErrorCode FormIFunction_CH(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx
   
 }
 
+PetscErrorCode FormIFunction_thermal(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
 
+  // Computes residual F = Udot - RHSFunction
+
+  PetscErrorCode ierr;
+  AppCtx         *user = (AppCtx*)ctx;
+  DM             da_T  = (DM)user->da_T;
+  DMDALocalInfo  info_T;
+  PetscScalar    u,**Tarray,**f,**udot;
+  Vec            local_T;
+  
+  PetscFunctionBeginUser;
+  
+  DMGetLocalVector( da_T , &local_T);
+  
+  DMDAGetLocalInfo( da_T , &info_T );
+  
+  DMGlobalToLocalBegin( da_T , U , INSERT_VALUES , local_T );
+  DMGlobalToLocalEnd(   da_T , U , INSERT_VALUES , local_T );
+  
+  DMDAVecGetArrayRead( da_T , local_T , &Tarray );
+  DMDAVecGetArrayRead( da_T , Udot , &udot );
+  DMDAVecGetArray(     da_T , F , &f );
+  
+  /* Compute function over the locally owned part of the grid */
+  FormLocal_thermal( &info_T , Tarray , f , udot , user );
+
+  /* Restore vectors */
+  DMDAVecRestoreArrayRead(da_T,local_T,&Tarray);
+  DMDAVecRestoreArrayRead(da_T,Udot,&udot);
+  
+  DMDAVecRestoreArray(da_T,F,&f);
+  
+  DMRestoreLocalVector(da_T,&local_T);
+  
+  PetscFunctionReturn(0);
+  
+}
 
 PetscErrorCode FormIFunction_CH_coupled(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
 
@@ -178,7 +215,7 @@ PetscErrorCode FormIFunction_CH_coupled(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,v
 
   PetscErrorCode ierr;
   AppCtx         *user = (AppCtx*)ctx;
-  DM             pack  = (DM)user->pack;
+  DM             pack  = user->pack;
   DM             da_c , da_T;
   DMDALocalInfo  info_c , info_T;
   PetscScalar    u,**carray,**Tarray,**f_c,**f_T,**udot, **udot_c, **udot_T, **eps_2_array, **sigma_array;
@@ -208,25 +245,26 @@ PetscErrorCode FormIFunction_CH_coupled(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,v
   DMGlobalToLocalBegin( da_T , U_T , INSERT_VALUES , local_T );
   DMGlobalToLocalEnd(   da_T , U_T , INSERT_VALUES , local_T );
 
-  DMDAVecGetArrayRead( da_c , local_c , &carray );
+  DMDAVecGetArray( da_c , local_c , &carray );
   DMDAVecGetArrayRead( da_c , local_eps_2 , &eps_2_array );
   DMDAVecGetArrayRead( da_c , local_sigma , &sigma_array );
   DMDAVecGetArrayRead( da_c , Udot_c , &udot_c );
   DMDAVecGetArray(     da_c , F_c , &f_c );
   DMDAVecGetArrayRead( da_T , Udot_T , &udot_T );
-  DMDAVecGetArrayRead( da_T , local_T , &Tarray );
+  DMDAVecGetArray( da_T , local_T , &Tarray );
   DMDAVecGetArray(     da_T , F_T , &f_T );
   
   /* Compute function over the locally owned part of the grid */
+  compute_eps2_and_sigma_from_temperature( user , U );
   FormLocal_CH(      &info_c , carray , eps_2_array , sigma_array , f_c , udot_c , user );
   FormLocal_thermal( &info_T , Tarray , f_T , udot_T , user );
-
+  
   /* Restore vectors */
-  DMDAVecRestoreArrayRead(da_c,local_c,&carray);
+  DMDAVecRestoreArray(da_c,local_c,&carray);
   DMDAVecRestoreArrayRead(da_c,local_eps_2,&eps_2_array);
   DMDAVecRestoreArrayRead(da_c,local_sigma,&sigma_array);
   DMDAVecRestoreArrayRead(da_c,Udot_c,&udot_c);
-  DMDAVecRestoreArrayRead(da_T,local_T,&Tarray);
+  DMDAVecRestoreArray(da_T,local_T,&Tarray);
   DMDAVecRestoreArrayRead(da_T,Udot_T,&udot_T);
 
   DMDAVecRestoreArray(da_c,F_c,&f_c);

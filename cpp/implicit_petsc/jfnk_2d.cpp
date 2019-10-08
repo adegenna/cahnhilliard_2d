@@ -19,9 +19,11 @@ static char help[] = "JFNK implicit solver for 2D CH with PETSc \n";
 #include "temperature_dependence.h"
 
 int main(int argc,char **argv) {
-  
+
+  PetscInitialize(&argc,&argv,argv[1],help);
+
   TS             ts;                   /* nonlinear solver */
-  Vec            u,c,r,r_c;            /* solution, residual vectors */
+  Vec            u,c,T,r,r_c,r_T;      /* solution, residual vectors */
   Vec            U_c , U_T;
   Mat            J,Jmf = NULL;         /* Jacobian matrices */
   PetscErrorCode ierr;
@@ -29,8 +31,6 @@ int main(int argc,char **argv) {
   PetscReal      dt;
   SNES           snes;
   KSP            ksp;
-
-  PetscInitialize(&argc,&argv,argv[1],help);
 
   AppCtx         user = parse_petsc_options();
 
@@ -84,6 +84,14 @@ int main(int argc,char **argv) {
                1,                               // DOF per node
                2,                               // Stencil width
                lxT,lyT,&da_T);
+  // DMDACreate2d(PETSC_COMM_WORLD, 
+  //              DM_BOUNDARY_GHOSTED, DM_BOUNDARY_GHOSTED,    // type of boundary nodes
+  //              DMDA_STENCIL_BOX,                // type of stencil
+  //              nx,ny,                           // global dimns of array
+  //              PETSC_DECIDE,PETSC_DECIDE,       // #procs in each dimn
+  //              1,                               // DOF per node
+  //              2,                               // Stencil width
+  //              NULL,NULL,&da_T);
   DMSetFromOptions(da_T);
   DMSetOptionsPrefix(da_T,"T_");
   DMSetUp(da_T);
@@ -105,14 +113,17 @@ int main(int argc,char **argv) {
   user.L_omega        *= L_domain;
 
   user.da_c = da_c;
+  user.da_T = da_T;
   user.pack = pack;
   
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Extract global vectors from DMDA;
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   DMCreateGlobalVector( da_c , &c );
+  DMCreateGlobalVector( da_T , &T );
   DMCreateGlobalVector( pack , &u );
   VecDuplicate( c , &r_c ); // Residual used for CH-only calculations
+  VecDuplicate( T , &r_T ); // Residual used for thermal-only calculations
   VecDuplicate( u , &r );   // Residual used for coupled calculations
   VecDuplicate(c,&user.eps_2);
   VecDuplicate(c,&user.sigma);
@@ -134,17 +145,17 @@ int main(int argc,char **argv) {
   
   // Thermal CH parameters
   compute_eps2_and_sigma_from_temperature( &user , u );
-
+  
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set options based on type of physics
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  // Unpack the stuff you need
+  DMCompositeGetAccess( pack , u , &U_c , &U_T );
   
   if (user.physics == 0) {
     // CH only
-
-    // Unpack the stuff you need
-    DMCompositeGetAccess( pack , u , &U_c , &U_T );
-    
+  
     // TS
     TSSetDM( ts , da_c );
     TSSetIFunction( ts , r_c , FormIFunction_CH , &user );
@@ -156,12 +167,25 @@ int main(int argc,char **argv) {
     TSGetSNES( ts , &snes );
     MatCreateSNESMF( snes , &Jmf );
     SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
-
-    // Restore
-    DMCompositeRestoreAccess( pack , u , &U_c , &U_T );
     
   }
   else if (user.physics == 1) {
+    // Thermal only
+
+    // TS
+    TSSetDM( ts , da_T );
+    TSSetIFunction( ts , r_T , FormIFunction_thermal , &user );
+    TSSetSolution( ts , U_T );
+
+    // SNES
+    DMSetMatType( da_T , MATAIJ );
+    DMCreateMatrix( da_T , &J );
+    TSGetSNES( ts , &snes );
+    MatCreateSNESMF( snes , &Jmf );
+    SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
+    
+  }
+  else if (user.physics == 2) {
     // Coupled CH + thermal
 
     // TS
@@ -177,7 +201,7 @@ int main(int argc,char **argv) {
     SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
     
   }
-
+  
   // User-options
   TSSetFromOptions(ts);
   SNESSetFromOptions(snes);
@@ -198,24 +222,31 @@ int main(int argc,char **argv) {
 
   const std::string initial_soln = "c_" + std::to_string( 0.0 ).substr(0,6) + ".bin";
   PetscPrintf( PETSC_COMM_WORLD , "Logging initial solution at t = 0 seconds\n" );
-  log_solution( c , initial_soln );
+  log_solution( U_c , initial_soln );
 
-  TSSolve( ts , c );
+  if (user.physics == 0)
+    TSSolve( ts , U_c );
+  else if (user.physics == 1)
+    TSSolve( ts , U_T);
+  else if (user.physics == 2)
+    TSSolve( ts , u );
 
   const std::string final_soln = "c_" + std::to_string( user.t_final ).substr(0,6) + ".bin";
   PetscPrintf( PETSC_COMM_WORLD , "Logging final solution at t = %5.4f seconds\n" , (double)user.t_final );
-  log_solution( c , final_soln );
+  log_solution( U_c , final_soln );
   
   PetscPrintf( PETSC_COMM_WORLD , "SIMULATION DONE\n\n" );
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Free work space.
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+  DMCompositeRestoreAccess( pack , u , &U_c , &U_T );
   MatDestroy(&J);
   MatDestroy(&Jmf);
   VecDestroy(&u);
   VecDestroy(&c);
   VecDestroy(&r_c);
+  VecDestroy(&r_T);
   VecDestroy(&r);
   VecDestroy(&user.eps_2);
   VecDestroy(&user.sigma);
@@ -223,6 +254,7 @@ int main(int argc,char **argv) {
   VecDestroy(&user.X);
   TSDestroy(&ts);
   DMDestroy(&da_c);
+  DMDestroy(&da_T);
 
   PetscFinalize();
   return ierr;

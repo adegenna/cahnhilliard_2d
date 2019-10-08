@@ -9,16 +9,18 @@ PetscErrorCode FormLocal_CH( DMDALocalInfo *info ,
                              PetscScalar **sigma_array ,
                              PetscScalar **f , 
                              PetscScalar** udot ,
-                             void *ctx );
+                             AppCtx *ctx );
 
 PetscErrorCode FormLocal_thermal( DMDALocalInfo *info ,
                                   PetscScalar **Tarray ,
                                   PetscScalar **f , 
                                   PetscScalar** udot ,
-                                  void *ctx );
+                                  AppCtx *ctx );
 
 PetscErrorCode FormIFunction_CH( TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx );
 
 PetscErrorCode FormIFunction_CH_coupled(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx);
+
+PetscErrorCode FormIFunction_thermal(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx);
 
 #endif

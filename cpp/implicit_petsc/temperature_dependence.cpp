@@ -84,11 +84,11 @@ PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx , Vec U ) {
   
   /* Get local grid boundaries */
   DMDAGetCorners( da_c , &xs , &ys , NULL , &xm , &ym , NULL );
-
+  
   /* Compute function over the locally owned part of the grid */
   for (j=ys; j<ys+ym; j++) {
     for (i=xs; i<xs+xm; i++) {
-
+      
       xarray[j][i]    = convert_temperature_to_flory_huggins( tarray[j][i] ,
 							      user->X_min ,
 							      user->X_max ,

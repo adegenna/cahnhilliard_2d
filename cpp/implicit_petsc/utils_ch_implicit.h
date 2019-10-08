@@ -18,7 +18,7 @@ class ThirteenPointStencil {
 
 /* AppCtx: used by FormIFunction() and FormIJacobian() */
 typedef struct {
-  DM        da_c , pack;
+  DM        da_c , da_T , pack;
   PetscInt  physics = 0;       // 0: CH only; 1: coupled CH-thermal
   PetscReal c;
   PetscInt  boundary;            /* Type of boundary condition */
