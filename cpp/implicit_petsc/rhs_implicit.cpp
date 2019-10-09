@@ -80,8 +80,9 @@ PetscErrorCode FormLocal_thermal( DMDALocalInfo *info ,
                                   PetscScalar **Tarray ,
                                   PetscScalar **f , 
                                   PetscScalar** udot ,
+                                  PetscScalar** Tsource , 
                                   AppCtx *user ) {
-
+  
   // NOTE: these CH eqns are dimensionless with domain length scale = 1. Physical domain size shows up in L_omega.
   PetscScalar hx = 1.0 / (PetscReal)(info->mx-1);
   PetscScalar sx = 1.0 / (hx*hx);
@@ -92,12 +93,7 @@ PetscErrorCode FormLocal_thermal( DMDALocalInfo *info ,
   for (int j=info->ys; j<info->ys+info->ym; j++) {
     for (int i=info->xs; i<info->xs+info->xm; i++) {
 
-      //PetscPrintf( PETSC_COMM_WORLD , "T: %d , %d , %5.8f \n" , i , j , (double)Tarray[j][i] );
-
       set_boundary_ghost_nodes( user , Tarray , info->mx , info->my , i , j );
-
-      /* Boundary conditions */
-      //ThirteenPointStencil stencil      = get_thirteen_point_stencil( user , Tarray      , info->mx , info->my , i , j );
       
       // dT/dt = D_T * laplacian( T ) + S
       
@@ -105,7 +101,7 @@ PetscErrorCode FormLocal_thermal( DMDALocalInfo *info ,
       PetscScalar dxx     = sx * ( Tarray[j][i+1] + Tarray[j][i-1] - 2.0 * Tarray[j][i] );
       PetscScalar dyy     = sy * ( Tarray[j+1][i] + Tarray[j-1][i] - 2.0 * Tarray[j][i] );
       
-      PetscScalar rhs_ij  = user->D_T * ( dxx + dyy );
+      PetscScalar rhs_ij  = user->D_T * ( dxx + dyy ) + Tsource[j][i];
       
       // Form f
       // Neumann: reset residuals explicitly 
@@ -178,24 +174,28 @@ PetscErrorCode FormIFunction_thermal(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void
   AppCtx         *user = (AppCtx*)ctx;
   DM             da_T  = (DM)user->da_T;
   DMDALocalInfo  info_T;
-  PetscScalar    u,**Tarray,**f,**udot;
-  Vec            local_T;
+  PetscScalar    u,**Tarray,**Tsource,**f,**udot;
+  Vec            local_T,local_Tsource;
   
   PetscFunctionBeginUser;
   
-  DMGetLocalVector( da_T , &local_T);
-  
+  DMGetLocalVector( da_T , &local_T );
+  DMGetLocalVector( da_T , &local_Tsource );
+    
   DMDAGetLocalInfo( da_T , &info_T );
   
   DMGlobalToLocalBegin( da_T , U , INSERT_VALUES , local_T );
   DMGlobalToLocalEnd(   da_T , U , INSERT_VALUES , local_T );
-  
+  DMGlobalToLocalBegin( da_T , U , INSERT_VALUES , local_Tsource );
+  DMGlobalToLocalEnd(   da_T , U , INSERT_VALUES , local_Tsource );
+
   DMDAVecGetArrayRead( da_T , local_T , &Tarray );
   DMDAVecGetArrayRead( da_T , Udot , &udot );
+  DMDAVecGetArrayRead( da_T , local_Tsource , &Tsource );
   DMDAVecGetArray(     da_T , F , &f );
   
   /* Compute function over the locally owned part of the grid */
-  FormLocal_thermal( &info_T , Tarray , f , udot , user );
+  FormLocal_thermal( &info_T , Tarray , f , udot , Tsource , user );
 
   /* Restore vectors */
   DMDAVecRestoreArrayRead(da_T,local_T,&Tarray);
@@ -218,8 +218,8 @@ PetscErrorCode FormIFunction_CH_coupled(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,v
   DM             pack  = user->pack;
   DM             da_c , da_T;
   DMDALocalInfo  info_c , info_T;
-  PetscScalar    u,**carray,**Tarray,**f_c,**f_T,**udot, **udot_c, **udot_T, **eps_2_array, **sigma_array;
-  Vec            local_c, local_T, local_eps_2, local_sigma, U_c , U_T , Udot_c , Udot_T , F_c , F_T;
+  PetscScalar    u,**carray,**Tarray,**Tsource,**f_c,**f_T,**udot, **udot_c, **udot_T, **eps_2_array, **sigma_array;
+  Vec            local_c, local_T, local_Tsource, local_eps_2, local_sigma, U_c , U_T , Udot_c , Udot_T , F_c , F_T;
   
   PetscFunctionBeginUser;
 
@@ -230,6 +230,7 @@ PetscErrorCode FormIFunction_CH_coupled(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,v
   
   DMGetLocalVector( da_c , &local_c);
   DMGetLocalVector( da_T , &local_T);
+  DMGetLocalVector( da_T , &local_Tsource);
   DMGetLocalVector( da_c , &local_eps_2);
   DMGetLocalVector( da_c , &local_sigma);
 
@@ -244,6 +245,8 @@ PetscErrorCode FormIFunction_CH_coupled(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,v
   DMGlobalToLocalEnd(   da_c , user->sigma , INSERT_VALUES , local_sigma );
   DMGlobalToLocalBegin( da_T , U_T , INSERT_VALUES , local_T );
   DMGlobalToLocalEnd(   da_T , U_T , INSERT_VALUES , local_T );
+  DMGlobalToLocalBegin( da_T , user->temperature_source , INSERT_VALUES , local_Tsource );
+  DMGlobalToLocalEnd(   da_T , user->temperature_source , INSERT_VALUES , local_Tsource );
 
   DMDAVecGetArray( da_c , local_c , &carray );
   DMDAVecGetArrayRead( da_c , local_eps_2 , &eps_2_array );
@@ -251,13 +254,14 @@ PetscErrorCode FormIFunction_CH_coupled(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,v
   DMDAVecGetArrayRead( da_c , Udot_c , &udot_c );
   DMDAVecGetArray(     da_c , F_c , &f_c );
   DMDAVecGetArrayRead( da_T , Udot_T , &udot_T );
-  DMDAVecGetArray( da_T , local_T , &Tarray );
+  DMDAVecGetArray(     da_T , local_T , &Tarray );
+  DMDAVecGetArrayRead( da_T , local_Tsource , &Tsource );
   DMDAVecGetArray(     da_T , F_T , &f_T );
   
   /* Compute function over the locally owned part of the grid */
   compute_eps2_and_sigma_from_temperature( user , U );
   FormLocal_CH(      &info_c , carray , eps_2_array , sigma_array , f_c , udot_c , user );
-  FormLocal_thermal( &info_T , Tarray , f_T , udot_T , user );
+  FormLocal_thermal( &info_T , Tarray , f_T , udot_T , Tsource , user );
   
   /* Restore vectors */
   DMDAVecRestoreArray(da_c,local_c,&carray);
@@ -265,6 +269,7 @@ PetscErrorCode FormIFunction_CH_coupled(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,v
   DMDAVecRestoreArrayRead(da_c,local_sigma,&sigma_array);
   DMDAVecRestoreArrayRead(da_c,Udot_c,&udot_c);
   DMDAVecRestoreArray(da_T,local_T,&Tarray);
+  DMDAVecRestoreArrayRead(da_T,local_Tsource,&Tsource);
   DMDAVecRestoreArrayRead(da_T,Udot_T,&udot_T);
 
   DMDAVecRestoreArray(da_c,F_c,&f_c);
@@ -276,6 +281,7 @@ PetscErrorCode FormIFunction_CH_coupled(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,v
   
   DMRestoreLocalVector(da_c,&local_c);
   DMRestoreLocalVector(da_T,&local_T);
+  DMRestoreLocalVector(da_T,&local_Tsource);
   DMRestoreLocalVector(da_c,&local_eps_2);
   DMRestoreLocalVector(da_c,&local_sigma);
   

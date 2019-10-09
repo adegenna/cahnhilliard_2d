@@ -155,11 +155,10 @@ void compute_new_temperature_profile( AppCtx* user , Vec U , PetscScalar T_amp ,
   PetscFunctionBeginUser;
 
   DMCompositeGetEntries( pack , &da_c , &da_T );
-  DMCompositeGetAccess( pack , U , &U_c , &U_T );
   
   DMDAGetInfo(da_T,PETSC_IGNORE,&Mx,&My,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
 
-  DMDAVecGetArray( da_T , U_T , &T );
+  DMDAVecGetArray( da_T , user->temperature_source , &T );
 
   DMDAGetCorners(da_T,&xs,&ys,NULL,&xm,&ym,NULL);
 
@@ -172,8 +171,7 @@ void compute_new_temperature_profile( AppCtx* user , Vec U , PetscScalar T_amp ,
   }
 
   /* Restore vectors */
-  DMDAVecRestoreArray( da_T , U_T , &T );
-  DMCompositeRestoreAccess( pack , U , &U_c , &U_T );
+  DMDAVecRestoreArray( da_T , temperature_source , &T );
 
   return;
 

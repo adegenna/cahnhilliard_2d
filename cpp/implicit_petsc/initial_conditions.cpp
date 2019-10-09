@@ -37,15 +37,18 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   hy = 1.0/(PetscReal)(My-1);
 
   // Load initial concentration and temperature from file
-  PetscViewer viewer_T , viewer_U;
+  PetscViewer viewer_T , viewer_Tsource , viewer_U;
   MPI_Comm comm = PETSC_COMM_WORLD;
   PetscViewer    viewer_out;
   PetscViewerCreate( comm , &viewer_out );
   PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_temperature_file.c_str() , FILE_MODE_READ , &viewer_T );
+  PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_temperature_source_file.c_str() , FILE_MODE_READ , &viewer_Tsource );
   PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_soln_file.c_str()        , FILE_MODE_READ , &viewer_U );
   VecLoad( U_T , viewer_T );
   VecLoad( U_c , viewer_U );
+  VecLoad( user->temperature_source , viewer_Tsource );
   PetscViewerDestroy(&viewer_T);
+  PetscViewerDestroy(&viewer_Tsource);
   PetscViewerDestroy(&viewer_U);
 
   DMCompositeRestoreAccess( pack , U , &U_c , &U_T );

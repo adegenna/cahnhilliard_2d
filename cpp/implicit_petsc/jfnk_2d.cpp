@@ -78,20 +78,12 @@ int main(int argc,char **argv) {
   // DM for temperature T
   DMDACreate2d(PETSC_COMM_WORLD, 
                DM_BOUNDARY_GHOSTED, DM_BOUNDARY_GHOSTED,    // type of boundary nodes
-               DMDA_STENCIL_BOX,                // type of stencil
+               DMDA_STENCIL_STAR,               // type of stencil
                nx,ny,                           // global dimns of array
                sizes_x,sizes_y,                 // #procs in each dimn
                1,                               // DOF per node
                2,                               // Stencil width
                lxT,lyT,&da_T);
-  // DMDACreate2d(PETSC_COMM_WORLD, 
-  //              DM_BOUNDARY_GHOSTED, DM_BOUNDARY_GHOSTED,    // type of boundary nodes
-  //              DMDA_STENCIL_BOX,                // type of stencil
-  //              nx,ny,                           // global dimns of array
-  //              PETSC_DECIDE,PETSC_DECIDE,       // #procs in each dimn
-  //              1,                               // DOF per node
-  //              2,                               // Stencil width
-  //              NULL,NULL,&da_T);
   DMSetFromOptions(da_T);
   DMSetOptionsPrefix(da_T,"T_");
   DMSetUp(da_T);
@@ -231,11 +223,19 @@ int main(int argc,char **argv) {
   else if (user.physics == 2)
     TSSolve( ts , u );
 
+  TSGetSNES( ts , &snes );
+  SNESGetJacobian( snes , &Jmf , &J , NULL , NULL );
+  MatView( J , PETSC_VIEWER_DRAW_WORLD );
+  
   const std::string final_soln = "c_" + std::to_string( user.t_final ).substr(0,6) + ".bin";
   PetscPrintf( PETSC_COMM_WORLD , "Logging final solution at t = %5.4f seconds\n" , (double)user.t_final );
   log_solution( U_c , final_soln );
   
   PetscPrintf( PETSC_COMM_WORLD , "SIMULATION DONE\n\n" );
+
+  std::cout << '\n' << "Press the Enter key to continue.";
+  do {
+  } while (std::cin.get() != '\n'); 
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Free work space.

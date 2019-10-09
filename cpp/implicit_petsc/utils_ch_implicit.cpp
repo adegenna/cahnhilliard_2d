@@ -28,8 +28,11 @@ AppCtx parse_petsc_options( ) {
 
   // Thermal options
   char tempfile[PETSC_MAX_PATH_LEN];
+  char tempfile_Tsource[PETSC_MAX_PATH_LEN];
   PetscOptionsGetString(NULL,NULL,"-initial_temperature_file",tempfile,sizeof(tempfile),NULL);
   user.initial_temperature_file = std::string(tempfile);
+  PetscOptionsGetString(NULL,NULL,"-initial_temperature_source_file",tempfile_Tsource,sizeof(tempfile_Tsource),NULL);
+  user.initial_temperature_source_file = std::string(tempfile_Tsource);
   PetscOptionsGetReal(NULL,NULL,"-D_T",&user.D_T,NULL);  
 
   // CH options

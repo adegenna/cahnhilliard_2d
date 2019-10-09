@@ -42,8 +42,9 @@ typedef struct {
   // Thermal dynamics defaults
   PetscScalar T_min     = 0.1;
   PetscScalar T_max     = 1.0;
-  std::string initial_temperature_file = "initial_temperature.dat"; // File that holds the initial temperature field
-  std::string initial_soln_file        = "initial_soln.dat"; // File that holds the initial solution field
+  std::string initial_temperature_file        = "initial_temperature.dat"; // File that holds the initial temperature field
+  std::string initial_temperature_source_file = "initial_temperature_source.dat"; // File that holds the initial temperature source field
+  std::string initial_soln_file               = "initial_soln.dat"; // File that holds the initial solution field
   PetscScalar D_T       = 1.0;  // Thermal diffusion coefficient
   
   // CH paramater defaults
@@ -52,7 +53,7 @@ typedef struct {
   PetscScalar eps2_max  = 1.0;
   PetscScalar sigma_min = 0.0;
   PetscScalar sigma_max = pow( 10.0 , 10 );
-  Vec         eps_2,sigma,temperature,X;
+  Vec         eps_2,sigma,temperature_source,X;
   
 } AppCtx;
 
