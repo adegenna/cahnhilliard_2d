@@ -93,8 +93,9 @@ PetscErrorCode FormLocal_thermal( DMDALocalInfo *info ,
   for (int j=info->ys; j<info->ys+info->ym; j++) {
     for (int i=info->xs; i<info->xs+info->xm; i++) {
 
-      set_boundary_ghost_nodes( user , Tarray , info->mx , info->my , i , j );
-      
+      set_boundary_ghost_nodes( user , Tarray  , info->mx , info->my , i , j );
+      //set_boundary_ghost_nodes( user , Tsource , info->mx , info->my , i , j );
+
       // dT/dt = D_T * laplacian( T ) + S
       
       // Term: D_T * laplacian( T )
@@ -186,8 +187,8 @@ PetscErrorCode FormIFunction_thermal(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void
   
   DMGlobalToLocalBegin( da_T , U , INSERT_VALUES , local_T );
   DMGlobalToLocalEnd(   da_T , U , INSERT_VALUES , local_T );
-  DMGlobalToLocalBegin( da_T , U , INSERT_VALUES , local_Tsource );
-  DMGlobalToLocalEnd(   da_T , U , INSERT_VALUES , local_Tsource );
+  DMGlobalToLocalBegin( da_T , user->temperature_source , INSERT_VALUES , local_Tsource );
+  DMGlobalToLocalEnd(   da_T , user->temperature_source , INSERT_VALUES , local_Tsource );
 
   DMDAVecGetArrayRead( da_T , local_T , &Tarray );
   DMDAVecGetArrayRead( da_T , Udot , &udot );
@@ -204,6 +205,7 @@ PetscErrorCode FormIFunction_thermal(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void
   DMDAVecRestoreArray(da_T,F,&f);
   
   DMRestoreLocalVector(da_T,&local_T);
+  DMRestoreLocalVector(da_T,&local_Tsource);
   
   PetscFunctionReturn(0);
   

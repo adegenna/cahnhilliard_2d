@@ -119,12 +119,20 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 	  fin >> T_x;
 	  fin >> T_y;
 	  fin >> T_sigma;
-        
-	  compute_new_temperature_profile( app , U , T_amp , T_x , T_y , T_sigma );
-          
+
+          if ( (app->physics != 1) && (app->physics != 3) ) {
+            // Reset entire temperature field
+            compute_new_temperature_profile( app , U , T_amp , T_x , T_y , T_sigma );
+            PetscPrintf( PETSC_COMM_WORLD , "Changing (T_amp, T_x, T_y, T_sigma) at t = %5.4f seconds to ( %5.4f , %5.4f , %5.4f , %5.4f)\n" , (double)t , (double)T_amp , (double)T_x , (double)T_y , (double)T_sigma );
+          }
+          else {
+            // Reset source term in thermal dynamics
+            compute_new_temperature_source_profile( app , U , T_amp , T_x , T_y , T_sigma );
+            PetscPrintf( PETSC_COMM_WORLD , "Changing (Tsource_amp, Tsource_x, Tsource_y, Tsource_sigma) at t = %5.4f seconds to ( %5.4f , %5.4f , %5.4f , %5.4f)\n" , (double)t , (double)T_amp , (double)T_x , (double)T_y , (double)T_sigma );
+          }
+            
 	  app->dt_counter += 1;
         
-	  PetscPrintf( PETSC_COMM_WORLD , "Changing (T_amp, T_x, T_y, T_sigma) at t = %5.4f seconds to ( %5.4f , %5.4f , %5.4f , %5.4f)\n" , (double)t , (double)T_amp , (double)T_x , (double)T_y , (double)T_sigma );
 
 	  fin.close();        
 	  break;
@@ -143,6 +151,42 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 
 }
 
+void compute_new_temperature_source_profile( AppCtx* user , Vec U , PetscScalar T_amp , PetscScalar T_x , PetscScalar T_y , PetscScalar T_sigma  ) {
+
+  DM             pack = user->pack;
+  DM             da_c , da_T;
+  PetscInt       i,j,xs,ys,xm,ym,Mx,My;
+  PetscScalar    **T;
+  PetscReal      x,y,r;
+  Vec            U_c , U_T;
+  Vec            local_Tsource;
+  
+  PetscFunctionBeginUser;
+  
+  DMCompositeGetEntries( pack , &da_c , &da_T );
+  
+  DMDAGetInfo(da_T,PETSC_IGNORE,&Mx,&My,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
+  
+  DMDAVecGetArray( da_T , user->temperature_source , &T );
+  
+  DMDAGetCorners(da_T,&xs,&ys,NULL,&xm,&ym,NULL);
+
+  // Interior
+  for (j=ys; j<ys+ym; j++) {
+    for (i=xs; i<xs+xm; i++) {
+      T[j][i]     = T_amp * PetscExpReal( -0.5 * ( (j-T_x)*(j-T_x) + (i-T_y)*(i-T_y) ) / (T_sigma * T_sigma) );
+      T[j][i]     = std::max( T[j][i] , 0.5 );
+      //PetscPrintf( PETSC_COMM_WORLD , "(i, j, Tsource_amp, Tsource_x, Tsource_y, Tsource_sigma, Tsource) = ( %d, %d, %5.4f , %5.4f , %5.4f , %5.4f, %5.4f)\n" , (int)i, (int)j, (double)T_amp , (double)T_x , (double)T_y , (double)T_sigma , (double)T[j][i] );
+    }
+  }
+
+  /* Restore vectors */
+  DMDAVecRestoreArray(  da_T , user->temperature_source , &T );
+  
+  return;
+  
+}
+
 void compute_new_temperature_profile( AppCtx* user , Vec U , PetscScalar T_amp , PetscScalar T_x , PetscScalar T_y , PetscScalar T_sigma  ) {
 
   DM             pack = user->pack;
@@ -155,10 +199,11 @@ void compute_new_temperature_profile( AppCtx* user , Vec U , PetscScalar T_amp ,
   PetscFunctionBeginUser;
 
   DMCompositeGetEntries( pack , &da_c , &da_T );
+  DMCompositeGetAccess( pack , U , &U_c , &U_T );
   
   DMDAGetInfo(da_T,PETSC_IGNORE,&Mx,&My,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
-
-  DMDAVecGetArray( da_T , user->temperature_source , &T );
+  
+  DMDAVecGetArray( da_T , U_T , &T );
 
   DMDAGetCorners(da_T,&xs,&ys,NULL,&xm,&ym,NULL);
 
@@ -171,9 +216,9 @@ void compute_new_temperature_profile( AppCtx* user , Vec U , PetscScalar T_amp ,
   }
 
   /* Restore vectors */
-  DMDAVecRestoreArray( da_T , temperature_source , &T );
-
+  DMDAVecRestoreArray( da_T , U_T , &T );
+  DMCompositeRestoreAccess( pack , U , &U_c , &U_T );
+  
   return;
-
-
+  
 }

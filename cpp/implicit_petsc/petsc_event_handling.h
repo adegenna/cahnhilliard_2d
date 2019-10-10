@@ -14,4 +14,6 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 
 void compute_new_temperature_profile( AppCtx* app , Vec U , PetscScalar T_amp , PetscScalar T_x , PetscScalar T_y , PetscScalar T_sigma  );
 
+void compute_new_temperature_source_profile( AppCtx* app , Vec U , PetscScalar T_amp , PetscScalar T_x , PetscScalar T_y , PetscScalar T_sigma  );
+
 #endif

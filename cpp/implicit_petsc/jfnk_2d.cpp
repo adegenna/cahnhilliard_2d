@@ -119,7 +119,7 @@ int main(int argc,char **argv) {
   VecDuplicate( u , &r );   // Residual used for coupled calculations
   VecDuplicate(c,&user.eps_2);
   VecDuplicate(c,&user.sigma);
-  VecDuplicate(c,&user.temperature);
+  VecDuplicate(T,&user.temperature_source);
   VecDuplicate(c,&user.X);
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -250,7 +250,7 @@ int main(int argc,char **argv) {
   VecDestroy(&r);
   VecDestroy(&user.eps_2);
   VecDestroy(&user.sigma);
-  VecDestroy(&user.temperature);
+  VecDestroy(&user.temperature_source);
   VecDestroy(&user.X);
   TSDestroy(&ts);
   DMDestroy(&da_c);
