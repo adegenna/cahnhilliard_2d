@@ -166,15 +166,21 @@ int main(int argc,char **argv) {
 
     // TS
     TSSetDM( ts , da_T );
-    TSSetIFunction( ts , r_T , FormIFunction_thermal , &user );
     TSSetSolution( ts , U_T );
+    
+    if (user.time_stepper == 0) {
+      TSSetIFunction( ts , r_T , FormIFunction_thermal , &user );
 
-    // SNES
-    DMSetMatType( da_T , MATAIJ );
-    DMCreateMatrix( da_T , &J );
-    TSGetSNES( ts , &snes );
-    MatCreateSNESMF( snes , &Jmf );
-    SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
+      // SNES
+      DMSetMatType( da_T , MATAIJ );
+      DMCreateMatrix( da_T , &J );
+      TSGetSNES( ts , &snes );
+      MatCreateSNESMF( snes , &Jmf );
+      SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
+    }
+    else if (user.time_stepper == 1) {
+      TSSetRHSFunction( ts , r_T , FormRHS_thermal , &user );
+    }
     
   }
   else if (user.physics == 2) {
@@ -197,8 +203,10 @@ int main(int argc,char **argv) {
   // User-options
   TSSetFromOptions(ts);
   SNESSetFromOptions(snes);
-  SNESGetKSP(snes,&ksp);
-  KSPSetFromOptions(ksp);
+  if (user.time_stepper == 0) {
+    SNESGetKSP(snes,&ksp);
+    KSPSetFromOptions(ksp);
+  }
   PetscOptionsView( NULL , PETSC_VIEWER_STDOUT_WORLD );  
   
   // Setup event handling

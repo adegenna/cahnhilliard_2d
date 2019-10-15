@@ -11,11 +11,19 @@ PetscErrorCode FormLocal_CH( DMDALocalInfo *info ,
                              PetscScalar** udot ,
                              AppCtx *ctx );
 
-PetscErrorCode FormLocal_thermal( DMDALocalInfo *info ,
-                                  PetscScalar **Tarray ,
-                                  PetscScalar **f , 
-                                  PetscScalar** udot ,
-                                  AppCtx *ctx );
+PetscScalar** FormLocalRHS_thermal( DMDALocalInfo *info ,
+                                    PetscScalar **Tarray ,
+                                    PetscScalar **rhs ,
+                                    PetscScalar **Tsource ,
+                                    AppCtx *user );
+
+PetscScalar** FormLocal_thermal( DMDALocalInfo *info ,
+				 PetscScalar **Tarray ,
+				 PetscScalar **f , 
+				 PetscScalar** udot ,
+				 AppCtx *ctx );
+
+PetscErrorCode FormRHS_thermal(TS ts,PetscReal t,Vec U,Vec F,void *ctx);
 
 PetscErrorCode FormIFunction_CH( TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx );
 

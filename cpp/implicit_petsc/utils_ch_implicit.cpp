@@ -25,6 +25,7 @@ AppCtx parse_petsc_options( ) {
   PetscOptionsGetReal(NULL,NULL,"-t_final",&user.t_final,NULL);
   PetscOptionsGetReal(NULL,NULL,"-dt_check",&user.dt_check,NULL);
   PetscOptionsGetReal(NULL,NULL,"-dt_output",&user.dt_output,NULL);
+  PetscOptionsGetInt(NULL,NULL,"-time_stepper",&user.time_stepper,NULL);
 
   // Thermal options
   char tempfile[PETSC_MAX_PATH_LEN];
