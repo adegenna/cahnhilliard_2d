@@ -150,15 +150,25 @@ int main(int argc,char **argv) {
   
     // TS
     TSSetDM( ts , da_c );
-    TSSetIFunction( ts , r_c , FormIFunction_CH , &user );
     TSSetSolution( ts , U_c );
 
-    // SNES
-    DMSetMatType( da_c , MATAIJ );
-    DMCreateMatrix( da_c , &J );
-    TSGetSNES( ts , &snes );
-    MatCreateSNESMF( snes , &Jmf );
-    SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
+    if (user.time_stepper == 0) {
+      // Implicit
+      
+      TSSetIFunction( ts , r_c , FormIFunction_CH , &user );
+      DMSetMatType( da_c , MATAIJ );
+      DMCreateMatrix( da_c , &J );
+      TSGetSNES( ts , &snes );
+      MatCreateSNESMF( snes , &Jmf );
+      SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
+      
+    }
+    else if (user.time_stepper == 1) {
+      // Explicit
+
+      TSSetRHSFunction( ts , r_c , FormRHS_CH , &user );
+      
+    }
     
   }
   else if (user.physics == 1) {
@@ -169,17 +179,21 @@ int main(int argc,char **argv) {
     TSSetSolution( ts , U_T );
     
     if (user.time_stepper == 0) {
+      // Implicit
+      
       TSSetIFunction( ts , r_T , FormIFunction_thermal , &user );
-
-      // SNES
       DMSetMatType( da_T , MATAIJ );
       DMCreateMatrix( da_T , &J );
       TSGetSNES( ts , &snes );
       MatCreateSNESMF( snes , &Jmf );
       SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
+      
     }
     else if (user.time_stepper == 1) {
+      // Explicit
+      
       TSSetRHSFunction( ts , r_T , FormRHS_thermal , &user );
+
     }
     
   }
