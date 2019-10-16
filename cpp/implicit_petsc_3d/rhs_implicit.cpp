@@ -12,7 +12,7 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
   PetscInt       i,j,k,Mx,My,Mz,xs,ys,zs,xm,ym,zm;
   PetscScalar      hx,hy,hz,sx,sy,sz;
   PetscScalar    u,***uarray,***f,***udot, ***eps_2_array, ***sigma_array;
-  Vec            localU, local_eps_2, local_sigma;
+  Vec            localU, localUdot, localF, local_eps_2, local_sigma;
   PetscScalar l_i,l_ip1,l_im1,l_jp1,l_jm1,l_km1,l_kp1;
   PetscScalar dxx,dyy,dzz,rhs_ijk;
   PetscScalar q_im1,q_ip1,q_jm1,q_jp1,q_km1,q_kp1,q_0;
@@ -21,6 +21,8 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
   PetscFunctionBeginUser;
   
   DMGetLocalVector(da,&localU);
+  DMGetLocalVector(da,&localUdot);
+  DMGetLocalVector(da,&localF);
   DMGetLocalVector(da,&local_eps_2);
   DMGetLocalVector(da,&local_sigma);
   
@@ -40,16 +42,20 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
   
   DMGlobalToLocalBegin(da,U,INSERT_VALUES,localU);
   DMGlobalToLocalEnd(da,U,INSERT_VALUES,localU);
+  DMGlobalToLocalBegin(da,Udot,INSERT_VALUES,localUdot);
+  DMGlobalToLocalEnd(da,Udot,INSERT_VALUES,localUdot);
+  DMGlobalToLocalBegin(da,F,INSERT_VALUES,localF);
+  DMGlobalToLocalEnd(da,F,INSERT_VALUES,localF);
   DMGlobalToLocalBegin(da,user->eps_2,INSERT_VALUES,local_eps_2);
   DMGlobalToLocalEnd(da,user->eps_2,INSERT_VALUES,local_eps_2);
   DMGlobalToLocalBegin(da,user->sigma,INSERT_VALUES,local_sigma);
   DMGlobalToLocalEnd(da,user->sigma,INSERT_VALUES,local_sigma);
   
   DMDAVecGetArrayRead(da,localU,&uarray);
+  DMDAVecGetArray(da,localUdot,&udot);
+  DMDAVecGetArray(da,localF,&f);  
   DMDAVecGetArrayRead(da,local_eps_2,&eps_2_array);
   DMDAVecGetArrayRead(da,local_sigma,&sigma_array);
-  DMDAVecGetArray(da,F,&f);
-  DMDAVecGetArray(da,Udot,&udot);
 
   DMDAGetCorners( da ,
                   &xs , &ys , &zs ,
@@ -117,11 +123,17 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
   }
   /* Restore vectors */
   DMDAVecRestoreArrayRead(da,localU,&uarray);
+  DMDAVecRestoreArray(da,localUdot,&udot);
+  DMDAVecRestoreArray(da,localF,&f);
   DMDAVecRestoreArrayRead(da,local_eps_2,&eps_2_array);
   DMDAVecRestoreArrayRead(da,local_sigma,&sigma_array);
-  DMDAVecRestoreArray(da,F,&f);
-  DMDAVecRestoreArray(da,Udot,&udot);
+
+  DMLocalToGlobalBegin( da , localF , INSERT_VALUES , F );
+  DMLocalToGlobalEnd(   da , localF , INSERT_VALUES , F );
+  
   DMRestoreLocalVector(da,&localU);
+  DMRestoreLocalVector(da,&localUdot);
+  DMRestoreLocalVector(da,&localF);
   DMRestoreLocalVector(da,&local_eps_2);
   DMRestoreLocalVector(da,&local_sigma);
   
