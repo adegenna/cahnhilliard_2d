@@ -30,6 +30,8 @@ PetscScalar** FormLocalRHS_thermal( DMDALocalInfo *info ,
                                     PetscScalar **Tsource ,
                                     AppCtx *user );
 
+PetscErrorCode FormRHS_CH_coupled(TS ts,PetscReal t,Vec U,Vec F,void *ctx);
+
 PetscErrorCode FormRHS_CH(TS ts,PetscReal t,Vec U,Vec F,void *ctx);
 
 PetscErrorCode FormRHS_thermal(TS ts,PetscReal t,Vec U,Vec F,void *ctx);

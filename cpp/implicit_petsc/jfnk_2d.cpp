@@ -129,8 +129,7 @@ int main(int argc,char **argv) {
   TSSetProblemType(ts,TS_NONLINEAR);
   TSSetMaxTime(ts,user.t_final);
   TSSetExactFinalTime(ts,TS_EXACTFINALTIME_STEPOVER);
-  dt   = 0.005;
-  TSSetTimeStep(ts,dt);
+  TSSetTimeStep(ts,user.dt);
 
   // Initial solution
   FormInitialSolution( u , &user );
@@ -202,22 +201,32 @@ int main(int argc,char **argv) {
 
     // TS
     TSSetDM( ts , pack );
-    TSSetIFunction( ts , r , FormIFunction_CH_coupled , &user );
     TSSetSolution( ts , u );
 
-    // SNES
-    DMSetMatType( pack , MATAIJ );
-    DMCreateMatrix( pack , &J );
-    TSGetSNES( ts , &snes );
-    MatCreateSNESMF( snes , &Jmf );
-    SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
+    if (user.time_stepper == 0) {
+      // Implicit
+      
+      TSSetIFunction( ts , r , FormIFunction_CH_coupled , &user );
+      DMSetMatType( pack , MATAIJ );
+      DMCreateMatrix( pack , &J );
+      TSGetSNES( ts , &snes );
+      MatCreateSNESMF( snes , &Jmf );
+      SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
+      
+    }
+    else if (user.time_stepper == 1) {
+      // Explicit
+
+      TSSetRHSFunction( ts , r , FormRHS_CH_coupled , &user );
+      
+    }
     
   }
   
   // User-options
   TSSetFromOptions(ts);
   SNESSetFromOptions(snes);
-  if (user.time_stepper == 0) {
+  if ( user.time_stepper == 0 ) {
     SNESGetKSP(snes,&ksp);
     KSPSetFromOptions(ksp);
   }

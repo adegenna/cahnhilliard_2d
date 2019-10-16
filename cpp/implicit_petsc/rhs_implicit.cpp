@@ -103,7 +103,7 @@ PetscErrorCode FormRHS_CH(TS ts,PetscReal t,Vec U,Vec F,void *ctx) {
   DM              pack = (DM)user->pack;
   DM              da_c , da_T;
   DMDALocalInfo   info_c;
-  PetscScalar     u,**carray,**eps2,**sigma,**rhs_c;
+  PetscScalar     **carray,**eps2,**sigma,**rhs_c;
   Vec             local_c,local_eps2,local_sigma,local_rhs;
   
   PetscFunctionBeginUser;
@@ -207,6 +207,101 @@ PetscScalar** FormLocal_thermal( DMDALocalInfo* info ,
 
 }
 
+PetscErrorCode FormRHS_CH_coupled(TS ts,PetscReal t,Vec U,Vec F,void *ctx) {
+
+  // Computes F = RHSfunction
+
+  AppCtx         *user = (AppCtx*)ctx;
+  DM              pack = (DM)user->pack;
+  DM              da_c , da_T;
+  DMDALocalInfo   info_c;
+  PetscScalar     **carray,**eps2,**sigma,**rhs_c;
+  Vec             local_c,local_eps2,local_sigma,local_rhs_c;
+  DMDALocalInfo   info_T;
+  PetscScalar     **Tarray,**Tsource,**rhs_thermal;
+  Vec             local_T,local_Tsource,local_rhs_T;
+  Vec             U_c , U_T , F_c , F_T;
+  
+  PetscFunctionBeginUser;
+
+  // Get composite stuff
+  DMCompositeGetEntries( pack , &da_c , &da_T );
+  DMCompositeGetAccess(  pack , U     , &U_c , &U_T );
+  DMCompositeGetAccess(  pack , F     , &F_c , &F_T );
+
+  // Get CH data types
+  DMGetLocalVector( da_c , &local_c );
+  DMGetLocalVector( da_c , &local_eps2 );
+  DMGetLocalVector( da_c , &local_sigma );
+  DMGetLocalVector( da_c , &local_rhs_c );
+  
+  DMDAGetLocalInfo( da_c , &info_c );
+  
+  DMGlobalToLocalBegin( da_c , U_c , INSERT_VALUES , local_c );
+  DMGlobalToLocalEnd(   da_c , U_c , INSERT_VALUES , local_c );
+  DMGlobalToLocalBegin( da_c , F_c , INSERT_VALUES , local_rhs_c );
+  DMGlobalToLocalEnd(   da_c , F_c , INSERT_VALUES , local_rhs_c );
+  DMGlobalToLocalBegin( da_c , user->eps_2 , INSERT_VALUES , local_eps2 );
+  DMGlobalToLocalEnd(   da_c , user->eps_2 , INSERT_VALUES , local_eps2 );
+  DMGlobalToLocalBegin( da_c , user->sigma , INSERT_VALUES , local_sigma );
+  DMGlobalToLocalEnd(   da_c , user->sigma , INSERT_VALUES , local_sigma );
+  
+  DMDAVecGetArrayRead( da_c , local_c , &carray );
+  DMDAVecGetArrayRead( da_c , local_eps2 , &eps2 );
+  DMDAVecGetArrayRead( da_c , local_sigma , &sigma );
+  DMDAVecGetArray(     da_c , local_rhs_c , &rhs_c );
+
+  // Get thermal data types
+  DMGetLocalVector( da_T , &local_T );
+  DMGetLocalVector( da_T , &local_Tsource );
+  DMGetLocalVector( da_T , &local_rhs_T );
+  
+  DMDAGetLocalInfo( da_T , &info_T );
+  
+  DMGlobalToLocalBegin( da_T , U_T , INSERT_VALUES , local_T );
+  DMGlobalToLocalEnd(   da_T , U_T , INSERT_VALUES , local_T );
+  DMGlobalToLocalBegin( da_T , F_T , INSERT_VALUES , local_rhs_T );
+  DMGlobalToLocalEnd(   da_T , F_T , INSERT_VALUES , local_rhs_T );
+  DMGlobalToLocalBegin( da_T , user->temperature_source , INSERT_VALUES , local_Tsource );
+  DMGlobalToLocalEnd(   da_T , user->temperature_source , INSERT_VALUES , local_Tsource );
+
+  DMDAVecGetArrayRead( da_T , local_T , &Tarray );
+  DMDAVecGetArrayRead( da_T , local_Tsource , &Tsource );
+  DMDAVecGetArray(     da_T , local_rhs_T , &rhs_thermal );
+  
+  /* Compute function over the locally owned part of the grid */
+  rhs_c       = FormLocalRHS_CH(      &info_c , carray , rhs_c , eps2 , sigma , user );
+  rhs_thermal = FormLocalRHS_thermal( &info_T , Tarray , rhs_thermal , Tsource , user );
+  
+  /* Restore vectors */
+  DMDAVecRestoreArrayRead( da_c , local_c , &carray );
+  DMDAVecRestoreArrayRead( da_c , local_eps2 , &eps2 );
+  DMDAVecRestoreArrayRead( da_c , local_sigma , &sigma );
+  DMDAVecRestoreArray(     da_c , local_rhs_c , &rhs_c );
+  DMDAVecRestoreArrayRead( da_T , local_T , &Tarray );
+  DMDAVecRestoreArrayRead( da_T , local_Tsource , &Tsource );
+  DMDAVecRestoreArray(     da_T , local_rhs_T , &rhs_thermal );
+  
+  DMLocalToGlobalBegin( da_c , local_rhs_c , INSERT_VALUES , F_c );
+  DMLocalToGlobalEnd(   da_c , local_rhs_c , INSERT_VALUES , F_c );
+  DMLocalToGlobalBegin( da_T , local_rhs_T , INSERT_VALUES , F_T );
+  DMLocalToGlobalEnd(   da_T , local_rhs_T , INSERT_VALUES , F_T );
+
+  DMCompositeRestoreAccess( pack , F , &F_c , &F_T );
+  DMCompositeRestoreAccess( pack , U , &U_c , &U_T );
+
+  DMRestoreLocalVector( da_c , &local_c );
+  DMRestoreLocalVector( da_c , &local_eps2 );
+  DMRestoreLocalVector( da_c , &local_sigma );
+  DMRestoreLocalVector( da_c , &local_rhs_c );
+  DMRestoreLocalVector( da_T , &local_T );
+  DMRestoreLocalVector( da_T , &local_Tsource );
+  DMRestoreLocalVector( da_T , &local_rhs_T );
+  
+  PetscFunctionReturn(0);
+  
+}
+
 PetscErrorCode FormIFunction_CH(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
 
   // Computes residual F = Udot - RHSFunction
@@ -214,16 +309,19 @@ PetscErrorCode FormIFunction_CH(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx
   AppCtx         *user = (AppCtx*)ctx;
   DM             da_c  = (DM)user->da_c;
   DMDALocalInfo  info_c;
-  PetscScalar    u,**carray,**f,**udot, **eps_2_array, **sigma_array, **rhs;
+  PetscScalar    **carray,**f,**udot, **eps_2_array, **sigma_array, **rhs;
   Vec            local_c, local_eps_2, local_sigma, local_udot , local_f , local_rhs;
   
   PetscFunctionBeginUser;
   
-  DMGetLocalVector( da_c , &local_c);
-  DMGetLocalVector( da_c , &local_eps_2);
-  DMGetLocalVector( da_c , &local_sigma);
-  DMGetLocalVector( da_c , &local_rhs);
-
+  // Get CH data types
+  DMGetLocalVector( da_c , &local_c );
+  DMGetLocalVector( da_c , &local_eps_2 );
+  DMGetLocalVector( da_c , &local_sigma );
+  DMGetLocalVector( da_c , &local_rhs );
+  DMGetLocalVector( da_c , &local_udot );
+  DMGetLocalVector( da_c , &local_f );
+  
   DMDAGetLocalInfo( da_c , &info_c );
   
   DMGlobalToLocalBegin( da_c , U , INSERT_VALUES , local_c );
@@ -277,7 +375,7 @@ PetscErrorCode FormRHS_thermal(TS ts,PetscReal t,Vec U,Vec F,void *ctx) {
   AppCtx         *user = (AppCtx*)ctx;
   DM             da_T  = (DM)user->da_T;
   DMDALocalInfo  info_T;
-  PetscScalar    u,**Tarray,**Tsource,**rhs_thermal;
+  PetscScalar    **Tarray,**Tsource,**rhs_thermal;
   Vec            local_T,local_Tsource,local_rhs;
   
   PetscFunctionBeginUser;
@@ -304,6 +402,7 @@ PetscErrorCode FormRHS_thermal(TS ts,PetscReal t,Vec U,Vec F,void *ctx) {
 
   /* Restore vectors */
   DMDAVecRestoreArrayRead(da_T,local_T,&Tarray);
+  DMDAVecRestoreArrayRead(da_T,local_Tsource,&Tsource);
   DMDAVecRestoreArray(da_T,local_rhs,&rhs_thermal);
 
   DMLocalToGlobalBegin( da_T , local_rhs , INSERT_VALUES , F );
@@ -325,7 +424,7 @@ PetscErrorCode FormIFunction_thermal(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void
   AppCtx         *user = (AppCtx*)ctx;
   DM             da_T  = (DM)user->da_T;
   DMDALocalInfo  info_T;
-  PetscScalar    u,**Tarray,**Tsource,**f,**udot,**rhs_thermal;
+  PetscScalar    **Tarray,**Tsource,**f,**udot,**rhs_thermal;
   Vec            local_T,local_Tsource,local_Trhs , local_udot , local_f;
   
   PetscFunctionBeginUser;
@@ -379,12 +478,11 @@ PetscErrorCode FormIFunction_CH_coupled(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,v
 
   // Computes residual F = Udot - RHSFunction
 
-  PetscErrorCode ierr;
   AppCtx         *user = (AppCtx*)ctx;
   DM             pack  = user->pack;
   DM             da_c , da_T;
   DMDALocalInfo  info_c , info_T;
-  PetscScalar    u,**carray,**Tarray,**Tsource,**f_c,**f_T,**udot, **udot_c, **udot_T, **eps_2_array, **sigma_array, **rhs_thermal, **rhs_c;
+  PetscScalar    **carray,**Tarray,**Tsource,**f_c,**f_T, **udot_c, **udot_T, **eps_2_array, **sigma_array, **rhs_thermal, **rhs_c;
   Vec            local_c, local_T, local_Tsource, local_eps_2, local_sigma, local_Trhs, local_crhs, U_c , U_T , Udot_c , Udot_T , F_c , F_T;
   Vec            local_udotC , local_udotT , local_fC , local_fT;
   
@@ -443,8 +541,8 @@ PetscErrorCode FormIFunction_CH_coupled(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,v
   
   /* Compute function over the locally owned part of the grid */
   compute_eps2_and_sigma_from_temperature( user , U );
-  rhs_c       = FormLocalRHS_CH( &info_c , carray , rhs_c , eps_2_array , sigma_array , user );
-  f_c         = FormLocal_CH(    &info_c , carray , f_c , udot , rhs_c , user );  
+  rhs_c       = FormLocalRHS_CH(      &info_c , carray , rhs_c , eps_2_array , sigma_array , user );
+  f_c         = FormLocal_CH(         &info_c , carray , f_c , udot_c , rhs_c , user );
   rhs_thermal = FormLocalRHS_thermal( &info_T , Tarray , rhs_thermal , Tsource , user );
   f_T         = FormLocal_thermal(    &info_T , Tarray , f_T , udot_T , rhs_thermal , user );
   

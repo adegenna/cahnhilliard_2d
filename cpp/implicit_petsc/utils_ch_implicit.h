@@ -30,6 +30,7 @@ typedef struct {
   PetscReal dt_output;         // Value of time increment where you change the parameters/temperature
   PetscInt  dt_output_counter = 0;   // Counter that keeps track of how many dt_output have gone by so far
   PetscInt  time_stepper      = 0;   // 0: Implicit; 1: Explicit
+  PetscScalar dt          = 0.005;   // Default dt
 
   // Polymer physics defaults
   PetscScalar X_min    = 0.055;
