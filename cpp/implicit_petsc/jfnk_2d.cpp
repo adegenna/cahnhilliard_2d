@@ -42,7 +42,7 @@ int main(int argc,char **argv) {
   DMDACreate2d(PETSC_COMM_WORLD, 
                DM_BOUNDARY_GHOSTED, DM_BOUNDARY_GHOSTED,    // type of boundary nodes
                DMDA_STENCIL_BOX,                // type of stencil
-               11,11,                           // global dimns of array
+               11,11,                           // global dimns of array (will be overwritten from user-options)
                PETSC_DECIDE,PETSC_DECIDE,       // #procs in each dimn
                1,                               // DOF per node
                2,                               // Stencil width
@@ -62,18 +62,6 @@ int main(int argc,char **argv) {
   PetscMalloc1( sizes_y , &lyT );
   PetscMemcpy( lxT , lxc , sizes_x*sizeof(*lxc) );
   PetscMemcpy( lyT , lyc , sizes_y*sizeof(*lyc) );
-  //lxT[0] -= 2;
-  //lyT[0] -= 2;
-  for (int i=0; i<sizes_x ; i++) {
-    PetscPrintf( PETSC_COMM_WORLD , "%d , " , (int)lxT[i] );
-  }
-  PetscPrintf( PETSC_COMM_WORLD , "\n" );
-  for (int i=0; i<sizes_y ; i++) {
-    PetscPrintf( PETSC_COMM_WORLD , "%d , " , (int)lyT[i] );
-  }
-
-  PetscPrintf( PETSC_COMM_WORLD , "nx , ny = %d , %d\n" , (int)nx , (int)ny );
-  PetscPrintf( PETSC_COMM_WORLD , "sizes_x , sizes_y = %d , %d\n" , (int)sizes_x , (int)sizes_y );
 
   // DM for temperature T
   DMDACreate2d(PETSC_COMM_WORLD, 
@@ -138,95 +126,115 @@ int main(int argc,char **argv) {
   compute_eps2_and_sigma_from_temperature( &user , u );
   
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   Set options based on type of physics
+   Set type of physics
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   // Unpack the stuff you need
   DMCompositeGetAccess( pack , u , &U_c , &U_T );
+
+  PetscErrorCode (*rhsFunctionExplicit)( TS ts , PetscReal t , Vec U , Vec F , void *ctx );
+  PetscErrorCode (*rhsFunctionImplicit)( TS ts , PetscReal t , Vec U , Vec Udot , Vec F , void *ctx );
+  DM  da_user;
+  Vec U_user , r_user;
   
-  if (user.physics == 0) {
+  if (user.physics.compare("ch") == 0) {
     // CH only
-  
-    // TS
-    TSSetDM( ts , da_c );
-    TSSetSolution( ts , U_c );
-
-    if (user.time_stepper == 0) {
-      // Implicit
-      
-      TSSetIFunction( ts , r_c , FormIFunction_CH , &user );
-      DMSetMatType( da_c , MATAIJ );
-      DMCreateMatrix( da_c , &J );
-      TSGetSNES( ts , &snes );
-      MatCreateSNESMF( snes , &Jmf );
-      SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
-      
-    }
-    else if (user.time_stepper == 1) {
-      // Explicit
-
-      TSSetRHSFunction( ts , r_c , FormRHS_CH , &user );
-      
-    }
+    
+    da_user = da_c;
+    U_user  = U_c;
+    r_user  = r_c;
+    rhsFunctionImplicit = FormIFunction_CH;
+    rhsFunctionExplicit = FormRHS_CH;
     
   }
-  else if (user.physics == 1) {
+  
+  else if (user.physics.compare("thermal") == 0) {
     // Thermal only
 
-    // TS
-    TSSetDM( ts , da_T );
-    TSSetSolution( ts , U_T );
-    
-    if (user.time_stepper == 0) {
-      // Implicit
-      
-      TSSetIFunction( ts , r_T , FormIFunction_thermal , &user );
-      DMSetMatType( da_T , MATAIJ );
-      DMCreateMatrix( da_T , &J );
-      TSGetSNES( ts , &snes );
-      MatCreateSNESMF( snes , &Jmf );
-      SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
-      
-    }
-    else if (user.time_stepper == 1) {
-      // Explicit
-      
-      TSSetRHSFunction( ts , r_T , FormRHS_thermal , &user );
-
-    }
+    da_user = da_T;
+    U_user  = U_T;
+    r_user  = r_T;
+    rhsFunctionImplicit = FormIFunction_thermal;
+    rhsFunctionExplicit = FormRHS_thermal;
     
   }
-  else if (user.physics == 2) {
+  
+  else if (user.physics.compare("coupled_ch_thermal") == 0) {
     // Coupled CH + thermal
 
-    // TS
-    TSSetDM( ts , pack );
-    TSSetSolution( ts , u );
-
-    if (user.time_stepper == 0) {
-      // Implicit
-      
-      TSSetIFunction( ts , r , FormIFunction_CH_coupled , &user );
-      DMSetMatType( pack , MATAIJ );
-      DMCreateMatrix( pack , &J );
-      TSGetSNES( ts , &snes );
-      MatCreateSNESMF( snes , &Jmf );
-      SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
-      
-    }
-    else if (user.time_stepper == 1) {
-      // Explicit
-
-      TSSetRHSFunction( ts , r , FormRHS_CH_coupled , &user );
-      
-    }
+    da_user = pack;
+    U_user  = u;
+    r_user  = r;
+    rhsFunctionImplicit = FormIFunction_CH_coupled;
+    rhsFunctionExplicit = FormRHS_CH_coupled;
     
   }
+
+  else {
+    // Incorrectly specified physics option
+    
+    PetscPrintf( PETSC_COMM_WORLD , "physics option specified incorrectly, defaulting to physics=ch ...\n\n" );
+
+    user.physics = "ch";
+    
+    da_user = da_c;
+    U_user  = U_c;
+    r_user  = r_c;
+    rhsFunctionImplicit = FormIFunction_CH;
+    rhsFunctionExplicit = FormRHS_CH;
+
+  }
+
+  /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   Set time-stepping scheme
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  TSSetDM( ts , da_user );
+  TSSetSolution( ts , U_user );
+  
+  if (user.time_stepper.compare("implicit") == 0) {
+    // Implicit
+
+    TSSetIFunction( ts , r_user , rhsFunctionImplicit , &user );
+    DMSetMatType( da_user , MATAIJ );
+    DMCreateMatrix( da_user , &J );
+    TSGetSNES( ts , &snes );
+    MatCreateSNESMF( snes , &Jmf );
+    SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
+    
+  }
+
+  else if (user.time_stepper.compare("explicit") == 0) {
+    // Explicit
+
+    TSSetRHSFunction( ts , r_user , rhsFunctionExplicit , &user );
+
+  }
+
+  else {
+    // Incorrectly specified timestepper option
+    
+    PetscPrintf( PETSC_COMM_WORLD , "time_stepper option specified incorrectly, defaulting to time_stepper=implicit ...\n\n" );
+
+    user.time_stepper = "implicit";
+    
+    TSSetIFunction( ts , r_user , rhsFunctionImplicit , &user );
+    DMSetMatType( da_user , MATAIJ );
+    DMCreateMatrix( da_user , &J );
+    TSGetSNES( ts , &snes );
+    MatCreateSNESMF( snes , &Jmf );
+    SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
+
+  }
+
+  /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   Set user options and event handling
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   
   // User-options
   TSSetFromOptions(ts);
   SNESSetFromOptions(snes);
-  if ( user.time_stepper == 0 ) {
+  if ( user.time_stepper.compare("implicit") == 0 ) {
     SNESGetKSP(snes,&ksp);
     KSPSetFromOptions(ksp);
   }
@@ -247,13 +255,8 @@ int main(int argc,char **argv) {
   PetscPrintf( PETSC_COMM_WORLD , "Logging initial solution at t = 0 seconds\n" );
   log_solution( U_c , initial_soln );
 
-  if (user.physics == 0)
-    TSSolve( ts , U_c );
-  else if (user.physics == 1)
-    TSSolve( ts , U_T);
-  else if (user.physics == 2)
-    TSSolve( ts , u );
-
+  TSSolve( ts , U_user );
+  
   TSGetSNES( ts , &snes );
   SNESGetJacobian( snes , &Jmf , &J , NULL , NULL );
   MatView( J , PETSC_VIEWER_DRAW_WORLD );
@@ -283,10 +286,13 @@ int main(int argc,char **argv) {
   VecDestroy(&user.sigma);
   VecDestroy(&user.temperature_source);
   VecDestroy(&user.X);
+  VecDestroy(&U_user);
+  VecDestroy(&r_user);
   TSDestroy(&ts);
   DMDestroy(&da_c);
   DMDestroy(&da_T);
-
+  DMDestroy(&da_user);
+  
   PetscFinalize();
   return ierr;
 }

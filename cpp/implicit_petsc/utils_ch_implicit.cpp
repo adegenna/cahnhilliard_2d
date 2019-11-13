@@ -25,7 +25,9 @@ AppCtx parse_petsc_options( ) {
   PetscOptionsGetReal(NULL,NULL,"-t_final",&user.t_final,NULL);
   PetscOptionsGetReal(NULL,NULL,"-dt_check",&user.dt_check,NULL);
   PetscOptionsGetReal(NULL,NULL,"-dt_output",&user.dt_output,NULL);
-  PetscOptionsGetInt(NULL,NULL,"-time_stepper",&user.time_stepper,NULL);
+  char tempfile_timestepper[PETSC_MAX_PATH_LEN];
+  PetscOptionsGetString(NULL,NULL,"-time_stepper",tempfile_timestepper,sizeof(tempfile_timestepper),NULL);
+  user.time_stepper = std::string(tempfile_timestepper);
   PetscOptionsGetReal(NULL,NULL,"-dt",&user.dt,NULL);
 
   // Thermal options
@@ -42,7 +44,9 @@ AppCtx parse_petsc_options( ) {
   char tempfile_U[PETSC_MAX_PATH_LEN];
   PetscOptionsGetString(NULL,NULL,"-initial_soln_file",tempfile_U,sizeof(tempfile_U),NULL);
   user.initial_soln_file = std::string(tempfile_U);
-  PetscOptionsGetInt(NULL,NULL,"-physics",&user.physics,NULL);
+  char tempfile_physics[PETSC_MAX_PATH_LEN];
+  PetscOptionsGetString(NULL,NULL,"-physics",tempfile_physics,sizeof(tempfile_physics),NULL);
+  user.physics = std::string(tempfile_physics);
 
   return user;
   

@@ -19,7 +19,7 @@ class ThirteenPointStencil {
 /* AppCtx: used by FormIFunction() and FormIJacobian() */
 typedef struct {
   DM        da_c , da_T , pack;
-  PetscInt  physics = 0;       // 0: CH only; 1: coupled CH-thermal
+  std::string physics = "ch";       // "ch": CH-only ; "thermal": thermal diffusion only ; "coupled_ch_thermal": coupled thermal-CH solver
   PetscReal c;
   PetscInt  boundary;            /* Type of boundary condition */
   PetscReal Lx, Ly;            // Length of domain in each direction
@@ -29,7 +29,7 @@ typedef struct {
   PetscInt  dt_counter = 0;    // Counter that keeps track of how many dt_check have gone by so far
   PetscReal dt_output;         // Value of time increment where you change the parameters/temperature
   PetscInt  dt_output_counter = 0;   // Counter that keeps track of how many dt_output have gone by so far
-  PetscInt  time_stepper      = 0;   // 0: Implicit; 1: Explicit
+  std::string time_stepper    = "implicit";   // "implicit" or "explicit"
   PetscScalar dt          = 0.005;   // Default dt
 
   // Polymer physics defaults

@@ -120,7 +120,7 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 	  fin >> T_y;
 	  fin >> T_sigma;
 
-          if ( (app->physics != 1) && (app->physics != 3) ) {
+          if ( (app->physics.compare("thermal") != 0) && (app->physics.compare("ch_coupled_mass") != 0) ) {
             // Reset entire temperature field
             compute_new_temperature_profile( app , U , T_amp , T_x , T_y , T_sigma );
             PetscPrintf( PETSC_COMM_WORLD , "Changing (T_amp, T_x, T_y, T_sigma) at t = %5.4f seconds to ( %5.4f , %5.4f , %5.4f , %5.4f)\n" , (double)t , (double)T_amp , (double)T_x , (double)T_y , (double)T_sigma );
