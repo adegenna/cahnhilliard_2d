@@ -14,18 +14,8 @@ PetscScalar** FormLocal_CH( DMDALocalInfo *info ,
   for (int j=info->ys; j<info->ys+info->ym; j++) {
     for (int i=info->xs; i<info->xs+info->xm; i++) {
 
-      if ( user->boundary == 1 ) // Neumann: reset residuals explicitly 
-        f[j][i] = reset_boundary_residual_values_for_neumann_bc( uarray , rhs[j][i] , udot[j][i] , info->mx , info->my , i , j );
-
-      else if ( user->boundary == 3 ) // Bottom dirichlet, rest Neumann
-        f[j][i] = reset_boundary_residual_values_for_dirichlet_bottom_neumann_remainder_bc( uarray , rhs[j][i] , udot[j][i] , info->mx , info->my , i , j );
-
-      else if ( user->boundary == 4 ) // Bottom/top dirichlet, rest Neumann
-        f[j][i] = reset_boundary_residual_values_for_dirichlet_topandbottom_neumann_remainder_bc( uarray , rhs[j][i] , udot[j][i] , info->mx , info->my , i , j );
+      f[j][i] = user->residualFunction( uarray , rhs[j][i] , udot[j][i] , info->mx , info->my , i , j );
       
-      else // Dirichlet or periodic: just compute with ghost nodes
-        f[j][i] = udot[j][i] - rhs[j][i];
-
     }
   }
 
@@ -49,11 +39,25 @@ PetscScalar** FormLocalRHS_CH( DMDALocalInfo *info ,
   PetscScalar hy = 1.0 / (PetscReal)(info->my-1);
   PetscScalar sy = 1.0/(hy*hy);
 
+  // Set boundary node function depending on user-defined BCs
+  void (*set_boundary_ghost_nodes)( AppCtx* , PetscScalar** , PetscInt , PetscInt , PetscInt , PetscInt );
+  if (user->boundary.compare("dirichlet") == 0) {
+    set_boundary_ghost_nodes = set_boundary_ghost_nodes_dirichlet;
+  }
+  else if (user->boundary.compare("neumann") == 0) {
+    set_boundary_ghost_nodes = set_boundary_ghost_nodes_neumann;
+  }
+  else {
+    // For mixed neumann/dirichlet BCs, just set ghost nodes to dirichlet values and reset boundary fluxes later on
+    // TODO: this does not work for periodic BCs (need to implement those)
+    set_boundary_ghost_nodes = set_boundary_ghost_nodes_dirichlet;
+  }
+
   /* Compute function over the locally owned part of the grid */
   for (int j=info->ys; j<info->ys+info->ym; j++) {
     for (int i=info->xs; i<info->xs+info->xm; i++) {
 
-      set_boundary_ghost_nodes( user , uarray , info->mx , info->my , i , j );
+      (*set_boundary_ghost_nodes)( user , uarray , info->mx , info->my , i , j );
       
       /* Boundary conditions */
       ThirteenPointStencil stencil      = get_thirteen_point_stencil( user , uarray      , info->mx , info->my , i , j );
@@ -166,12 +170,26 @@ PetscScalar** FormLocalRHS_thermal( DMDALocalInfo *info ,
   PetscScalar sx = 1.0 / (hx*hx);
   PetscScalar hy = 1.0 / (PetscReal)(info->my-1);
   PetscScalar sy = 1.0 / (hy*hy);
+
+  // Set boundary node function depending on user-defined BCs
+  void (*set_boundary_ghost_nodes)( AppCtx* , PetscScalar** , PetscInt , PetscInt , PetscInt , PetscInt );
+  if (user->boundary.compare("dirichlet") == 0) {
+    set_boundary_ghost_nodes = set_boundary_ghost_nodes_dirichlet;
+  }
+  else if (user->boundary.compare("neumann") == 0) {
+    set_boundary_ghost_nodes = set_boundary_ghost_nodes_neumann;
+  }
+  else {
+    // For mixed neumann/dirichlet BCs, just set ghost nodes to dirichlet values and reset boundary fluxes later on
+    // TODO: this does not work for periodic BCs (need to implement those)
+    set_boundary_ghost_nodes = set_boundary_ghost_nodes_dirichlet;
+  }
   
   /* Compute function over the locally owned part of the grid */
   for (int j=info->ys; j<info->ys+info->ym; j++) {
     for (int i=info->xs; i<info->xs+info->xm; i++) {
 
-      set_boundary_ghost_nodes( user , Tarray  , info->mx , info->my , i , j );
+      (*set_boundary_ghost_nodes)( user , Tarray  , info->mx , info->my , i , j );
 
       // dT/dt = D_T * laplacian( T ) + S
       

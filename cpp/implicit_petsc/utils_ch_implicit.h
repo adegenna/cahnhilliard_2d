@@ -21,7 +21,10 @@ typedef struct {
   DM        da_c , da_T , pack;
   std::string physics = "ch";       // "ch": CH-only ; "thermal": thermal diffusion only ; "coupled_ch_thermal": coupled thermal-CH solver
   PetscReal c;
-  PetscInt  boundary;            /* Type of boundary condition */
+
+  std::string boundary  = "neumann";
+  PetscReal (*residualFunction)( PetscReal** , PetscReal , PetscReal , PetscInt , PetscInt , PetscInt , PetscInt );
+  
   PetscReal Lx, Ly;            // Length of domain in each direction
   PetscReal t_final;           // Final time of simulation
   PetscReal dirichlet_bc;      // Value of dirichlet bc

@@ -19,7 +19,7 @@
 
 # Boundary conditions
 
--boundary 1
+-boundary neumann
 -dirichlet_bc 0.0
 
 # Temporal scheme

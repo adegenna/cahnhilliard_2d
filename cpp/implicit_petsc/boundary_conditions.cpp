@@ -4,58 +4,58 @@
 #include <stdio.h>
 #include "boundary_conditions.h"
 
-void set_boundary_ghost_nodes( AppCtx* user , PetscScalar** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
+void set_boundary_ghost_nodes_dirichlet( AppCtx* user , PetscScalar** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
   
-  if ( (user->boundary == 0) || (user->boundary == 3) || (user->boundary == 4) ) {
-    // 0: Dirichlet
-    // 3,4: mixed dirichlet-neumann, just fill ghost cells with dirichlet and we will reset boundary residuals later
-    if (i <= 1) {
-      uarray[j][-2] = user->dirichlet_bc;
-      uarray[j][-1] = user->dirichlet_bc;
-    }
-    if (i >= Mx-2) {
-      uarray[j][Mx]   = user->dirichlet_bc;
-      uarray[j][Mx+1] = user->dirichlet_bc;
-    }
-    if (j <= 1) {
-      uarray[-2][i] = user->dirichlet_bc;
-      uarray[-1][i] = user->dirichlet_bc;
-    }
-    if (j >= My-2) {
-      uarray[My][i]   = user->dirichlet_bc;
-      uarray[My+1][i] = user->dirichlet_bc;
-    }
-
+  //if ( (user->boundary == 0) || (user->boundary == 3) || (user->boundary == 4) ) {
+  // 0: Dirichlet
+  // 3,4: mixed dirichlet-neumann, just fill ghost cells with dirichlet and we will reset boundary residuals later
+  if (i <= 1) {
+    uarray[j][-2] = user->dirichlet_bc;
+    uarray[j][-1] = user->dirichlet_bc;
   }
-
-  else if ( user->boundary == 1 ) {
-    // Neumann
-    if (i <= 1) {
-      uarray[j][-2] = uarray[j][2];
-      uarray[j][-1] = uarray[j][1];
-    }
-    if (i >= Mx-2) {
-      uarray[j][Mx]   = uarray[j][Mx-2];
-      uarray[j][Mx+1] = uarray[j][Mx-3];
-    }
-    if (j <= 1) {
-      uarray[-2][i] = uarray[2][i];
-      uarray[-1][i] = uarray[1][i];
-    }
-    if (j >= My-2) {
-      uarray[My][i]   = uarray[My-2][i];
-      uarray[My+1][i] = uarray[My-3][i];
-    }
-
+  if (i >= Mx-2) {
+    uarray[j][Mx]   = user->dirichlet_bc;
+    uarray[j][Mx+1] = user->dirichlet_bc;
   }
-
-  else if ( user->boundary == 2 ) {
-    // Periodic
+  if (j <= 1) {
+    uarray[-2][i] = user->dirichlet_bc;
+    uarray[-1][i] = user->dirichlet_bc;
   }
-
+  if (j >= My-2) {
+    uarray[My][i]   = user->dirichlet_bc;
+    uarray[My+1][i] = user->dirichlet_bc;
+  }
+  
   return;
   
 };
+
+void set_boundary_ghost_nodes_neumann( AppCtx* user , PetscScalar** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
+  
+
+  //else if ( user->boundary == 1 ) {
+  // Neumann
+  if (i <= 1) {
+    uarray[j][-2] = uarray[j][2];
+    uarray[j][-1] = uarray[j][1];
+  }
+  if (i >= Mx-2) {
+    uarray[j][Mx]   = uarray[j][Mx-2];
+    uarray[j][Mx+1] = uarray[j][Mx-3];
+  }
+  if (j <= 1) {
+    uarray[-2][i] = uarray[2][i];
+    uarray[-1][i] = uarray[1][i];
+  }
+  if (j >= My-2) {
+    uarray[My][i]   = uarray[My-2][i];
+    uarray[My+1][i] = uarray[My-3][i];
+  }
+  
+  return;
+  
+};
+
 
 ThirteenPointStencil get_thirteen_point_stencil( AppCtx* user , PetscReal** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
   
@@ -172,6 +172,15 @@ PetscReal reset_boundary_residual_values_for_dirichlet_topandbottom_neumann_rema
 
   return f_ji;
 }
+
+PetscReal compute_residuals_no_explicit_boundary_resets( PetscReal** uarray , PetscReal rhs_ij , PetscReal udot_ij , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
+
+  // Just compute residuals, no resets for boundaries required
+  
+  return udot_ij - rhs_ij;
+
+}
+
 
 
 ThirteenPointStencil apply_dirichlet_bc( AppCtx* user , PetscReal** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {

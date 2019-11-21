@@ -18,7 +18,9 @@ AppCtx parse_petsc_options( ) {
   PetscOptionsGetReal(NULL,NULL,"-Ly",&user.Ly,NULL);
 
   // Boundary conditions
-  PetscOptionsGetInt(NULL,NULL,"-boundary",&user.boundary,NULL);
+  char tempfile_boundary[PETSC_MAX_PATH_LEN];
+  PetscOptionsGetString(NULL,NULL,"-boundary",tempfile_boundary,sizeof(tempfile_boundary),NULL);
+  user.boundary = std::string(tempfile_boundary);
   PetscOptionsGetReal(NULL,NULL,"-dirichlet_bc",&user.dirichlet_bc,NULL);
   
   // Temporal scheme

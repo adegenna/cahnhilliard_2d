@@ -173,17 +173,27 @@ int main(int argc,char **argv) {
   else {
     // Incorrectly specified physics option
     
-    PetscPrintf( PETSC_COMM_WORLD , "physics option specified incorrectly, defaulting to physics=ch ...\n\n" );
+    PetscPrintf( PETSC_COMM_WORLD , "Error: physics option specified incorrectly ...\n\n" );
 
-    user.physics = "ch";
-    
-    da_user = da_c;
-    U_user  = U_c;
-    r_user  = r_c;
-    rhsFunctionImplicit = FormIFunction_CH;
-    rhsFunctionExplicit = FormRHS_CH;
+    return(0);
 
   }
+  
+  /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   Set boundary condition function
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  if ( user.boundary.compare("neumann") == 0 ) // Neumann
+    user.residualFunction = reset_boundary_residual_values_for_neumann_bc;
+
+  else if ( user.boundary.compare("bottom_dirichlet_neumann_remainder") == 0 ) // Bottom dirichlet, rest Neumann
+    user.residualFunction = reset_boundary_residual_values_for_dirichlet_bottom_neumann_remainder_bc;
+
+  else if ( user.boundary.compare("topandbottom_dirichlet_neumann_remainder") == 0 ) // Bottom/top dirichlet, rest Neumann
+    user.residualFunction = reset_boundary_residual_values_for_dirichlet_topandbottom_neumann_remainder_bc;
+      
+  else // Dirichlet or periodic: just compute with ghost nodes
+    user.residualFunction = compute_residuals_no_explicit_boundary_resets;
 
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set time-stepping scheme
@@ -214,17 +224,10 @@ int main(int argc,char **argv) {
   else {
     // Incorrectly specified timestepper option
     
-    PetscPrintf( PETSC_COMM_WORLD , "time_stepper option specified incorrectly, defaulting to time_stepper=implicit ...\n\n" );
+    PetscPrintf( PETSC_COMM_WORLD , "Error: time_stepper option specified incorrectly ...\n\n" );
 
-    user.time_stepper = "implicit";
+    return(0);
     
-    TSSetIFunction( ts , r_user , rhsFunctionImplicit , &user );
-    DMSetMatType( da_user , MATAIJ );
-    DMCreateMatrix( da_user , &J );
-    TSGetSNES( ts , &snes );
-    MatCreateSNESMF( snes , &Jmf );
-    SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
-
   }
 
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
