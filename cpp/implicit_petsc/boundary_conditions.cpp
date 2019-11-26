@@ -6,25 +6,38 @@
 
 void set_boundary_ghost_nodes_dirichlet( AppCtx* user , PetscScalar** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
   
-  //if ( (user->boundary == 0) || (user->boundary == 3) || (user->boundary == 4) ) {
-  // 0: Dirichlet
-  // 3,4: mixed dirichlet-neumann, just fill ghost cells with dirichlet and we will reset boundary residuals later
   if (i <= 1) {
-    uarray[j][-2] = user->dirichlet_bc;
-    uarray[j][-1] = user->dirichlet_bc;
+    uarray[j][-2]   = user->dirichlet_bc;
+    uarray[j][-1]   = user->dirichlet_bc;
+    uarray[j-1][-1] = user->dirichlet_bc;
+    uarray[j-2][-2] = user->dirichlet_bc;
+    uarray[j+1][-1] = user->dirichlet_bc;
+    uarray[j+2][-2] = user->dirichlet_bc;
   }
   if (i >= Mx-2) {
-    uarray[j][Mx]   = user->dirichlet_bc;
-    uarray[j][Mx+1] = user->dirichlet_bc;
+    uarray[j][Mx]     = user->dirichlet_bc;
+    uarray[j][Mx+1]   = user->dirichlet_bc;
+    uarray[j-1][Mx]   = user->dirichlet_bc;
+    uarray[j-2][Mx+1] = user->dirichlet_bc;
+    uarray[j+1][Mx]   = user->dirichlet_bc;
+    uarray[j+2][Mx+1] = user->dirichlet_bc;
   }
   if (j <= 1) {
-    uarray[-2][i] = user->dirichlet_bc;
-    uarray[-1][i] = user->dirichlet_bc;
+    uarray[-2][i]   = user->dirichlet_bc;
+    uarray[-1][i]   = user->dirichlet_bc;
+    uarray[-1][i-1] = user->dirichlet_bc;
+    uarray[-2][i-2] = user->dirichlet_bc;
+    uarray[-1][i+1] = user->dirichlet_bc;
+    uarray[-2][i+2] = user->dirichlet_bc;
   }
   if (j >= My-2) {
-    uarray[My][i]   = user->dirichlet_bc;
-    uarray[My+1][i] = user->dirichlet_bc;
-  }
+    uarray[My][i]     = user->dirichlet_bc;
+    uarray[My+1][i]   = user->dirichlet_bc;
+    uarray[My][i-1]   = user->dirichlet_bc;
+    uarray[My+1][i-2] = user->dirichlet_bc;
+    uarray[My][i+1]   = user->dirichlet_bc;
+    uarray[My+1][i+2] = user->dirichlet_bc;
+  }  
   
   return;
   
@@ -32,9 +45,6 @@ void set_boundary_ghost_nodes_dirichlet( AppCtx* user , PetscScalar** uarray , P
 
 void set_boundary_ghost_nodes_neumann( AppCtx* user , PetscScalar** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
   
-
-  //else if ( user->boundary == 1 ) {
-  // Neumann
   if (i <= 1) {
     uarray[j][-2] = uarray[j][2];
     uarray[j][-1] = uarray[j][1];
