@@ -10,28 +10,57 @@ void set_boundary_ghost_nodes( AppCtx* user , PetscScalar*** uarray , PetscInt M
     // 0: Dirichlet
     // 3,4: mixed dirichlet-neumann, just fill ghost cells with dirichlet and we will reset boundary residuals later
     if (i <= 1) {
-      uarray[k][j][-2] = user->dirichlet_bc;
-      uarray[k][j][-1] = user->dirichlet_bc;
+      for (int kk = k-2 ; kk <= k+2 ; kk++) {
+        for (int jj = j-2 ; jj <= j+2 ; jj++) {
+          uarray[kk][jj][-1] = user->dirichlet_bc;
+          uarray[kk][jj][-2] = user->dirichlet_bc;
+        }      
+      }
     }
-    if (i >= Mx-2) {
-      uarray[k][j][Mx]   = user->dirichlet_bc;
-      uarray[k][j][Mx+1] = user->dirichlet_bc;
+      
+    else if (i >= Mx-2) {
+      for (int kk = k-2 ; kk <= k+2 ; kk++) {
+        for (int jj = j-2 ; jj <= j+2 ; jj++) {
+          uarray[kk][jj][Mx]   = user->dirichlet_bc;
+          uarray[kk][jj][Mx+1] = user->dirichlet_bc;
+        }
+      }
     }
+    
     if (j <= 1) {
-      uarray[k][-2][i] = user->dirichlet_bc;
-      uarray[k][-1][i] = user->dirichlet_bc;
+      for (int kk = k-2 ; kk <= k+2 ; kk++) {
+        for (int ii = i-2 ; ii <= i+2 ; ii++) {
+          uarray[kk][-2][ii] = user->dirichlet_bc;
+          uarray[kk][-1][ii] = user->dirichlet_bc;
+        }
+      }
     }
-    if (j >= My-2) {
-      uarray[k][My][i]   = user->dirichlet_bc;
-      uarray[k][My+1][i] = user->dirichlet_bc;
+    
+    else if (j >= My-2) {
+      for (int kk = k-2 ; kk <= k+2 ; kk++) {
+        for (int ii = i-2 ; ii <= i+2 ; ii++) {
+          uarray[kk][My][ii]   = user->dirichlet_bc;
+          uarray[kk][My+1][ii] = user->dirichlet_bc;
+        }
+      }
     }
+    
     if (k <= 1) {
-      uarray[-1][j][i] = user->dirichlet_bc;
-      uarray[-2][j][i] = user->dirichlet_bc;
+      for (int jj = j-2 ; jj <= j+2 ; jj++) {
+        for (int ii = i-2 ; ii <= i+2 ; ii++) {
+          uarray[-1][jj][ii] = user->dirichlet_bc;
+          uarray[-2][jj][ii] = user->dirichlet_bc;
+        }      
+      }
     }
-    if (k >= Mz-2) {
-      uarray[Mz][j][i]   = user->dirichlet_bc;
-      uarray[Mz+1][j][i] = user->dirichlet_bc;
+    
+    else if (k >= Mz-2) {
+      for (int jj = j-2 ; jj <= j+2 ; jj++) {
+        for (int ii = i-2 ; ii <= i+2 ; ii++) {
+          uarray[Mz][jj][ii]   = user->dirichlet_bc;
+          uarray[Mz+1][jj][ii] = user->dirichlet_bc;
+        }
+      }
     }
 
   }

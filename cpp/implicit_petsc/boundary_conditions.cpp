@@ -5,38 +5,35 @@
 #include "boundary_conditions.h"
 
 void set_boundary_ghost_nodes_dirichlet( AppCtx* user , PetscScalar** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
-  
+
+  // Set three points around center in ghost regions
+
   if (i <= 1) {
-    uarray[j][-2]   = user->dirichlet_bc;
-    uarray[j][-1]   = user->dirichlet_bc;
-    uarray[j-1][-1] = user->dirichlet_bc;
-    uarray[j-2][-2] = user->dirichlet_bc;
-    uarray[j+1][-1] = user->dirichlet_bc;
-    uarray[j+2][-2] = user->dirichlet_bc;
+    for (int jj = j-2 ; jj <= j+2 ; jj++) {
+      uarray[jj][-1] = user->dirichlet_bc;
+      uarray[jj][-2] = user->dirichlet_bc;
+    }
   }
-  if (i >= Mx-2) {
-    uarray[j][Mx]     = user->dirichlet_bc;
-    uarray[j][Mx+1]   = user->dirichlet_bc;
-    uarray[j-1][Mx]   = user->dirichlet_bc;
-    uarray[j-2][Mx+1] = user->dirichlet_bc;
-    uarray[j+1][Mx]   = user->dirichlet_bc;
-    uarray[j+2][Mx+1] = user->dirichlet_bc;
+
+  else if (i >= Mx-2) {
+    for (int jj = j-2 ; jj <= j+2 ; jj++) {
+      uarray[jj][Mx]   = user->dirichlet_bc;
+      uarray[jj][Mx+1] = user->dirichlet_bc;
+    }
   }
+    
   if (j <= 1) {
-    uarray[-2][i]   = user->dirichlet_bc;
-    uarray[-1][i]   = user->dirichlet_bc;
-    uarray[-1][i-1] = user->dirichlet_bc;
-    uarray[-2][i-2] = user->dirichlet_bc;
-    uarray[-1][i+1] = user->dirichlet_bc;
-    uarray[-2][i+2] = user->dirichlet_bc;
+    for (int ii = i-2 ; ii <= i+2 ; ii++) {
+      uarray[-1][ii] = user->dirichlet_bc;
+      uarray[-2][ii] = user->dirichlet_bc;
+    }    
   }
-  if (j >= My-2) {
-    uarray[My][i]     = user->dirichlet_bc;
-    uarray[My+1][i]   = user->dirichlet_bc;
-    uarray[My][i-1]   = user->dirichlet_bc;
-    uarray[My+1][i-2] = user->dirichlet_bc;
-    uarray[My][i+1]   = user->dirichlet_bc;
-    uarray[My+1][i+2] = user->dirichlet_bc;
+  
+  else if (j >= My-2) {
+    for (int ii = i-2 ; ii <= i+2 ; ii++) {
+      uarray[My][ii]   = user->dirichlet_bc;
+      uarray[My+1][ii] = user->dirichlet_bc;
+    }    
   }  
   
   return;
