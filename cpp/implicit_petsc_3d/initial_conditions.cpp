@@ -1,8 +1,6 @@
 #include "initial_conditions.h"
 #include "temperature_dependence.h"
 #include <stdio.h>
-#include <iostream>
-#include <fstream>
 #include <petscviewerhdf5.h>
 
 PetscErrorCode FormInitialSolution(Vec U , Vec Temperature , void *ptr)
@@ -33,9 +31,6 @@ PetscErrorCode FormInitialSolution(Vec U , Vec Temperature , void *ptr)
 
   // Interior
   PetscViewer viewer_T , viewer_U;
-  MPI_Comm comm = PETSC_COMM_WORLD;
-  PetscViewer    viewer_out;
-  PetscViewerCreate( comm , &viewer_out );
   PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_temperature_file.c_str() , FILE_MODE_READ , &viewer_T );
   PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_soln_file.c_str()        , FILE_MODE_READ , &viewer_U );
   VecLoad( Temperature , viewer_T );

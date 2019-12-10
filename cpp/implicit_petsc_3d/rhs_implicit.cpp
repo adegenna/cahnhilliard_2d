@@ -21,8 +21,8 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
   PetscFunctionBeginUser;
   
   DMGetLocalVector(da,&localU);
-  DMGetLocalVector(da,&localUdot);
-  DMGetLocalVector(da,&localF);
+  // DMGetLocalVector(da,&localUdot);
+  // DMGetLocalVector(da,&localF);
   DMGetLocalVector(da,&local_eps_2);
   DMGetLocalVector(da,&local_sigma);
   
@@ -42,18 +42,18 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
   
   DMGlobalToLocalBegin(da,U,INSERT_VALUES,localU);
   DMGlobalToLocalEnd(da,U,INSERT_VALUES,localU);
-  DMGlobalToLocalBegin(da,Udot,INSERT_VALUES,localUdot);
-  DMGlobalToLocalEnd(da,Udot,INSERT_VALUES,localUdot);
-  DMGlobalToLocalBegin(da,F,INSERT_VALUES,localF);
-  DMGlobalToLocalEnd(da,F,INSERT_VALUES,localF);
+  // DMGlobalToLocalBegin(da,Udot,INSERT_VALUES,localUdot);
+  // DMGlobalToLocalEnd(da,Udot,INSERT_VALUES,localUdot);
+  // DMGlobalToLocalBegin(da,F,INSERT_VALUES,localF);
+  // DMGlobalToLocalEnd(da,F,INSERT_VALUES,localF);
   DMGlobalToLocalBegin(da,user->eps_2,INSERT_VALUES,local_eps_2);
   DMGlobalToLocalEnd(da,user->eps_2,INSERT_VALUES,local_eps_2);
   DMGlobalToLocalBegin(da,user->sigma,INSERT_VALUES,local_sigma);
   DMGlobalToLocalEnd(da,user->sigma,INSERT_VALUES,local_sigma);
   
   DMDAVecGetArrayRead(da,localU,&uarray);
-  DMDAVecGetArray(da,localUdot,&udot);
-  DMDAVecGetArray(da,localF,&f);  
+  DMDAVecGetArray(da,Udot,&udot);
+  DMDAVecGetArray(da,F,&f);  
   DMDAVecGetArrayRead(da,local_eps_2,&eps_2_array);
   DMDAVecGetArrayRead(da,local_sigma,&sigma_array);
 
@@ -123,19 +123,197 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
   }
   /* Restore vectors */
   DMDAVecRestoreArrayRead(da,localU,&uarray);
-  DMDAVecRestoreArray(da,localUdot,&udot);
-  DMDAVecRestoreArray(da,localF,&f);
+  DMDAVecRestoreArray(da,Udot,&udot);
+  DMDAVecRestoreArray(da,F,&f);
   DMDAVecRestoreArrayRead(da,local_eps_2,&eps_2_array);
   DMDAVecRestoreArrayRead(da,local_sigma,&sigma_array);
 
+  // DMLocalToGlobalBegin( da , localF , INSERT_VALUES , F );
+  // DMLocalToGlobalEnd(   da , localF , INSERT_VALUES , F );
+  
+  DMRestoreLocalVector(da,&localU);
+  // DMRestoreLocalVector(da,&localUdot);
+  // DMRestoreLocalVector(da,&localF);
+  DMRestoreLocalVector(da,&local_eps_2);
+  DMRestoreLocalVector(da,&local_sigma);
+  
+  PetscFunctionReturn(0);
+
+}
+
+
+PetscScalar*** FormLocalImplicitResidualTEST( DMDALocalInfo *info ,
+					      PetscScalar ***uarray ,
+					      PetscScalar ***f , 
+					      PetscScalar ***udot ,
+					      PetscScalar ***rhs ,
+					      AppCtx *user ) {
+
+  PetscScalar rhs_ijk;
+
+  for ( int k = info->zs ; k < info->zs+info->zm ; k++ ) {
+    for ( int j = info->ys ; j < info->ys+info->ym ; j++ ) {
+      for ( int i = info->xs ; i < info->xs+info->xm ; i++ ) {
+	rhs_ijk    = -1.0 * uarray[k][j][i];	
+	f[k][j][i] = udot[k][j][i] - rhs_ijk;
+      }
+    }
+  }
+  
+  return f;
+
+}
+
+PetscScalar*** FormLocalRHSTEST( DMDALocalInfo *info ,
+				PetscScalar ***uarray ,
+				PetscScalar ***rhs , 
+				AppCtx *user ) {
+
+  for ( int k = info->zs ; k < info->zs+info->zm ; k++ ) {
+    for ( int j = info->ys ; j < info->ys+info->ym ; j++ ) {
+      for ( int i = info->xs ; i < info->xs+info->xm ; i++ ) {
+	rhs[k][j][i]    = -1.0 * uarray[k][j][i];	
+      }
+    }
+  }
+  
+  return rhs;
+
+}
+
+
+PetscErrorCode FormIFunctionTEST(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
+
+  // Computes residual F = Udot - RHSFunction
+
+  PetscErrorCode ierr;
+  AppCtx         *user=(AppCtx*)ctx;
+  DM             da   = (DM)user->da;
+  PetscInt       i,j,k,Mx,My,Mz,xs,ys,zs,xm,ym,zm;
+  PetscScalar      hx,hy,hz,sx,sy,sz;
+  PetscScalar    u,***uarray,***f,***udot, ***eps_2_array, ***sigma_array;
+  Vec            localU, localUdot, localF, local_eps_2, local_sigma;
+  PetscScalar l_i,l_ip1,l_im1,l_jp1,l_jm1,l_km1,l_kp1;
+  PetscScalar dxx,dyy,dzz,rhs_ijk;
+  PetscScalar q_im1,q_ip1,q_jm1,q_jp1,q_km1,q_kp1,q_0;
+  PetscScalar sigma,m,eps_2;
+
+  PetscFunctionBeginUser;
+  
+  DMGetLocalVector(da,&localU);
+  // DMGetLocalVector(da,&localUdot);
+  // DMGetLocalVector(da,&localF);
+  
+  DMDAGetInfo( da ,
+               PETSC_IGNORE,
+               &Mx , &My , &Mz ,
+               PETSC_IGNORE , PETSC_IGNORE , PETSC_IGNORE ,
+               PETSC_IGNORE ,
+               PETSC_IGNORE ,
+               PETSC_IGNORE , PETSC_IGNORE , PETSC_IGNORE ,
+               PETSC_IGNORE );
+  
+  DMGlobalToLocalBegin(da,U,INSERT_VALUES,localU);
+  DMGlobalToLocalEnd(da,U,INSERT_VALUES,localU);
+  // DMGlobalToLocalBegin(da,Udot,INSERT_VALUES,localUdot);
+  // DMGlobalToLocalEnd(da,Udot,INSERT_VALUES,localUdot);
+  // DMGlobalToLocalBegin(da,F,INSERT_VALUES,localF);
+  // DMGlobalToLocalEnd(da,F,INSERT_VALUES,localF);
+  
+  DMDAVecGetArrayRead(da,localU,&uarray);
+  DMDAVecGetArray(da,Udot,&udot);
+  DMDAVecGetArray(da,F,&f);  
+  
+  DMDAGetCorners( da ,
+                  &xs , &ys , &zs ,
+                  &xm , &ym , &zm );
+  
+  /* Compute function over the locally owned part of the grid */
+  for ( k = zs ; k < zs+zm ; k++ ) {
+    for ( j = ys ; j < ys+ym ; j++ ) {
+      for ( i = xs ; i < xs+xm ; i++ ) {
+	rhs_ijk  = -1.0 * uarray[k][j][i];	
+	f[k][j][i] = udot[k][j][i] - rhs_ijk;
+      }
+    }
+  }
+  /* Restore vectors */
+  DMDAVecRestoreArrayRead(da,localU,&uarray);
+  DMDAVecRestoreArray(da,Udot,&udot);
+  DMDAVecRestoreArray(da,F,&f);
+  
+  // DMLocalToGlobalBegin( da , localF , INSERT_VALUES , F );
+  // DMLocalToGlobalEnd(   da , localF , INSERT_VALUES , F );
+  
+  DMRestoreLocalVector(da,&localU);
+  // DMRestoreLocalVector(da,&localUdot);
+  // DMRestoreLocalVector(da,&localF);
+  
+  PetscFunctionReturn(0);
+
+}
+
+
+PetscErrorCode FormRHSTEST(TS ts,PetscReal t,Vec U,Vec F,void *ctx) {
+
+  // Computes F = RHSfunction
+  
+  PetscErrorCode ierr;
+  AppCtx         *user=(AppCtx*)ctx;
+  DM             da   = (DM)user->da;
+  PetscInt       i,j,k,Mx,My,Mz,xs,ys,zs,xm,ym,zm;
+  PetscScalar      hx,hy,hz,sx,sy,sz;
+  PetscScalar    u,***uarray,***f,***eps_2_array, ***sigma_array;
+  Vec            localU, localF, local_eps_2, local_sigma;
+  PetscScalar l_i,l_ip1,l_im1,l_jp1,l_jm1,l_km1,l_kp1;
+  PetscScalar dxx,dyy,dzz;
+  PetscScalar q_im1,q_ip1,q_jm1,q_jp1,q_km1,q_kp1,q_0;
+  PetscScalar sigma,m,eps_2;
+
+  PetscFunctionBeginUser;
+  
+  DMGetLocalVector(da,&localU);
+  DMGetLocalVector(da,&localF);
+  
+  DMDAGetInfo( da ,
+               PETSC_IGNORE,
+               &Mx , &My , &Mz ,
+               PETSC_IGNORE , PETSC_IGNORE , PETSC_IGNORE ,
+               PETSC_IGNORE ,
+               PETSC_IGNORE ,
+               PETSC_IGNORE , PETSC_IGNORE , PETSC_IGNORE ,
+               PETSC_IGNORE );
+  
+  DMGlobalToLocalBegin(da,U,INSERT_VALUES,localU);
+  DMGlobalToLocalEnd(da,U,INSERT_VALUES,localU);
+  DMGlobalToLocalBegin(da,F,INSERT_VALUES,localF);
+  DMGlobalToLocalEnd(da,F,INSERT_VALUES,localF);
+  
+  DMDAVecGetArrayRead(da,localU,&uarray);
+  DMDAVecGetArray(da,localF,&f);  
+  
+  DMDAGetCorners( da ,
+                  &xs , &ys , &zs ,
+                  &xm , &ym , &zm );
+  
+  /* Compute function over the locally owned part of the grid */
+  for ( k = zs ; k < zs+zm ; k++ ) {
+    for ( j = ys ; j < ys+ym ; j++ ) {
+      for ( i = xs ; i < xs+xm ; i++ ) {
+	f[k][j][i]  = -1.0 * uarray[k][j][i];	
+      }
+    }
+  }
+
+  /* Restore vectors */
+  DMDAVecRestoreArrayRead(da,localU,&uarray);
+  DMDAVecRestoreArray(da,localF,&f);
+  
   DMLocalToGlobalBegin( da , localF , INSERT_VALUES , F );
   DMLocalToGlobalEnd(   da , localF , INSERT_VALUES , F );
   
   DMRestoreLocalVector(da,&localU);
-  DMRestoreLocalVector(da,&localUdot);
   DMRestoreLocalVector(da,&localF);
-  DMRestoreLocalVector(da,&local_eps_2);
-  DMRestoreLocalVector(da,&local_sigma);
   
   PetscFunctionReturn(0);
 
