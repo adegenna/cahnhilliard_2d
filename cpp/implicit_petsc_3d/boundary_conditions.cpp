@@ -4,6 +4,44 @@
 #include <stdio.h>
 #include "boundary_conditions.h"
 
+void set_boundary_ghost_nodes_normal_extrapolation(  AppCtx* user , PetscScalar*** uarray , PetscInt Mx , PetscInt My , PetscInt Mz , PetscInt i , PetscInt j , PetscInt k ) {
+
+  // Extrapolate out in the normal direction to fill ghost node layers
+  // WARNING: this does NOT fill in any of the corner points and hence this method should
+  // only be used for boundary conditions where a "star" stencil is needed for uarray (NOT a "box")
+  
+  if (i <= 1) {
+    uarray[k][j][-1] = 2 * uarray[k][j][0] - uarray[k][j][1];
+    uarray[k][j][-2] = 3 * uarray[k][j][0] - 2 * uarray[k][j][1];
+  }
+  
+  else if (i >= Mx-2) {
+    uarray[k][j][Mx]   = 2 * uarray[k][j][Mx-1] - uarray[k][j][Mx-2];
+    uarray[k][j][Mx+1] = 3 * uarray[k][j][Mx-1] - 2 * uarray[k][j][Mx-2];
+  }
+  
+  if (j <= 1) {
+    uarray[k][-1][i] = 2 * uarray[k][0][i] - uarray[k][1][i];
+    uarray[k][-2][i] = 3 * uarray[k][0][i] - 2 * uarray[k][1][i];    
+  }
+  
+  else if (j >= My-2) {
+    uarray[k][My][i]   = 2 * uarray[k][My-1][i] - uarray[k][My-2][i];
+    uarray[k][My+1][i] = 3 * uarray[k][My-1][i] - 2 * uarray[k][My-2][i];
+  }
+  
+  if (k <= 1) {
+    uarray[-1][j][i] = 2 * uarray[0][j][i] - uarray[1][j][i];
+    uarray[-2][j][i] = 3 * uarray[0][j][i] - 2 * uarray[1][j][i];
+  }
+  
+  else if (k >= Mz-2) {
+    uarray[Mz][j][i]   = 2 * uarray[Mz-1][j][i] - uarray[Mz-2][j][i];
+    uarray[Mz+1][j][i] = 3 * uarray[Mz-1][j][i] - 2 * uarray[Mz-2][j][i];
+  }
+
+};
+
 void set_boundary_ghost_nodes( AppCtx* user , PetscScalar*** uarray , PetscInt Mx , PetscInt My , PetscInt Mz , PetscInt i , PetscInt j , PetscInt k ) {
   
   if ( (user->boundary == 0) || (user->boundary == 3) || (user->boundary == 4) ) {

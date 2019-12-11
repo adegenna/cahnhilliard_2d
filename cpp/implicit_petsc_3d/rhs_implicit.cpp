@@ -60,13 +60,23 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx) {
   DMDAGetCorners( da ,
                   &xs , &ys , &zs ,
                   &xm , &ym , &zm );
-  
-  /* Compute function over the locally owned part of the grid */
+
+  // Set boundary ghost nodes for eps_2 and U
   for ( k = zs ; k < zs+zm ; k++ ) {
     for ( j = ys ; j < ys+ym ; j++ ) {
       for ( i = xs ; i < xs+xm ; i++ ) {
 
         set_boundary_ghost_nodes( user , uarray , Mx , My , Mz , i , j , k );
+        set_boundary_ghost_nodes_normal_extrapolation( user , eps_2_array , Mx , My , Mz , i , j , k );
+
+      }
+    }
+  }
+        
+  /* Compute function over the locally owned part of the grid */
+  for ( k = zs ; k < zs+zm ; k++ ) {
+    for ( j = ys ; j < ys+ym ; j++ ) {
+      for ( i = xs ; i < xs+xm ; i++ ) {
 	
         // dc/dt = laplacian( c^3 - c ) - laplacian( eps_2 * laplacian(c) ) - sigma*(c - m)
         sigma = sigma_array[k][j][i];

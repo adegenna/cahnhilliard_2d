@@ -5,6 +5,8 @@
 
 void set_boundary_ghost_nodes( AppCtx* user , PetscScalar*** uarray , PetscInt Mx , PetscInt My , PetscInt Mz , PetscInt i , PetscInt j , PetscInt k );
 
+void set_boundary_ghost_nodes_normal_extrapolation(  AppCtx* user , PetscScalar*** uarray , PetscInt Mx , PetscInt My , PetscInt Mz , PetscInt i , PetscInt j , PetscInt k );
+
 PetscReal reset_boundary_residual_values_for_neumann_bc( PetscReal*** uarray ,
 							 PetscReal rhs_ijk ,
 							 PetscReal udot_ijk ,
