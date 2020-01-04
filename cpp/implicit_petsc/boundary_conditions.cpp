@@ -40,6 +40,38 @@ void set_boundary_ghost_nodes_dirichlet( AppCtx* user , PetscScalar** uarray , P
   
 };
 
+void set_boundary_ghost_nodes_dirichlet_singleframe( AppCtx* user , PetscScalar** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
+
+  // Set three points around center in ghost regions
+
+  if (i == 0) {
+    for (int jj = j-1 ; jj <= j+1 ; jj++) {
+      uarray[jj][-1] = user->dirichlet_bc;
+    }
+  }
+
+  else if (i == Mx-1) {
+    for (int jj = j-1 ; jj <= j+1 ; jj++) {
+      uarray[jj][Mx]   = user->dirichlet_bc;
+    }
+  }
+    
+  if (j == 0) {
+    for (int ii = i-1 ; ii <= i+1 ; ii++) {
+      uarray[-1][ii] = user->dirichlet_bc;
+    }    
+  }
+  
+  else if (j == My-1) {
+    for (int ii = i-1 ; ii <= i+1 ; ii++) {
+      uarray[My][ii]   = user->dirichlet_bc;
+    }    
+  }  
+  
+  return;
+  
+};
+
 void set_boundary_ghost_nodes_neumann( AppCtx* user , PetscScalar** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
   
   if (i <= 1) {
@@ -187,8 +219,6 @@ PetscReal compute_residuals_no_explicit_boundary_resets( PetscReal** uarray , Pe
   return udot_ij - rhs_ij;
 
 }
-
-
 
 ThirteenPointStencil apply_dirichlet_bc( AppCtx* user , PetscReal** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
 

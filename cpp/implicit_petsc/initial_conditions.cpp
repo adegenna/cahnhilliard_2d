@@ -37,7 +37,7 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   hy = 1.0/(PetscReal)(My-1);
 
   // Load initial concentration and temperature from file
-  PetscViewer viewer_T , viewer_Tsource , viewer_U;
+  PetscViewer viewer_T , viewer_U , viewer_Tsource; 
   MPI_Comm comm = PETSC_COMM_WORLD;
   PetscViewer    viewer_out;
   PetscViewerCreate( comm , &viewer_out );
@@ -50,7 +50,7 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   PetscViewerDestroy(&viewer_T);
   PetscViewerDestroy(&viewer_Tsource);
   PetscViewerDestroy(&viewer_U);
-
+  
   DMCompositeRestoreAccess( pack , U , &U_c , &U_T );
   
   // Compute temperature-dependent polymer limiters

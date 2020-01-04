@@ -42,4 +42,25 @@ PetscErrorCode FormIFunction_CH_coupled(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,v
 
 PetscErrorCode FormIFunction_thermal(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx);
 
+// FUNCTIONS FOR THE SPLIT-CH SOLVER
+
+PetscErrorCode FormRHS_CH_split(TS ts,PetscReal t,Vec U,Vec F,void *ctx);
+
+PetscScalar** FormLocalRHS_CH_split_c( DMDALocalInfo *info ,
+                                       PetscScalar **uarray ,
+                                       PetscScalar **phiarray ,
+                                       PetscScalar **rhs ,
+                                       PetscScalar **sigma_array ,
+                                       AppCtx *user );
+
+PetscScalar** FormLocalRHS_CH_split_phi( DMDALocalInfo *info ,
+                                         PetscScalar **uarray ,
+                                         PetscScalar **rhs ,
+                                         PetscScalar **eps2_array ,
+                                         AppCtx *user );
+
+PetscErrorCode FormIFunction_CH_split(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx);
+
+
+
 #endif

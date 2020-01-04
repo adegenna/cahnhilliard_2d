@@ -18,7 +18,7 @@ class ThirteenPointStencil {
 
 /* AppCtx: used by FormIFunction() and FormIJacobian() */
 typedef struct {
-  DM        da_c , da_T , pack;
+  DM        da_c , da_phi , da_T , pack;
   std::string physics = "ch";       // "ch": CH-only ; "thermal": thermal diffusion only ; "coupled_ch_thermal": coupled thermal-CH solver
   PetscReal c;
 
