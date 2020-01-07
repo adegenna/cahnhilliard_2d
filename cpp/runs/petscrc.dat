@@ -15,18 +15,21 @@
 # CH parameters
 -CH_m 0.1
 -D_T 0.00001
--physics coupled_ch_thermal
+# -D_T 10.0
+-physics ch
 
 # Boundary conditions
 
--boundary neumann
--dirichlet_bc 0.0
+-boundary dirichlet
+-dirichlet_bc -1.0
+-dirichlet_bc_thermal 0.1
 
 # Temporal scheme
 
--time_stepper explicit
--dt 0.001
--ts_type arkimex
+-time_stepper implicit
+-dt 0.00001
+-ts_type beuler
+# -ts_type arkimex
 -ts_adapt_type basic
 -ts_adapt_dt_max 0.1
 -ts_max_snes_failures -1
@@ -37,15 +40,15 @@
 # Petsc solver options
 
 ## GMRES SETTINGS
-# -pc_type asm
-# -ksp_type gmres
+-pc_type asm
+-ksp_type gmres
 
 ## MULTIGRID SETTINGS
--pc_type gamg
--ksp_type fgmres
--mg_levels_pc_type asm
--mg_levels_ksp_type richardson
--mg_levels_ksp_max_it 1
+# -pc_type gamg
+# -ksp_type fgmres
+# -mg_levels_pc_type asm
+# -mg_levels_ksp_type richardson
+# -mg_levels_ksp_max_it 1
 
 ## COMMON SOLVER SETTINGS
 -ksp_gmres_restart 200
@@ -59,8 +62,8 @@
 -ts_monitor
 -ts_monitor_draw_solution
 # -log_view :log.out
-# -ts_monitor_lg_snes_iterations
-# -ts_monitor_lg_ksp_iterations
+-ts_monitor_lg_snes_iterations
+-ts_monitor_lg_ksp_iterations
 # -snes_monitor
 # -ksp_monitor
 # -snes_linesearch_monitor

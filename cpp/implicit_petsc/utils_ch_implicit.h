@@ -16,6 +16,8 @@ class ThirteenPointStencil {
 
 };
 
+DM createLinkedDA_starStencil2D( DM da_base , std::string fieldname );
+
 /* AppCtx: used by FormIFunction() and FormIJacobian() */
 typedef struct {
   DM        da_c , da_phi , da_T , pack;
@@ -28,10 +30,13 @@ typedef struct {
   PetscReal Lx, Ly;            // Length of domain in each direction
   PetscReal t_final;           // Final time of simulation
   PetscReal dirichlet_bc;      // Value of dirichlet bc
+  PetscReal dirichlet_bc_thermal;      // Value of dirichlet bc for thermal equation
   PetscReal dt_check;          // Value of time increment where you change the parameters/temperature
   PetscInt  dt_counter = 0;    // Counter that keeps track of how many dt_check have gone by so far
   PetscReal dt_output;         // Value of time increment where you change the parameters/temperature
   PetscInt  dt_output_counter = 0;   // Counter that keeps track of how many dt_output have gone by so far
+  PetscReal dt_thermal_reset    = 0.001; // Value of time increment where you recalculate thermal properties
+  PetscInt  dt_thermal_counter  = 0;     // Counter that keeps track of how many dt_thermal_reset have gone by so far
   std::string time_stepper    = "implicit";   // "implicit" or "explicit"
   PetscScalar dt          = 0.005;   // Default dt
 

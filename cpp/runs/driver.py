@@ -50,7 +50,8 @@ def generate_quarter_circle_laser_path( amp , nx , ny , num_changes ):
     th          = np.linspace( 0.75 * np.pi , 1.75*np.pi , num_changes )
     T_x         = nx * ( 1 + 0.75 * np.cos( th ) )
     T_y         = ny * ( 1 + 0.75 * np.sin( th ) )
-    sigma_temp  = 128./2.
+    #sigma_temp  = 128./2.
+    sigma_temp  = 128./8.
     T_sigma     = sigma_temp * np.ones( num_changes )
     
     return T_amp , T_x , T_y , T_sigma
@@ -74,16 +75,27 @@ def main():
     #T_amp , T_x , T_y , T_sigma = generate_const_global_temperature( 0.5 , settings.nx , settings.ny , num_changes )
 
     # Write initial temperature field to disk for petsc
-    initial_T      = 1.0 * np.ones( settings.nx * settings.ny )
+    x              = np.arange( settings.nx )
+    y              = np.arange( settings.ny )
+    xx,yy          = np.meshgrid( x , y )
+    initial_T      = 0.7 * np.ones( settings.nx * settings.ny )
+    #initial_T      = np.maximum( initial_T , 0.5 )
     initial_T_file = 'initial_temperature.ascii'
     np.savetxt( initial_T_file , initial_T , fmt='%1.8f' )
-    os.system( './preprocess petscrc.dat ' + initial_T_file )
+    os.system( '../build/preprocess petscrc.dat ' + initial_T_file )
+
+    # Write initial temperature source field to disk for petsc
+    initial_Tsource      = np.zeros( settings.nx * settings.ny )
+    #initial_Tsource      = np.maximum( initial_Tsource , 0.1 )
+    initial_Tsource_file = 'initial_temperature_source.ascii'
+    np.savetxt( initial_Tsource_file , initial_Tsource , fmt='%1.8f' )
+    os.system( '../build/preprocess petscrc.dat ' + initial_Tsource_file )
     
     # Write the initial solution field to disk for petsc
     initial_U      = 0.005 * ( 2.0 * np.random.uniform(0,1,settings.nx*settings.ny) - 1.0 )
     initial_U_file = 'initial_soln.ascii'
     np.savetxt( initial_U_file , initial_U , fmt='%1.8f' )
-    os.system( './preprocess petscrc.dat ' + initial_U_file )
+    os.system( '../build/preprocess petscrc.dat ' + initial_U_file )
 
     # Run solver
     count = 0

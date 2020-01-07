@@ -14,16 +14,17 @@ if (OPENMP_FOUND)
 endif()
 
 # Set paths to external library files here
-set( MPI_LIBRARIES "/home/adegennaro/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/lib/libmpi.so" )
+set( MPI_LIBRARIES "/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/lib/libmpi.so" )
 message( STATUS "MPI_LIBRARIES ${MPI_LIBRARIES}")
-set( HDF5_LIBRARIES "/home/adegennaro/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/lib/libhdf5.so" )
+set( HDF5_LIBRARIES "/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/lib/libhdf5.so" )
 message( STATUS "HDF5_LIBRARIES ${HDF5_LIBRARIES}")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release")
+  # set(CMAKE_BUILD_TYPE "Release")
+  set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
 add_definitions( -DSRCDIR=\"${CMAKE_SOURCE_DIR}/\")
@@ -209,3 +210,44 @@ target_link_libraries( preprocess_3d
 #   DEPENDS "${CMAKE_SOURCE_DIR}/build/jfnk_2d"
 #   )
 
+#############################################
+# PETSc ex15
+#############################################
+
+add_executable( ex15
+  implicit_petsc/ex15.cpp
+)
+
+add_dependencies( ex15 petsc_external )
+
+target_link_libraries( ex15
+  m
+  ${MPI_LIBRARIES}
+  ${HDF5_LIBRARIES}
+  ${PETSC_LIBRARIES}
+)
+
+
+
+#############################################
+# Petsc-2D implicit solver
+#############################################
+
+add_executable( ch2d_split
+  implicit_petsc/ch2d_split.cpp
+  implicit_petsc/utils_ch_implicit.cpp
+  implicit_petsc/boundary_conditions.cpp
+  implicit_petsc/initial_conditions.cpp
+  implicit_petsc/rhs_implicit.cpp
+  implicit_petsc/petsc_event_handling.cpp
+  implicit_petsc/temperature_dependence.cpp
+)
+
+add_dependencies(ch2d_split petsc_external)
+
+target_link_libraries( ch2d_split
+  m
+  ${MPI_LIBRARIES}
+  ${HDF5_LIBRARIES}
+  ${PETSC_LIBRARIES}
+)

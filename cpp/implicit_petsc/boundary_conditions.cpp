@@ -72,6 +72,38 @@ void set_boundary_ghost_nodes_dirichlet_singleframe( AppCtx* user , PetscScalar*
   
 };
 
+void set_boundary_ghost_nodes_dirichlet_singleframe_thermal( AppCtx* user , PetscScalar** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
+
+  // Set three points around center in ghost regions, using thermal dirichlet bc
+
+  if (i == 0) {
+    for (int jj = j-1 ; jj <= j+1 ; jj++) {
+      uarray[jj][-1] = user->dirichlet_bc_thermal;
+    }
+  }
+
+  else if (i == Mx-1) {
+    for (int jj = j-1 ; jj <= j+1 ; jj++) {
+      uarray[jj][Mx]   = user->dirichlet_bc_thermal;
+    }
+  }
+    
+  if (j == 0) {
+    for (int ii = i-1 ; ii <= i+1 ; ii++) {
+      uarray[-1][ii] = user->dirichlet_bc_thermal;
+    }    
+  }
+  
+  else if (j == My-1) {
+    for (int ii = i-1 ; ii <= i+1 ; ii++) {
+      uarray[My][ii]   = user->dirichlet_bc_thermal;
+    }    
+  }  
+  
+  return;
+  
+};
+
 void set_boundary_ghost_nodes_neumann( AppCtx* user , PetscScalar** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
   
   if (i <= 1) {

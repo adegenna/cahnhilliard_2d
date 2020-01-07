@@ -19,16 +19,6 @@ void log_solution( Vec U , const std::string& outname ) {
   PetscViewer    viewer;
   PetscObjectSetName((PetscObject) U, "state");
 
-  // PetscViewerCreate( comm , &viewer );
-  // PetscViewerSetType( viewer , PETSCVIEWERHDF5 );
-  // PetscViewerFileSetMode( viewer , FILE_MODE_WRITE );
-  
-  // PetscViewerHDF5Open( comm , outname.c_str() , FILE_MODE_WRITE , &viewer );
-  // PetscViewerHDF5PushGroup(viewer, "/stategroup");
-  // VecView( U , viewer );
-  // PetscViewerHDF5PopGroup(viewer);
-  // PetscViewerDestroy( &viewer );
-
   PetscViewerBinaryOpen( comm , outname.c_str() , FILE_MODE_WRITE , &viewer );
   VecView( U , viewer );
   PetscViewerDestroy( &viewer );  
@@ -49,6 +39,9 @@ PetscErrorCode EventFunction( TS ts , PetscReal t , Vec U , PetscScalar *fvalue 
   // Event 2: output solution
   fvalue[1] = t - (app->dt_output_counter + 1) * app->dt_output;
 
+  // Event 3: recalculate thermal-dependent parameters each new solution timestep
+  fvalue[2] = t - (app->dt_thermal_counter + 1) * app->dt_thermal_reset;
+  
   return(0);
 
 }
@@ -56,13 +49,23 @@ PetscErrorCode EventFunction( TS ts , PetscReal t , Vec U , PetscScalar *fvalue 
 PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt nevents,PetscInt event_list[],PetscReal t,Vec U,PetscBool forwardsolve,void* ctx) {
 
   AppCtx         *app = (AppCtx*)ctx;
-  Vec            U_c , U_T;
-  DM             da_c , da_T;
+  Vec            U_c , U_phi , U_T;
+  DM             da_c , da_phi , da_T;
   
-  DMCompositeGetEntries( app->pack , &da_c , &da_T );
-  DMCompositeGetAccess( app->pack , U , &U_c , &U_T );
+  DMCompositeGetEntries( app->pack , &da_c , &da_phi , &da_T );
+  DMCompositeGetAccess( app->pack  , U     , &U_c    , &U_phi , &U_T );
 
   for (int i=0; i<nevents; i++) {
+
+    // Recalculate thermal properties
+    if ( (event_list[i] == 2) && ( t < app->t_final ) ) {
+
+      PetscPrintf( PETSC_COMM_WORLD , "Recalculating thermal properties t = %5.4f seconds\n" , (double)t );
+      compute_eps2_and_sigma_from_temperature( ctx , U );
+
+      app->dt_thermal_counter += 1;
+
+    }
     
     // Log solution
     if ( (event_list[i] == 1) && ( t < app->t_final ) ) {
@@ -94,15 +97,6 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
       PetscViewerBinaryOpen( comm , outname.c_str() , FILE_MODE_WRITE , &viewer_out );
       VecView( U , viewer_out );
       PetscViewerDestroy( &viewer_out );
-
-      // PetscMPIInt myrank;
-      // MPI_Comm_rank( comm , &myrank );
-      // if ( myrank == 0 ) {
-      // 	std::ofstream output( outname );  
-      // 	output << "";
-      // 	output.close();
-      // }
-      // PetscBarrier( NULL );
        
       // Wait until receive a new value of parameters from an input file
       while(true) {
@@ -141,8 +135,8 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 	
       }
 
-      // Recompute ch parameters based on new temperature
-      compute_eps2_and_sigma_from_temperature( ctx , U );
+      // // Recompute ch parameters based on new temperature
+      // compute_eps2_and_sigma_from_temperature( ctx , U );
     }
     
   }
@@ -190,16 +184,16 @@ void compute_new_temperature_source_profile( AppCtx* user , Vec U , PetscScalar 
 void compute_new_temperature_profile( AppCtx* user , Vec U , PetscScalar T_amp , PetscScalar T_x , PetscScalar T_y , PetscScalar T_sigma  ) {
 
   DM             pack = user->pack;
-  DM             da_c , da_T;
+  DM             da_c , da_phi , da_T;
   PetscInt       i,j,xs,ys,xm,ym,Mx,My;
   PetscScalar    **T;
   PetscReal      x,y,r;
-  Vec            U_c , U_T;
+  Vec            U_c , U_phi , U_T;
 
   PetscFunctionBeginUser;
 
-  DMCompositeGetEntries( pack , &da_c , &da_T );
-  DMCompositeGetAccess( pack , U , &U_c , &U_T );
+  DMCompositeGetEntries( pack , &da_c , &da_phi , &da_T );
+  DMCompositeGetAccess( pack , U , &U_c , &U_phi , &U_T );
   
   DMDAGetInfo(da_T,PETSC_IGNORE,&Mx,&My,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
   
@@ -217,7 +211,7 @@ void compute_new_temperature_profile( AppCtx* user , Vec U , PetscScalar T_amp ,
 
   /* Restore vectors */
   DMDAVecRestoreArray( da_T , U_T , &T );
-  DMCompositeRestoreAccess( pack , U , &U_c , &U_T );
+  DMCompositeRestoreAccess( pack , U , &U_c , &U_phi , &U_T );
   
   return;
   

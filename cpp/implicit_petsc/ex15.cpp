@@ -72,11 +72,21 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create distributed array (DMDA) to manage parallel grid and vectors
   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  if (user.nstencilpts == 5) {
-    ierr = DMDACreate2d(PETSC_COMM_WORLD, DM_BOUNDARY_NONE, DM_BOUNDARY_NONE,DMDA_STENCIL_STAR,11,11,PETSC_DECIDE,PETSC_DECIDE,1,1,NULL,NULL,&da);CHKERRQ(ierr);
-  } else if (user.nstencilpts == 9) {
-    ierr = DMDACreate2d(PETSC_COMM_WORLD, DM_BOUNDARY_NONE, DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,11,11,PETSC_DECIDE,PETSC_DECIDE,1,1,NULL,NULL,&da);CHKERRQ(ierr);
-  } else SETERRQ1(PETSC_COMM_WORLD,PETSC_ERR_SUP,"nstencilpts %d is not supported",user.nstencilpts);
+  // if (user.nstencilpts == 5) {
+  //   ierr = DMDACreate2d(PETSC_COMM_WORLD, DM_BOUNDARY_NONE, DM_BOUNDARY_NONE,DMDA_STENCIL_STAR,11,11,PETSC_DECIDE,PETSC_DECIDE,1,1,NULL,NULL,&da);CHKERRQ(ierr);
+  // } else if (user.nstencilpts == 9) {
+  //   ierr = DMDACreate2d(PETSC_COMM_WORLD, DM_BOUNDARY_NONE, DM_BOUNDARY_NONE,DMDA_STENCIL_BOX,11,11,PETSC_DECIDE,PETSC_DECIDE,1,1,NULL,NULL,&da);CHKERRQ(ierr);
+  // } else SETERRQ1(PETSC_COMM_WORLD,PETSC_ERR_SUP,"nstencilpts %d is not supported",user.nstencilpts);
+  
+  DMDACreate2d( PETSC_COMM_WORLD,
+                DM_BOUNDARY_NONE, DM_BOUNDARY_NONE,                               // type of boundary nodes
+                DMDA_STENCIL_BOX,                                                 // type of stencil
+                11, 11,                                                           // global dimns of array
+                PETSC_DECIDE, PETSC_DECIDE,                                       // #procs in each dimn  
+                1,                                                                // DOF per node
+                2,                                                                // Stencil width
+                NULL, NULL, &da );
+
   ierr = DMSetFromOptions(da);CHKERRQ(ierr);
   ierr = DMSetUp(da);CHKERRQ(ierr);
   user.da = da;
@@ -205,7 +215,7 @@ PetscErrorCode FormIFunction(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx)
   for (j=ys; j<ys+ym; j++) {
     for (i=xs; i<xs+xm; i++) {
       /* Boundary conditions */
-      if (i == 0 || j == 0 || i == Mx-1 || j == My-1) {
+      if (i <= 0 || j <= 0 || i >= Mx-1 || j >= My-1) {
         if (user->boundary == 0) { /* Drichlet BC */
           f[j][i] = uarray[j][i]; /* F = U */
         } else {                  /* Neumann BC */

@@ -17,10 +17,10 @@ def read_mpi_soln_file( statefile , timestamp , n ):
     return c
 
 t0 = 0.00
-tf = 1.00
+tf = 0.32
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/C_'
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/swig/C_'
-statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/data/mixingmorphologies/dots/c_'
+statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/runs/c_'
 #statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/implicit_petsc/examples/c_'
 
 nx = 64
@@ -31,7 +31,7 @@ y     = np.arange(ny)
 xx,yy = np.meshgrid(x,y)
 xx = xx.T; yy = yy.T
 
-tstep = 0.02
+tstep = 0.04
 fig   = plt.figure(10,figsize=(8,8))
 ax    = fig.gca()
 

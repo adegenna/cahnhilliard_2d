@@ -68,7 +68,7 @@ int main(int argc,char **argv) {
   TSCreate(PETSC_COMM_WORLD,&ts);
   TSSetProblemType(ts,TS_NONLINEAR);
   TSSetDM(ts,da);
-  TSSetIFunction(ts,r,FormIFunction,&user);
+  TSSetIFunction(ts,r,FormIFunctionTEST,&user);
   TSSetMaxTime(ts,user.t_final);
   TSSetExactFinalTime(ts,TS_EXACTFINALTIME_STEPOVER);
 

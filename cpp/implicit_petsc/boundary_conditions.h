@@ -7,6 +7,8 @@ void set_boundary_ghost_nodes_dirichlet( AppCtx* user , PetscScalar** uarray , P
 
 void set_boundary_ghost_nodes_dirichlet_singleframe( AppCtx* user , PetscScalar** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j );
 
+void set_boundary_ghost_nodes_dirichlet_singleframe_thermal( AppCtx* user , PetscScalar** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j );
+
 void set_boundary_ghost_nodes_neumann( AppCtx* user , PetscScalar** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j );
 
 ThirteenPointStencil get_thirteen_point_stencil( AppCtx* user ,

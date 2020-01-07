@@ -45,8 +45,8 @@ def main( petscfile ):
     for i in range( num_bin_files ):
         timestamp  = '_{:0.4f}.bin'.format( i * settings.dt_out )
         solnfile_i = 'c' + timestamp
-        print( './postprocess ' + petscfile + ' ' + solnfile_i )
-        os.system( './postprocess ' + petscfile + ' ' + solnfile_i )
+        print( '../build/postprocess ' + petscfile + ' ' + solnfile_i )
+        os.system( '../build/postprocess ' + petscfile + ' ' + solnfile_i )
 
     return
 

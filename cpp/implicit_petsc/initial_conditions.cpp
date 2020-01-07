@@ -15,27 +15,19 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   
   AppCtx         *user = (AppCtx*)ptr;
   DM             pack  = user->pack; // DM for coupled-CH
-  DM             da_c , da_T;
   PetscErrorCode ierr;
-  PetscInt       i,j,xs,ys,xm,ym,Mx,My;
-  PetscScalar    **u , **T;
-  PetscReal      hx,hy,x,y,r;
+  PetscInt       i,j,xs,ys,xm,ym;
+  PetscScalar    **u , **phi , **T;
+  PetscReal      x,y,r;
   PetscRandom    rng;
   PetscReal      value_rng;
-  Vec            U_c , U_T;
+  Vec            U_c , U_phi , U_T;
 
   PetscFunctionBeginUser;
 
   // Unpack composite DM
-  DMCompositeGetEntries( pack , &da_c , &da_T );
-  DMCompositeGetAccess( pack , U , &U_c , &U_T );
+  DMCompositeGetAccess( pack , U , &U_c , &U_phi , &U_T );
   
-  DMDAGetInfo(da_c,PETSC_IGNORE,&Mx,&My,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
-
-  // NOTE: these CH eqns are dimensionless with domain length scale = 1. Physical domain size shows up in L_omega.
-  hx = 1.0/(PetscReal)(Mx-1);
-  hy = 1.0/(PetscReal)(My-1);
-
   // Load initial concentration and temperature from file
   PetscViewer viewer_T , viewer_U , viewer_Tsource; 
   MPI_Comm comm = PETSC_COMM_WORLD;
@@ -50,8 +42,21 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   PetscViewerDestroy(&viewer_T);
   PetscViewerDestroy(&viewer_Tsource);
   PetscViewerDestroy(&viewer_U);
-  
-  DMCompositeRestoreAccess( pack , U , &U_c , &U_T );
+
+  // Populate phi
+  DM da_c , da_phi , da_T;
+  DMCompositeGetEntries( pack , &da_c    , &da_phi   , &da_T );
+  DMDAVecGetArray( da_phi , U_phi , &phi );
+  DMDAGetCorners( da_phi , &xs,&ys , NULL , &xm,&ym , NULL);
+  for (j=ys; j<ys+ym; j++) {
+    for (i=xs; i<xs+xm; i++) {
+      phi[j][i] = 1.0;
+    }
+  }
+  DMDAVecRestoreArray( da_phi , U_phi , &phi );
+
+  // Repack everything
+  DMCompositeRestoreAccess( pack , U , &U_c , &U_phi , &U_T );
   
   // Compute temperature-dependent polymer limiters
   user->eps2_min = compute_eps2_from_chparams( user->X_max ,

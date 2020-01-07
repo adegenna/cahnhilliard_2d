@@ -22,7 +22,8 @@ AppCtx parse_petsc_options( ) {
   PetscOptionsGetString(NULL,NULL,"-boundary",tempfile_boundary,sizeof(tempfile_boundary),NULL);
   user.boundary = std::string(tempfile_boundary);
   PetscOptionsGetReal(NULL,NULL,"-dirichlet_bc",&user.dirichlet_bc,NULL);
-  
+  PetscOptionsGetReal(NULL,NULL,"-dirichlet_bc_thermal",&user.dirichlet_bc_thermal,NULL);
+
   // Temporal scheme
   PetscOptionsGetReal(NULL,NULL,"-t_final",&user.t_final,NULL);
   PetscOptionsGetReal(NULL,NULL,"-dt_check",&user.dt_check,NULL);
@@ -52,4 +53,43 @@ AppCtx parse_petsc_options( ) {
 
   return user;
   
+};
+
+DM createLinkedDA_starStencil2D( DM da_base , std::string fieldname ) {
+
+  DM da_coupled;
+  
+  // Get process ownership ranges so that you can link different physics with the same indices
+  const PetscInt *lxc , *lyc;
+  PetscInt sizes_x , sizes_y;
+  PetscInt nx , ny;
+  DMDAGetOwnershipRanges( da_base , &lxc , &lyc , 0 );
+  DMDAGetInfo( da_base , NULL, &nx,&ny,NULL, &sizes_x,&sizes_y,NULL, NULL,NULL,NULL,NULL,NULL,NULL );
+
+  // Allocation for linking phi-physics
+  PetscInt *lxPhi , *lyPhi;
+  PetscMalloc1( sizes_x , &lxPhi );
+  PetscMalloc1( sizes_y , &lyPhi );
+  PetscMemcpy( lxPhi , lxc , sizes_x*sizeof(*lxc) );
+  PetscMemcpy( lyPhi , lyc , sizes_y*sizeof(*lyc) );
+  
+  // DM for phi
+  DMDACreate2d(PETSC_COMM_WORLD, 
+               DM_BOUNDARY_GHOSTED, DM_BOUNDARY_GHOSTED,    // type of boundary nodes
+               DMDA_STENCIL_STAR,               // type of stencil
+               nx,ny,                           // global dimns of array (will be overwritten from user-options)
+               sizes_x,sizes_y,                 // #procs in each dimn
+               1,                               // DOF per node
+               1,                               // Stencil width
+               lxPhi,lyPhi,&da_coupled);
+  
+  DMSetFromOptions(da_coupled);
+  DMSetOptionsPrefix( da_coupled , fieldname.c_str() );
+  DMSetUp(da_coupled);
+
+  PetscFree(lxPhi);
+  PetscFree(lyPhi);
+
+  return da_coupled;
+
 };
