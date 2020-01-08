@@ -1,5 +1,6 @@
 #include "temperature_dependence.h"
 #include "utils_ch_implicit.h"
+#include <petscdmcomposite.h>
 
 double convert_temperature_to_flory_huggins( const double T ,
 					     const double X_min ,
@@ -41,96 +42,185 @@ double compute_sigma_from_chparams( const double X ,
 
 }
 
-PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx ) {
+// PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx ) {
+
+//   PetscErrorCode ierr;
+//   AppCtx         *user = (AppCtx*)ctx;
+//   DM             pack  = (DM)user->pack;
+//   DM             da_c , da_phi , da_T;
+
+//   PetscInt       i,j,k,xs,ys,zs,xm,ym,zm,Mx,My,Mz;
+
+//   PetscScalar    ***tarray , ***xarray , ***eps2array , ***sigmaarray;
+//   Vec            local_temperature , local_X, local_eps2, local_sigma;
+//   Vec            U_c , U_phi;
+
+//   PetscFunctionBeginUser;
+  
+//   DMCompositeGetEntries( pack , &da_c , &da_phi );
+//   DMCompositeGetAccess(  pack , U     , &U_c    , &U_phi );
+
+//   DMGetLocalVector(da_c,&local_X);
+//   DMGetLocalVector(da_T,&local_temperature);
+//   DMGetLocalVector(da_phi,&local_eps2);
+//   DMGetLocalVector(da_c,&local_sigma);
+    
+//   DMGlobalToLocalBegin( da , user->temperature , INSERT_VALUES , local_temperature );
+//   DMGlobalToLocalEnd( da ,   user->temperature , INSERT_VALUES , local_temperature );
+//   DMGlobalToLocalBegin( da , user->X , INSERT_VALUES , local_X );
+//   DMGlobalToLocalEnd( da ,   user->X , INSERT_VALUES , local_X );
+//   DMGlobalToLocalBegin( da , user->eps_2 , INSERT_VALUES , local_eps2 );
+//   DMGlobalToLocalEnd( da ,   user->eps_2 , INSERT_VALUES , local_eps2 );
+//   DMGlobalToLocalBegin( da , user->sigma , INSERT_VALUES , local_sigma );
+//   DMGlobalToLocalEnd( da ,   user->sigma , INSERT_VALUES , local_sigma );
+  
+//   /* Get pointers to vector data */
+//   DMDAVecGetArrayRead( da , local_temperature , &tarray );
+//   DMDAVecGetArray( da , local_X , &xarray );
+//   DMDAVecGetArray( da , local_eps2 , &eps2array );
+//   DMDAVecGetArray( da , local_sigma , &sigmaarray );
+  
+//   /* Get local grid boundaries */
+//   DMDAGetCorners( da ,
+// 		  &xs , &ys , &zs ,
+// 		  &xm , &ym , &zm );
+
+//   /* Compute function over the locally owned part of the grid */
+//   for (k=zs; k<zs+zm; k++) {
+//     for (j=ys; j<ys+ym; j++) {
+//       for (i=xs; i<xs+xm; i++) {
+
+// 	xarray[k][j][i]    = convert_temperature_to_flory_huggins( tarray[k][j][i] ,
+// 								   user->X_min ,
+// 								   user->X_max ,
+// 								   user->T_min ,
+// 								   user->T_max );
+      
+// 	eps2array[k][j][i] = compute_eps2_from_chparams( xarray[k][j][i] ,
+// 							 user->L_kuhn ,
+// 							 user->m ,
+// 							 user->L_omega );
+	
+// 	sigmaarray[k][j][i] = compute_sigma_from_chparams( xarray[k][j][i] ,
+// 							   user->L_kuhn ,
+// 							   user->m ,
+// 							   user->L_omega ,
+// 							   user->N );
+
+// 	eps2array[k][j][i]   = std::min( std::max( eps2array[k][j][i]  , user->eps2_min )   , user->eps2_max );
+// 	sigmaarray[k][j][i]  = std::min( std::max( sigmaarray[k][j][i] , user->sigma_min )  , user->sigma_max );
+      
+//       }
+//     }
+//   }
+
+//   /* Restore vectors */
+//   DMDAVecRestoreArrayRead(da,local_temperature,&tarray);
+//   DMDAVecRestoreArray(da,local_X,&xarray);
+//   DMDAVecRestoreArray(da,local_eps2,&eps2array);
+//   DMDAVecRestoreArray(da,local_sigma,&sigmaarray);
+
+//   DMLocalToGlobalBegin( da , local_eps2 , INSERT_VALUES , user->eps_2 );
+//   DMLocalToGlobalEnd( da , local_eps2 , INSERT_VALUES , user->eps_2 );
+//   DMLocalToGlobalBegin( da , local_sigma , INSERT_VALUES , user->sigma );
+//   DMLocalToGlobalEnd( da , local_sigma , INSERT_VALUES , user->sigma );
+//   DMLocalToGlobalBegin( da , local_X     , INSERT_VALUES , user->X );
+//   DMLocalToGlobalEnd( da , local_X     , INSERT_VALUES , user->X );
+  
+//   DMRestoreLocalVector(da,&local_temperature);
+//   DMRestoreLocalVector(da,&local_X);
+//   DMRestoreLocalVector(da,&local_eps2);
+//   DMRestoreLocalVector(da,&local_sigma);
+
+//   PetscFunctionReturn(0);
+      
+// }
+
+
+PetscErrorCode compute_eps2_and_sigma_from_constant_temperature( void *ctx , Vec U , double tconst ) {
 
   PetscErrorCode ierr;
   AppCtx         *user = (AppCtx*)ctx;
-  DM             da    = (DM)user->da;
+  DM             pack  = (DM)user->pack;
+  DM             da_c , da_phi;
+  
+  PetscInt       i,j,k, xs,ys,zs, xm,ym,zm;
 
-  PetscInt       i,j,k,xs,ys,zs,xm,ym,zm,Mx,My,Mz;
-
-  PetscScalar    ***tarray , ***xarray , ***eps2array , ***sigmaarray;
-  Vec            local_temperature , local_X, local_eps2, local_sigma;
+  PetscScalar    ***xarray , ***eps2array , ***sigmaarray;
+  Vec            local_X, local_eps2, local_sigma;
+  Vec            U_c , U_phi;
 
   PetscFunctionBeginUser;
 
-  DMGetLocalVector(da,&local_X);
-  DMGetLocalVector(da,&local_temperature);
-  DMGetLocalVector(da,&local_eps2);
-  DMGetLocalVector(da,&local_sigma);
+  DMCompositeGetEntries( pack , &da_c , &da_phi );
+  DMCompositeGetAccess(  pack , U     , &U_c    , &U_phi );
   
-  DMDAGetInfo( da ,
-	       PETSC_IGNORE ,
-	       &Mx , &My , &Mz ,
-	       PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);  
-  
-  DMGlobalToLocalBegin( da , user->temperature , INSERT_VALUES , local_temperature );
-  DMGlobalToLocalEnd( da ,   user->temperature , INSERT_VALUES , local_temperature );
-  DMGlobalToLocalBegin( da , user->X , INSERT_VALUES , local_X );
-  DMGlobalToLocalEnd( da ,   user->X , INSERT_VALUES , local_X );
-  DMGlobalToLocalBegin( da , user->eps_2 , INSERT_VALUES , local_eps2 );
-  DMGlobalToLocalEnd( da ,   user->eps_2 , INSERT_VALUES , local_eps2 );
-  DMGlobalToLocalBegin( da , user->sigma , INSERT_VALUES , local_sigma );
-  DMGlobalToLocalEnd( da ,   user->sigma , INSERT_VALUES , local_sigma );
-  
+  DMGetLocalVector(da_c   , &local_X);
+  DMGetLocalVector(da_phi , &local_eps2);
+  DMGetLocalVector(da_c   , &local_sigma);
+
+  DMGlobalToLocalBegin( da_c   , user->X ,     INSERT_VALUES , local_X );
+  DMGlobalToLocalEnd(   da_c   , user->X ,     INSERT_VALUES , local_X );
+  DMGlobalToLocalBegin( da_phi , user->eps_2 , INSERT_VALUES , local_eps2 );
+  DMGlobalToLocalEnd(   da_phi , user->eps_2 , INSERT_VALUES , local_eps2 );
+  DMGlobalToLocalBegin( da_c   , user->sigma , INSERT_VALUES , local_sigma );
+  DMGlobalToLocalEnd(   da_c   , user->sigma , INSERT_VALUES , local_sigma );
+
   /* Get pointers to vector data */
-  DMDAVecGetArrayRead( da , local_temperature , &tarray );
-  DMDAVecGetArray( da , local_X , &xarray );
-  DMDAVecGetArray( da , local_eps2 , &eps2array );
-  DMDAVecGetArray( da , local_sigma , &sigmaarray );
+  DMDAVecGetArray( da_c   , local_X     , &xarray );
+  DMDAVecGetArray( da_phi , local_eps2  , &eps2array );
+  DMDAVecGetArray( da_c   , local_sigma , &sigmaarray );
   
   /* Get local grid boundaries */
-  DMDAGetCorners( da ,
-		  &xs , &ys , &zs ,
-		  &xm , &ym , &zm );
-
+  DMDAGetCorners( da_c , &xs , &ys , &zs , &xm , &ym , &zm );
+  
   /* Compute function over the locally owned part of the grid */
   for (k=zs; k<zs+zm; k++) {
     for (j=ys; j<ys+ym; j++) {
       for (i=xs; i<xs+xm; i++) {
-
-	xarray[k][j][i]    = convert_temperature_to_flory_huggins( tarray[k][j][i] ,
-								   user->X_min ,
-								   user->X_max ,
-								   user->T_min ,
-								   user->T_max );
+        
+        xarray[k][j][i]    = convert_temperature_to_flory_huggins( tconst ,
+                                                                   user->X_min ,
+                                                                   user->X_max ,
+                                                                   user->T_min ,
+                                                                   user->T_max );
       
-	eps2array[k][j][i] = compute_eps2_from_chparams( xarray[k][j][i] ,
-							 user->L_kuhn ,
-							 user->m ,
-							 user->L_omega );
-	
-	sigmaarray[k][j][i] = compute_sigma_from_chparams( xarray[k][j][i] ,
-							   user->L_kuhn ,
-							   user->m ,
-							   user->L_omega ,
-							   user->N );
+        eps2array[k][j][i] = compute_eps2_from_chparams( xarray[k][j][i] ,
+                                                         user->L_kuhn ,
+                                                         user->m ,
+                                                         user->L_omega );
+        
+        sigmaarray[k][j][i] = compute_sigma_from_chparams( xarray[k][j][i] ,
+                                                           user->L_kuhn ,
+                                                           user->m ,
+                                                           user->L_omega ,
+                                                           user->N );
 
-	eps2array[k][j][i]   = std::min( std::max( eps2array[k][j][i]  , user->eps2_min )   , user->eps2_max );
-	sigmaarray[k][j][i]  = std::min( std::max( sigmaarray[k][j][i] , user->sigma_min )  , user->sigma_max );
+        eps2array[k][j][i]   = std::min( std::max( eps2array[k][j][i]  , user->eps2_min )   , user->eps2_max );
+        sigmaarray[k][j][i]  = std::min( std::max( sigmaarray[k][j][i] , user->sigma_min )  , user->sigma_max );
       
       }
     }
   }
 
   /* Restore vectors */
-  DMDAVecRestoreArrayRead(da,local_temperature,&tarray);
-  DMDAVecRestoreArray(da,local_X,&xarray);
-  DMDAVecRestoreArray(da,local_eps2,&eps2array);
-  DMDAVecRestoreArray(da,local_sigma,&sigmaarray);
+  DMDAVecRestoreArray(da_c,local_X,&xarray);
+  DMDAVecRestoreArray(da_phi,local_eps2,&eps2array);
+  DMDAVecRestoreArray(da_c,local_sigma,&sigmaarray);
 
-  DMLocalToGlobalBegin( da , local_eps2 , INSERT_VALUES , user->eps_2 );
-  DMLocalToGlobalEnd( da , local_eps2 , INSERT_VALUES , user->eps_2 );
-  DMLocalToGlobalBegin( da , local_sigma , INSERT_VALUES , user->sigma );
-  DMLocalToGlobalEnd( da , local_sigma , INSERT_VALUES , user->sigma );
-  DMLocalToGlobalBegin( da , local_X     , INSERT_VALUES , user->X );
-  DMLocalToGlobalEnd( da , local_X     , INSERT_VALUES , user->X );
+  DMLocalToGlobalBegin( da_phi , local_eps2 , INSERT_VALUES , user->eps_2 );
+  DMLocalToGlobalEnd(   da_phi , local_eps2 , INSERT_VALUES , user->eps_2 );
+  DMLocalToGlobalBegin( da_c , local_sigma , INSERT_VALUES , user->sigma );
+  DMLocalToGlobalEnd(   da_c , local_sigma , INSERT_VALUES , user->sigma );
+  DMLocalToGlobalBegin( da_c , local_X     , INSERT_VALUES , user->X );
+  DMLocalToGlobalEnd(   da_c , local_X     , INSERT_VALUES , user->X );
   
-  DMRestoreLocalVector(da,&local_temperature);
-  DMRestoreLocalVector(da,&local_X);
-  DMRestoreLocalVector(da,&local_eps2);
-  DMRestoreLocalVector(da,&local_sigma);
+  DMRestoreLocalVector(da_c,&local_X);
+  DMRestoreLocalVector(da_phi,&local_eps2);
+  DMRestoreLocalVector(da_c,&local_sigma);
 
+  DMCompositeRestoreAccess(  pack , U , &U_c , &U_phi );
+  
   PetscFunctionReturn(0);
       
 }

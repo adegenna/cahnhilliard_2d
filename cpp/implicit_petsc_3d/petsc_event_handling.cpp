@@ -11,6 +11,7 @@
 #include <petscis.h>
 #include <petscviewer.h>
 #include <petscviewerhdf5.h>
+#include <petscdmcomposite.h>
 
 PetscErrorCode log_solution( Vec U , const std::string& outname ) {
 
@@ -107,7 +108,7 @@ PetscErrorCode PostEventFunction_ResetM(TS ts,PetscInt nevents,PetscInt event_li
       }
       
       // Recompute ch parameters based on new temperature
-      compute_eps2_and_sigma_from_temperature( ctx );
+      //compute_eps2_and_sigma_from_temperature( ctx );
     }
     
   }
@@ -184,7 +185,7 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
       }
 
       // Recompute ch parameters based on new temperature
-      compute_eps2_and_sigma_from_temperature( ctx );
+      //compute_eps2_and_sigma_from_temperature( ctx );
     }
     
   }
@@ -195,22 +196,26 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 
 PetscErrorCode compute_new_temperature_profile( AppCtx* user , PetscScalar T_amp , PetscScalar T_x , PetscScalar T_y , PetscScalar T_z , PetscScalar T_sigma  ) {
 
-  DM             da   =user->da;
+  DM             pack   =user->pack;
+  DM             da_c , da_phi;
   PetscInt       i,j,k,xs,ys,zs,xm,ym,zm,Mx,My,Mz;
   PetscScalar    ***T;
   PetscReal      x,y,z,r;
   
   PetscFunctionBeginUser;
-  DMDAGetInfo( da ,
+
+  DMCompositeGetEntries( pack , &da_c    , &da_phi );
+  
+  DMDAGetInfo( da_c ,
 	       PETSC_IGNORE ,
 	       &Mx , &My , &Mz ,
 	       PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
 
   /* Get pointers to vector data */
-  DMDAVecGetArray(da,user->temperature,&T);
+  DMDAVecGetArray(da_c,user->temperature,&T);
 
   /* Get local grid boundaries */
-  DMDAGetCorners( da ,
+  DMDAGetCorners( da_c ,
 		  &xs , &ys , &zs ,
 		  &xm , &ym , &zm );
 
@@ -225,7 +230,7 @@ PetscErrorCode compute_new_temperature_profile( AppCtx* user , PetscScalar T_amp
   }
   
   /* Restore vectors */
-  DMDAVecRestoreArray(da,user->temperature,&T);
+  DMDAVecRestoreArray(da_c,user->temperature,&T);
   
   PetscFunctionReturn(0);
 

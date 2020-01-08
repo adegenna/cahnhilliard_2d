@@ -10,15 +10,19 @@ AppCtx parse_petsc_options( ) {
   
   /* Initialize user application context */
 
-  user.da           = NULL;
-
+  user.pack           = NULL;
+  user.da_c           = NULL;
+  user.da_phi         = NULL;
+  
   // Grid
   PetscOptionsGetReal(NULL,NULL,"-Lx",&user.Lx,NULL);
   PetscOptionsGetReal(NULL,NULL,"-Ly",&user.Ly,NULL);
   PetscOptionsGetReal(NULL,NULL,"-Lz",&user.Lz,NULL);
 
   // Boundary conditions
-  PetscOptionsGetInt(NULL,NULL,"-boundary",&user.boundary,NULL);
+  char tempfile_boundary[PETSC_MAX_PATH_LEN];
+  PetscOptionsGetString(NULL,NULL,"-boundary",tempfile_boundary,sizeof(tempfile_boundary),NULL);
+  user.boundary = std::string(tempfile_boundary);
   PetscOptionsGetReal(NULL,NULL,"-dirichlet_bc",&user.dirichlet_bc,NULL);
   
   // Temporal scheme
@@ -39,4 +43,46 @@ AppCtx parse_petsc_options( ) {
 
   return user;
   
+};
+
+DM createLinkedDA_starStencil3D( DM da_base , std::string fieldname ) {
+
+  DM da_coupled;
+  
+  // Get process ownership ranges so that you can link different physics with the same indices
+  const PetscInt *lxc , *lyc , *lzc;
+  PetscInt sizes_x , sizes_y , sizes_z;
+  PetscInt nx , ny , nz;
+  DMDAGetOwnershipRanges( da_base , &lxc , &lyc , &lzc );
+  DMDAGetInfo( da_base , NULL, &nx,&ny,&nz, &sizes_x,&sizes_y,&sizes_z, NULL,NULL,NULL,NULL,NULL,NULL );
+
+  // Allocation for linking phi-physics
+  PetscInt *lxPhi , *lyPhi , *lzPhi;
+  PetscMalloc1( sizes_x , &lxPhi );
+  PetscMalloc1( sizes_y , &lyPhi );
+  PetscMalloc1( sizes_z , &lzPhi );
+  PetscMemcpy( lxPhi , lxc , sizes_x*sizeof(*lxc) );
+  PetscMemcpy( lyPhi , lyc , sizes_y*sizeof(*lyc) );
+  PetscMemcpy( lzPhi , lzc , sizes_z*sizeof(*lzc) );
+
+  // DM for phi
+  DMDACreate3d( PETSC_COMM_WORLD, 
+                DM_BOUNDARY_GHOSTED, DM_BOUNDARY_GHOSTED, DM_BOUNDARY_GHOSTED, // type of boundary nodes
+                DMDA_STENCIL_STAR,                                             // type of stencil
+                nx,ny,nz,                                                      // global dimns of array
+                sizes_x,sizes_y,sizes_z,                                       // #procs in each dimn
+                1,                                                             // DOF per node
+                1,                                                             // Stencil width
+                lxPhi,lyPhi,lzPhi,&da_coupled);
+  
+  DMSetFromOptions(da_coupled);
+  DMSetOptionsPrefix( da_coupled , fieldname.c_str() );
+  DMSetUp(da_coupled);
+
+  PetscFree(lxPhi);
+  PetscFree(lyPhi);
+  PetscFree(lzPhi);
+
+  return da_coupled;
+
 };

@@ -2,60 +2,51 @@
 #include "temperature_dependence.h"
 #include <stdio.h>
 #include <petscviewerhdf5.h>
+#include <petscdmcomposite.h>
 
-PetscErrorCode FormInitialSolution(Vec U , Vec Temperature , void *ptr)
+PetscErrorCode FormInitialSolution(Vec U , void *ptr)
 {
-  AppCtx         *user=(AppCtx*)ptr;
-  DM             da   =user->da;
+  AppCtx         *user = (AppCtx*)ptr;
+  DM             pack  = user->pack;
   PetscErrorCode ierr;
-  PetscInt       i,j,k,xs,ys,zs,xm,ym,zm,Mx,My,Mz;
-  PetscScalar    **u , **T;
-  PetscReal      hx,hy,hz,x,y,z,r;
+  PetscInt       i,j,k,xs,ys,zs,xm,ym,zm;
+  PetscScalar    ***u , ***phi;
+  PetscReal      x,y,z,r;
   PetscRandom    rng;
   PetscReal      value_rng;
+  Vec            U_c , U_phi;
 
   PetscFunctionBeginUser;
-  DMDAGetInfo( da ,
-	       PETSC_IGNORE ,
-	       &Mx , &My , &Mz ,
-	       PETSC_IGNORE , PETSC_IGNORE , PETSC_IGNORE , 
-	       PETSC_IGNORE , 
-	       PETSC_IGNORE , 
-	       PETSC_IGNORE , PETSC_IGNORE , PETSC_IGNORE , 
-	       PETSC_IGNORE );
 
-  // NOTE: these CH eqns are dimensionless with domain length scale = 1. Physical domain size shows up in L_omega.
-  hx = 1.0/(PetscReal)(Mx-1);
-  hy = 1.0/(PetscReal)(My-1);
-  hz = 1.0/(PetscReal)(Mz-1);
-
+  // Unpack composite DM
+  DMCompositeGetAccess( pack , U , &U_c , &U_phi );
+  
   // Interior
-  PetscViewer viewer_T , viewer_U;
-  PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_temperature_file.c_str() , FILE_MODE_READ , &viewer_T );
+  PetscViewer viewer_U , viewer_T;
+  //PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_temperature_file.c_str() , FILE_MODE_READ , &viewer_T );
   PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_soln_file.c_str()        , FILE_MODE_READ , &viewer_U );
-  VecLoad( Temperature , viewer_T );
+  //VecLoad( Temperature , viewer_T );
   VecLoad( U           , viewer_U );
   PetscViewerDestroy(&viewer_T);
   PetscViewerDestroy(&viewer_U);
+
+  // Populate phi
+  DM da_c , da_phi;
+  DMCompositeGetEntries( pack , &da_c , &da_phi );
+  DMDAVecGetArray( da_phi , U_phi , &phi );
+  DMDAGetCorners( da_phi , &xs,&ys,&zs , &xm,&ym,&zm );
+  for (k=zs; k<zs+zm; k++) {
+    for (j=ys; j<ys+ym; j++) {
+      for (i=xs; i<xs+xm; i++) {
+        phi[k][j][i] = 1.0;
+      }
+    }
+  }
+  DMDAVecRestoreArray( da_phi , U_phi , &phi );
+
+  // Repack everything
+  DMCompositeRestoreAccess( pack , U , &U_c , &U_phi );
   
-  /* Compute function over the locally owned part of the grid */
-  // DMDAVecGetArray(da,U,&u);
-  // DMDAVecGetArray(da,Temperature,&T);
-  // DMDAGetCorners(da,&xs,&ys,NULL,&xm,&ym,NULL);
-  // PetscRandomCreate(PETSC_COMM_WORLD,&rng);
-  // PetscRandomSetType(rng,PETSCRAND48);
-
-  // for (j=ys; j<ys+ym; j++) {
-  //   for (i=xs; i<xs+xm; i++) {
-  //     PetscRandomGetValueReal(rng , &value_rng);
-  //     u[j][i]     = 0.005 * ( 2.0 * value_rng - 1.0 );
-  //     T[j][i]     = 1.0;
-  //   } 
-  // }
-  // DMDAVecRestoreArray(da,U,&u);
-  // DMDAVecRestoreArray(da,Temperature,&T);  
-  // PetscRandomDestroy(&rng);
-
   // Compute temperature-dependent polymer limiters
   user->eps2_min = compute_eps2_from_chparams( user->X_max ,
                                                user->L_kuhn ,

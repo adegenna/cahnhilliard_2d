@@ -128,11 +128,11 @@ target_link_libraries( jfnk_2d
 )
 
 #############################################
-# Petsc-3D implicit solver
+# Petsc-3D split solver
 #############################################
 
-add_executable( jfnk_3d
-  implicit_petsc_3d/jfnk_3d.cpp
+add_executable( ch3d_split
+  implicit_petsc_3d/ch3d_split.cpp
   implicit_petsc_3d/utils_ch_implicit.cpp
   implicit_petsc_3d/boundary_conditions.cpp
   implicit_petsc_3d/initial_conditions.cpp
@@ -141,9 +141,9 @@ add_executable( jfnk_3d
   implicit_petsc_3d/temperature_dependence.cpp
 )
 
-add_dependencies(jfnk_3d petsc_external)
+add_dependencies(ch3d_split petsc_external)
 
-target_link_libraries( jfnk_3d
+target_link_libraries( ch3d_split
   m
   ${MPI_LIBRARIES}
   ${HDF5_LIBRARIES}

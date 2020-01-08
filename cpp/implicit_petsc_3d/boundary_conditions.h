@@ -3,7 +3,7 @@
 
 #include "utils_ch_implicit.h"
 
-void set_boundary_ghost_nodes( AppCtx* user , PetscScalar*** uarray , PetscInt Mx , PetscInt My , PetscInt Mz , PetscInt i , PetscInt j , PetscInt k );
+// void set_boundary_ghost_nodes( AppCtx* user , PetscScalar*** uarray , PetscInt Mx , PetscInt My , PetscInt Mz , PetscInt i , PetscInt j , PetscInt k );
 
 void set_boundary_ghost_nodes_normal_extrapolation(  AppCtx* user , PetscScalar*** uarray , PetscInt Mx , PetscInt My , PetscInt Mz , PetscInt i , PetscInt j , PetscInt k );
 
@@ -24,5 +24,16 @@ PetscReal reset_boundary_residual_values_for_dirichlet_topandbottom_neumann_rema
 											  PetscReal udot_ij ,
 											  PetscInt Mx , PetscInt My ,
 											  PetscInt i , PetscInt j );
+
+PetscReal compute_residuals_no_explicit_boundary_resets(                                  PetscReal*** uarray ,
+											  PetscReal rhs_ijk ,
+											  PetscReal udot_ijk ,
+											  PetscInt Mx , PetscInt My , PetscInt Mz ,
+											  PetscInt i , PetscInt j , PetscInt k );
+
+void set_boundary_ghost_nodes_dirichlet_singleframe( AppCtx* user , PetscScalar*** uarray , PetscInt Mx , PetscInt My , PetscInt Mz ,PetscInt i , PetscInt j , PetscInt k );
+
+void set_boundary_ghost_nodes_dirichlet_singleframe_thermal( AppCtx* user , PetscScalar*** uarray , PetscInt Mx , PetscInt My , PetscInt Mz , PetscInt i , PetscInt j , PetscInt k );
+
 
 #endif
