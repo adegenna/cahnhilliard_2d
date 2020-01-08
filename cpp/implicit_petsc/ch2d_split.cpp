@@ -174,13 +174,6 @@ int main(int argc,char **argv) {
     
   }
 
-  else if (user.time_stepper.compare("explicit") == 0) {
-    // Explicit
-
-    TSSetRHSFunction( ts , r_user , rhsFunctionExplicit , &user );
-
-  }
-
   else {
     // Incorrectly specified timestepper option
     
