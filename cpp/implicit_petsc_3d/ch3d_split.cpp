@@ -134,17 +134,18 @@ int main(int argc,char **argv) {
 
   user.residualFunction = compute_residuals_no_explicit_boundary_resets;
   
-  // if ( user.boundary.compare("neumann") == 0 ) // Neumann
-  //   user.residualFunction = reset_boundary_residual_values_for_neumann_bc;
+  if ( user.boundary.compare("neumann") == 0 ) // Neumann
+    user.residualFunction = reset_boundary_residual_values_for_neumann_bc;
 
+  else ( user.boundary.compare("dirichlet") == 0 ) // Dirichlet
+    user.residualFunction = compute_residuals_no_explicit_boundary_resets;
+  
   // else if ( user.boundary.compare("bottom_dirichlet_neumann_remainder") == 0 ) // Bottom dirichlet, rest Neumann
   //   user.residualFunction = reset_boundary_residual_values_for_dirichlet_bottom_neumann_remainder_bc;
 
   // else if ( user.boundary.compare("topandbottom_dirichlet_neumann_remainder") == 0 ) // Bottom/top dirichlet, rest Neumann
   //   user.residualFunction = reset_boundary_residual_values_for_dirichlet_topandbottom_neumann_remainder_bc;
       
-  // else // Dirichlet or periodic: just compute with ghost nodes
-  //   user.residualFunction = compute_residuals_no_explicit_boundary_resets;
 
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set time-stepping scheme
@@ -153,26 +154,12 @@ int main(int argc,char **argv) {
   TSSetDM( ts , da_user );
   TSSetSolution( ts , U_user );
   
-  if (user.time_stepper.compare("implicit") == 0) {
-    // Implicit
-
-    TSSetIFunction( ts , r_user , rhsFunctionImplicit , &user );
-    DMSetMatType( da_user , MATAIJ );
-    DMCreateMatrix( da_user , &J );
-    TSGetSNES( ts , &snes );
-    MatCreateSNESMF( snes , &Jmf );
-    SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
-    
-  }
-
-  else {
-    // Incorrectly specified timestepper option
-    
-    PetscPrintf( PETSC_COMM_WORLD , "Error: time_stepper option specified incorrectly ...\n\n" );
-
-    return(0);
-    
-  }
+  TSSetIFunction( ts , r_user , rhsFunctionImplicit , &user );
+  DMSetMatType( da_user , MATAIJ );
+  DMCreateMatrix( da_user , &J );
+  TSGetSNES( ts , &snes );
+  MatCreateSNESMF( snes , &Jmf );
+  SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
 
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set user options and event handling
@@ -181,10 +168,8 @@ int main(int argc,char **argv) {
   // User-options
   TSSetFromOptions(ts);
   SNESSetFromOptions(snes);
-  if ( user.time_stepper.compare("implicit") == 0 ) {
-    SNESGetKSP(snes,&ksp);
-    KSPSetFromOptions(ksp);
-  }
+  SNESGetKSP(snes,&ksp);
+  KSPSetFromOptions(ksp);
   PetscOptionsView( NULL , PETSC_VIEWER_STDOUT_WORLD );  
   
   // // Setup event handling
