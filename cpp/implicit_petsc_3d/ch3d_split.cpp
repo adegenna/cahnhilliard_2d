@@ -137,7 +137,7 @@ int main(int argc,char **argv) {
   if ( user.boundary.compare("neumann") == 0 ) // Neumann
     user.residualFunction = reset_boundary_residual_values_for_neumann_bc;
 
-  else ( user.boundary.compare("dirichlet") == 0 ) // Dirichlet
+  else if ( user.boundary.compare("dirichlet") == 0 ) // Dirichlet
     user.residualFunction = compute_residuals_no_explicit_boundary_resets;
   
   // else if ( user.boundary.compare("bottom_dirichlet_neumann_remainder") == 0 ) // Bottom dirichlet, rest Neumann
@@ -146,7 +146,14 @@ int main(int argc,char **argv) {
   // else if ( user.boundary.compare("topandbottom_dirichlet_neumann_remainder") == 0 ) // Bottom/top dirichlet, rest Neumann
   //   user.residualFunction = reset_boundary_residual_values_for_dirichlet_topandbottom_neumann_remainder_bc;
       
+  else {
+    // Incorrectly specified bc option
+    
+    PetscPrintf( PETSC_COMM_WORLD , "Error: boundary option specified incorrectly ...\n\n" );
 
+    return(0);
+    
+  }
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set time-stepping scheme
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
