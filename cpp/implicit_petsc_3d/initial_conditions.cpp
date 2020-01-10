@@ -14,25 +14,28 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   PetscReal      x,y,z,r;
   PetscRandom    rng;
   PetscReal      value_rng;
-  Vec            U_c , U_phi;
+  Vec            U_c , U_phi , U_T;
 
   PetscFunctionBeginUser;
 
   // Unpack composite DM
-  DMCompositeGetAccess( pack , U , &U_c , &U_phi );
+  DMCompositeGetAccess( pack , U , &U_c , &U_phi , &U_T );
   
   // Interior
-  PetscViewer viewer_U , viewer_T;
-  //PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_temperature_file.c_str() , FILE_MODE_READ , &viewer_T );
+  PetscViewer viewer_U , viewer_T , viewer_Tsource;
+  PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_temperature_file.c_str() , FILE_MODE_READ , &viewer_T );
+  PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_temperature_source_file.c_str() , FILE_MODE_READ , &viewer_Tsource );
   PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_soln_file.c_str()        , FILE_MODE_READ , &viewer_U );
-  //VecLoad( Temperature , viewer_T );
-  VecLoad( U_c           , viewer_U );
-  //PetscViewerDestroy(&viewer_T);
+  VecLoad( U_T   , viewer_T );
+  VecLoad( U_c   , viewer_U );
+  VecLoad( user->temperature_source , viewer_Tsource );
+  PetscViewerDestroy(&viewer_T);
+  PetscViewerDestroy(&viewer_Tsource);
   PetscViewerDestroy(&viewer_U);
 
   // Populate phi
-  DM da_c , da_phi;
-  DMCompositeGetEntries( pack , &da_c , &da_phi );
+  DM da_c , da_phi , da_T;
+  DMCompositeGetEntries( pack , &da_c , &da_phi , &da_T );
   DMDAVecGetArray( da_phi , U_phi , &phi );
   DMDAGetCorners( da_phi , &xs,&ys,&zs , &xm,&ym,&zm );
   for (k=zs; k<zs+zm; k++) {
@@ -45,7 +48,7 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   DMDAVecRestoreArray( da_phi , U_phi , &phi );
 
   // Repack everything
-  DMCompositeRestoreAccess( pack , U , &U_c , &U_phi );
+  DMCompositeRestoreAccess( pack , U , &U_c , &U_phi , &U_T );
   
   // Compute temperature-dependent polymer limiters
   user->eps2_min = compute_eps2_from_chparams( user->X_max ,

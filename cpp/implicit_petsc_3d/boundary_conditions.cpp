@@ -325,3 +325,59 @@ void set_boundary_ghost_nodes_dirichlet_singleframe( AppCtx* user , PetscScalar*
   return;
   
 };
+
+void set_boundary_ghost_nodes_dirichlet_singleframe_thermal( AppCtx* user , PetscScalar*** uarray , PetscInt Mx , PetscInt My , PetscInt Mz , PetscInt i , PetscInt j , PetscInt k ) {
+
+  // Set three points around center in ghost regions
+
+  if (i == 0) {
+    for (int kk = k-1 ; kk <= k+1 ; kk++) {
+      for (int jj = j-1 ; jj <= j+1 ; jj++) {
+        uarray[kk][jj][-1] = user->dirichlet_bc_thermal;
+      }
+    }
+  }
+
+  else if (i == Mx-1) {
+    for (int kk = k-1 ; kk <= k+1 ; kk++) {
+      for (int jj = j-1 ; jj <= j+1 ; jj++) {
+        uarray[kk][jj][Mx]   = user->dirichlet_bc_thermal;
+      }
+    }
+  }
+    
+  if (j == 0) {
+    for (int kk = k-1 ; kk <= k+1 ; kk++) {
+      for (int ii = i-1 ; ii <= i+1 ; ii++) {
+        uarray[kk][-1][ii] = user->dirichlet_bc_thermal;
+      }
+    }
+  }
+  
+  else if (j == My-1) {
+    for (int kk = k-1 ; kk <= k+1 ; kk++) {
+      for (int ii = i-1 ; ii <= i+1 ; ii++) {
+        uarray[kk][My][ii]   = user->dirichlet_bc_thermal;
+      }
+    }
+  }  
+
+  if (k == 0) {
+    for (int jj = j-1 ; jj <= j+1 ; jj++) {
+      for (int ii = i-1 ; ii <= i+1 ; ii++) {
+        uarray[-1][jj][ii] = user->dirichlet_bc_thermal;
+      }
+    }
+  }
+  
+  else if (k == Mz-1) {
+    for (int jj = j-1 ; jj <= j+1 ; jj++) {
+      for (int ii = i-1 ; ii <= i+1 ; ii++) {
+        uarray[Mz][jj][ii]   = user->dirichlet_bc_thermal;
+      }
+    }
+  }  
+  
+  return;
+  
+};

@@ -8,7 +8,7 @@
 
 /* AppCtx: used by FormIFunction() and FormIJacobian() */
 typedef struct {
-  DM        pack , da_c , da_phi;
+  DM        pack , da_c , da_phi , da_T;
   std::string physics = "ch";       // "ch": CH-only ; "thermal": thermal diffusion only ; "coupled_ch_thermal": coupled thermal-CH solver
 
   std::string boundary  = "neumann";
@@ -18,6 +18,7 @@ typedef struct {
   PetscReal Lx, Ly, Lz;        // Length of domain in each direction
   PetscReal t_final;           // Final time of simulation
   PetscReal dirichlet_bc;      // Value of dirichlet bc
+  PetscReal dirichlet_bc_thermal;      // Value of dirichlet bc for thermal equation
   PetscReal dt_check;          // Value of time increment where you change the parameters/temperature
   PetscInt  dt_counter = 0;    // Counter that keeps track of how many dt_check have gone by so far
   PetscReal dt_output;         // Value of time increment where you change the parameters/temperature
@@ -37,16 +38,18 @@ typedef struct {
   // Thermal dynamics defaults
   PetscScalar T_min     = 0.1;
   PetscScalar T_max     = 1.0;
-  std::string initial_temperature_file = "initial_temperature.dat"; // File that holds the initial temperature field
-  std::string initial_soln_file        = "initial_soln.dat"; // File that holds the initial solution field
-  
+  std::string initial_temperature_file        = "initial_temperature.dat"; // File that holds the initial temperature field
+  std::string initial_temperature_source_file = "initial_temperature_source.dat"; // File that holds the initial temperature source field
+  std::string initial_soln_file               = "initial_soln.dat"; // File that holds the initial solution field
+  PetscScalar D_T       = 1.0;  // Thermal diffusion coefficient
+
   // CH paramater defaults
   PetscScalar m         = 0.1;  // CH parameter: value of m (avg concentration)
   PetscScalar eps2_min  = 0.0;
   PetscScalar eps2_max  = 1.0;
   PetscScalar sigma_min = 0.0;
   PetscScalar sigma_max = pow( 10.0 , 10 );
-  Vec         eps_2,sigma,temperature,X;
+  Vec         eps_2,sigma,temperature_source,X;
   
 } AppCtx;
 

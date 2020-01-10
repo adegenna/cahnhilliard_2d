@@ -24,7 +24,7 @@ int main(int argc,char **argv) {
 
   TS             ts;                          /* nonlinear solver */
   Vec            u,c,phi,T,r,r_c,r_phi,r_T;   /* solution, residual vectors */
-  Vec            U_c , U_phi;
+  Vec            U_c , U_phi , U_T;
   Mat            J,Jmf = NULL;                /* Jacobian matrices */
   PetscErrorCode ierr;
   DM             da_c , da_phi , da_T , pack;
@@ -52,22 +52,26 @@ int main(int argc,char **argv) {
   DMSetUp(da_c);
 
   da_phi = createLinkedDA_starStencil3D( da_c , "phi_" );
+  da_T   = createLinkedDA_starStencil3D( da_phi , "T_" );
 
   // Pack the DMs together into a single composite manager
   DMCompositeCreate( PETSC_COMM_WORLD , &pack );
   DMSetOptionsPrefix( pack , "pack_" );
   DMCompositeAddDM( pack , da_c );
   DMCompositeAddDM( pack , da_phi );
+  DMCompositeAddDM( pack , da_T );
   DMDASetFieldName( da_c , 0 , "c" );
   DMDASetFieldName( da_phi , 0 , "phi" );
+  DMDASetFieldName( da_T , 0 , "T" );
   DMSetFromOptions( pack );
   
   // Rescale value of L_omega to match the user-specified domain size
-  PetscScalar L_domain = sqrtf( user.Lx * user.Ly );
+  PetscScalar L_domain = powf( user.Lx * user.Ly * user.Lz , 1./3. );
   user.L_omega        *= L_domain;
 
   user.da_c   = da_c;
   user.da_phi = da_phi;
+  user.da_T   = da_T;
   user.pack   = pack;
   
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -75,14 +79,17 @@ int main(int argc,char **argv) {
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   DMCreateGlobalVector( da_c   , &c );
   DMCreateGlobalVector( da_phi , &phi );
+  DMCreateGlobalVector( da_T   , &T );
   DMCreateGlobalVector( pack   , &u );
   VecDuplicate( c   , &r_c ); // Residual used for CH-c calculations
   VecDuplicate( phi , &r_phi ); // Residual used for CH-phi calculations
+  VecDuplicate( T , &r_T ); // Residual used for thermal-only calculations
   VecDuplicate( u , &r );   // Residual used for coupled calculations
   VecDuplicate( c   , &user.sigma );
   VecDuplicate( phi , &user.eps_2 );
   VecDuplicate( c   , &user.X );
-  
+  VecDuplicate( T   , &user.temperature_source );
+
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create timestepping solver context
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -96,14 +103,14 @@ int main(int argc,char **argv) {
   FormInitialSolution( u , &user );
   
   // Thermal CH parameters
-  compute_eps2_and_sigma_from_constant_temperature( &user , u , 0.7 );
+  compute_eps2_and_sigma_from_temperature( &user , u );
   
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set type of physics
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   // Unpack the stuff you need
-  DMCompositeGetAccess( pack , u , &U_c , &U_phi );
+  DMCompositeGetAccess( pack , u , &U_c , &U_phi , &U_T );
 
   PetscErrorCode (*rhsFunctionImplicit)( TS ts , PetscReal t , Vec U , Vec Udot , Vec F , void *ctx );
   DM  da_user;
@@ -119,6 +126,16 @@ int main(int argc,char **argv) {
     
   }
 
+  else if (user.physics.compare("coupled_ch_thermal") == 0) {
+    // Coupled CH-thermal
+    
+    da_user = pack;
+    U_user  = u;
+    r_user  = r;
+    rhsFunctionImplicit = FormIFunction_CH_split_thermal;
+
+  }
+
   else {
     // Incorrectly specified physics option
     
@@ -127,12 +144,11 @@ int main(int argc,char **argv) {
     return(0);
 
   }
+
   
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set boundary condition function
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-  user.residualFunction = compute_residuals_no_explicit_boundary_resets;
   
   if ( user.boundary.compare("neumann") == 0 ) // Neumann
     user.residualFunction = reset_boundary_residual_values_for_neumann_bc;
@@ -190,16 +206,22 @@ int main(int argc,char **argv) {
      Solve nonlinear system
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  const std::string initial_soln = "c_" + std::to_string( 0.0 ).substr(0,6) + ".bin";
-  PetscPrintf( PETSC_COMM_WORLD , "Logging initial solution at t = 0 seconds\n" );
+  const std::string initial_soln  = "c_" + std::to_string( 0.0 ).substr(0,6) + ".bin";
+  PetscPrintf( PETSC_COMM_WORLD , "Logging initial CH solution at t = 0 seconds\n" );
   log_solution( U_c , initial_soln );
+  const std::string initial_soln2 = "T_" + std::to_string( 0.0 ).substr(0,6) + ".bin";
+  PetscPrintf( PETSC_COMM_WORLD , "Logging initial thermal solution at t = 0 seconds\n" );
+  log_solution( U_T , initial_soln2 );
 
   TSSolve( ts , U_user );
     
-  const std::string final_soln = "c_" + std::to_string( user.t_final ).substr(0,6) + ".bin";
+  const std::string final_soln  = "c_" + std::to_string( user.t_final ).substr(0,6) + ".bin";
   PetscPrintf( PETSC_COMM_WORLD , "Logging final solution at t = %5.4f seconds\n" , (double)user.t_final );
   log_solution( U_c , final_soln );
-  
+  const std::string final_soln2 = "T_" + std::to_string( user.t_final ).substr(0,6) + ".bin";
+  PetscPrintf( PETSC_COMM_WORLD , "Logging initial thermal solution at t = %5.4f seconds\n" , (double)user.t_final );
+  log_solution( U_T , final_soln2 );
+
   PetscPrintf( PETSC_COMM_WORLD , "SIMULATION DONE\n\n" );
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

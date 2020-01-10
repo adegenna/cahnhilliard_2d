@@ -843,9 +843,9 @@ PetscErrorCode FormIFunction_CH_split(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,voi
   DMGetLocalVector( da_T   , &local_fT);  
   DMGetLocalVector( da_T   , &local_Tsource );
 
-  DMDAGetLocalInfo( da_c , &info_c );
-  DMDAGetLocalInfo( da_c , &info_phi );
-  DMDAGetLocalInfo( da_T , &info_T );
+  DMDAGetLocalInfo( da_c   , &info_c );
+  DMDAGetLocalInfo( da_phi , &info_phi );
+  DMDAGetLocalInfo( da_T   , &info_T );
   
   DMGlobalToLocalBegin( da_c , U_c , INSERT_VALUES , local_c );
   DMGlobalToLocalEnd(   da_c , U_c , INSERT_VALUES , local_c );

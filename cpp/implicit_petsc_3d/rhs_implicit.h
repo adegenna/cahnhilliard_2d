@@ -47,6 +47,7 @@ PetscScalar*** FormLocalRHS_CH_split_phi( DMDALocalInfo *info ,
 
 PetscErrorCode FormIFunction_CH_split(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx);
 
+PetscErrorCode FormIFunction_CH_split_thermal(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx);
 
 
 #endif

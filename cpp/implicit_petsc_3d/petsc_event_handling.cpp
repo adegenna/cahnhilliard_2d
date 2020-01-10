@@ -197,22 +197,24 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
 PetscErrorCode compute_new_temperature_profile( AppCtx* user , PetscScalar T_amp , PetscScalar T_x , PetscScalar T_y , PetscScalar T_z , PetscScalar T_sigma  ) {
 
   DM             pack   =user->pack;
-  DM             da_c , da_phi;
+  DM             da_c , da_phi , da_T;
   PetscInt       i,j,k,xs,ys,zs,xm,ym,zm,Mx,My,Mz;
   PetscScalar    ***T;
   PetscReal      x,y,z,r;
+  Vec            U , U_c , U_phi , U_T;
   
   PetscFunctionBeginUser;
 
-  DMCompositeGetEntries( pack , &da_c    , &da_phi );
-  
+  DMCompositeGetEntries( pack , &da_c , &da_phi , &da_T );
+  DMCompositeGetAccess(  pack , U     , &U_c    , &U_phi , &U_T );
+
   DMDAGetInfo( da_c ,
 	       PETSC_IGNORE ,
 	       &Mx , &My , &Mz ,
 	       PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE,PETSC_IGNORE);
 
   /* Get pointers to vector data */
-  DMDAVecGetArray(da_c,user->temperature,&T);
+  DMDAVecGetArray(da_T,U_T,&T);
 
   /* Get local grid boundaries */
   DMDAGetCorners( da_c ,
@@ -230,7 +232,7 @@ PetscErrorCode compute_new_temperature_profile( AppCtx* user , PetscScalar T_amp
   }
   
   /* Restore vectors */
-  DMDAVecRestoreArray(da_c,user->temperature,&T);
+  DMDAVecRestoreArray(da_T,U_T,&T);
   
   PetscFunctionReturn(0);
 
