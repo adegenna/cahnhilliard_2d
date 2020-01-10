@@ -177,22 +177,22 @@ PetscReal reset_boundary_residual_values_for_neumann_bc( PetscReal*** uarray , P
     f_kji = uarray[k][j][i] - uarray[k-1][j-1][i-1];
   }
   
-  else if ( (i == 0) || (i == 1) ) {        // W-face
+  else if ( i == 0 ) {        // W-face
     f_kji = uarray[k][j][i] - uarray[k][j][i+1];
   }
-  else if ( (i == Mx-1) || (i == Mx-2) ) {  // E-face
+  else if ( i == Mx-1 ) {  // E-face
     f_kji = uarray[k][j][i] - uarray[k][j][i-1];
   }
-  else if ( (j == 0) || (j == 1) ) {        // S-face 
+  else if ( j == 0 ) {        // S-face 
     f_kji = uarray[k][j][i] - uarray[k][j+1][i];
   }
-  else if ( (j == My-1) || (j == My-2) ) {  // N-face
+  else if ( j == My-1 ) {  // N-face
     f_kji = uarray[k][j][i] - uarray[k][j-1][i];
   }
-  else if ( (k == 0) || (k == 1) ) {        // Bottom-face 
+  else if ( k == 0 ) {        // Bottom-face 
     f_kji = uarray[k][j][i] - uarray[k+1][j][i];
   }
-  else if ( (k == Mz-1) || (k == Mz-2) ) {  // Top-face
+  else if ( k == Mz-1 ) {  // Top-face
     f_kji = uarray[k][j][i] - uarray[k-1][j][i];
   }
   
