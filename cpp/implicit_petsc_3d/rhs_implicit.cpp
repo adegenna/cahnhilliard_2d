@@ -376,8 +376,8 @@ PetscScalar*** FormLocalRHS_CH_split_c( DMDALocalInfo *info ,
   if (user->boundary.compare("dirichlet") == 0) {
     set_boundary_ghost_nodes = set_boundary_ghost_nodes_dirichlet_singleframe;
   }
-  else {
-    // NEED TO IMPLEMENT THIS
+  else if (user->boundary.compare("neumann") == 0) {
+    set_boundary_ghost_nodes = set_boundary_ghost_nodes_neumann_singleframe;
   }
 
   /* Compute function over the locally owned part of the grid */
@@ -440,7 +440,7 @@ PetscScalar*** FormLocalRHS_CH_split_phi( DMDALocalInfo *info ,
     set_boundary_ghost_nodes = set_boundary_ghost_nodes_dirichlet_singleframe;
   }
   else {
-    // NEED TO IMPLEMENT THIS
+    set_boundary_ghost_nodes = set_boundary_ghost_nodes_neumann_singleframe;
   }
 
   /* Compute function over the locally owned part of the grid */

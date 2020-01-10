@@ -33,6 +33,8 @@ PetscReal compute_residuals_no_explicit_boundary_resets(                        
 
 void set_boundary_ghost_nodes_dirichlet_singleframe( AppCtx* user , PetscScalar*** uarray , PetscInt Mx , PetscInt My , PetscInt Mz ,PetscInt i , PetscInt j , PetscInt k );
 
+void set_boundary_ghost_nodes_neumann_singleframe( AppCtx* user , PetscScalar*** uarray , PetscInt Mx , PetscInt My , PetscInt Mz ,PetscInt i , PetscInt j , PetscInt k );
+
 void set_boundary_ghost_nodes_dirichlet_singleframe_thermal( AppCtx* user , PetscScalar*** uarray , PetscInt Mx , PetscInt My , PetscInt Mz , PetscInt i , PetscInt j , PetscInt k );
 
 

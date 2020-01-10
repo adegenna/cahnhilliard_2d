@@ -261,6 +261,15 @@ PetscReal reset_boundary_residual_values_for_dirichlet_topandbottom_neumann_rema
   return f_kji;
 }
 
+void set_boundary_ghost_nodes_neumann_singleframe( AppCtx* user , PetscScalar*** uarray , PetscInt Mx , PetscInt My , PetscInt Mz , PetscInt i , PetscInt j , PetscInt k ) {
+
+  // Set single frame of ghost nodes for neumann
+  // This literally does nothing since currently neumann bcs are simply handled with interior points without ghost nodes
+
+  return;
+
+}
+
 void set_boundary_ghost_nodes_dirichlet_singleframe( AppCtx* user , PetscScalar*** uarray , PetscInt Mx , PetscInt My , PetscInt Mz , PetscInt i , PetscInt j , PetscInt k ) {
 
   // Set three points around center in ghost regions

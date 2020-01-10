@@ -27,7 +27,7 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_soln_file.c_str()        , FILE_MODE_READ , &viewer_U );
   //VecLoad( Temperature , viewer_T );
   VecLoad( U_c           , viewer_U );
-  PetscViewerDestroy(&viewer_T);
+  //PetscViewerDestroy(&viewer_T);
   PetscViewerDestroy(&viewer_U);
 
   // Populate phi
