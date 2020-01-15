@@ -24,6 +24,9 @@ AppCtx parse_petsc_options( ) {
   PetscOptionsGetString(NULL,NULL,"-boundary",tempfile_boundary,sizeof(tempfile_boundary),NULL);
   user.boundary = std::string(tempfile_boundary);
   PetscOptionsGetReal(NULL,NULL,"-dirichlet_bc",&user.dirichlet_bc,NULL);
+  char tempfile_dirichlet_array[PETSC_MAX_PATH_LEN];
+  PetscOptionsGetString(NULL,NULL,"-dirichlet_bc_array_file",tempfile_dirichlet_array,sizeof(tempfile_dirichlet_array),NULL);
+  user.dirichlet_thermal_array_file = std::string(tempfile_dirichlet_array);
   
   // Temporal scheme
   PetscOptionsGetReal(NULL,NULL,"-t_final",&user.t_final,NULL);

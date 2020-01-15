@@ -25,6 +25,7 @@ PetscScalar*** FormLocalRHSTEST( DMDALocalInfo *info ,
 
 PetscScalar*** FormLocalResidual( DMDALocalInfo *info ,
 				  PetscScalar ***uarray ,
+				  PetscScalar ***u_optional ,
 				  PetscScalar ***f , 
 				  PetscScalar*** udot ,
 				  PetscScalar*** rhs ,

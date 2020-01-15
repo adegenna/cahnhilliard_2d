@@ -89,7 +89,8 @@ int main(int argc,char **argv) {
   VecDuplicate( phi , &user.eps_2 );
   VecDuplicate( c   , &user.X );
   VecDuplicate( T   , &user.temperature_source );
-
+  VecDuplicate( T   , &user.dirichlet_bc_thermal_array );
+  
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create timestepping solver context
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -154,7 +155,8 @@ int main(int argc,char **argv) {
     user.residualFunction = reset_boundary_residual_values_for_neumann_bc;
 
   else if ( user.boundary.compare("dirichlet") == 0 ) // Dirichlet
-    user.residualFunction = compute_residuals_no_explicit_boundary_resets;
+    user.residualFunction = reset_boundary_residual_values_for_dirichlet_bc;
+  //user.residualFunction = compute_residuals_no_explicit_boundary_resets;
   
   // else if ( user.boundary.compare("bottom_dirichlet_neumann_remainder") == 0 ) // Bottom dirichlet, rest Neumann
   //   user.residualFunction = reset_boundary_residual_values_for_dirichlet_bottom_neumann_remainder_bc;
@@ -227,7 +229,7 @@ int main(int argc,char **argv) {
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Free work space.
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  DMCompositeRestoreAccess( pack , u , &U_c , &U_phi );
+  DMCompositeRestoreAccess( pack , u , &U_c , &U_phi , &U_T );
   MatDestroy(&J);
   MatDestroy(&Jmf);
   VecDestroy(&u);

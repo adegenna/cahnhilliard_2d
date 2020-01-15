@@ -22,10 +22,10 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   DMCompositeGetAccess( pack , U , &U_c , &U_phi , &U_T );
   
   // Interior
-  PetscViewer viewer_U , viewer_T , viewer_Tsource;
-  PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_temperature_file.c_str() , FILE_MODE_READ , &viewer_T );
+  PetscViewer viewer_U , viewer_T , viewer_Tsource , viewer_dirichlet;
+  PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_temperature_file.c_str()        , FILE_MODE_READ , &viewer_T );
   PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_temperature_source_file.c_str() , FILE_MODE_READ , &viewer_Tsource );
-  PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_soln_file.c_str()        , FILE_MODE_READ , &viewer_U );
+  PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_soln_file.c_str()               , FILE_MODE_READ , &viewer_U );
   VecLoad( U_T   , viewer_T );
   VecLoad( U_c   , viewer_U );
   VecLoad( user->temperature_source , viewer_Tsource );
@@ -33,6 +33,12 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   PetscViewerDestroy(&viewer_Tsource);
   PetscViewerDestroy(&viewer_U);
 
+  if ( user->boundary.compare("dirichlet") == 0 ) {
+    PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->dirichlet_thermal_array_file.c_str()    , FILE_MODE_READ , &viewer_dirichlet );
+    VecLoad( user->dirichlet_bc_thermal_array , viewer_dirichlet );
+    PetscViewerDestroy(&viewer_dirichlet);
+  }
+  
   // Populate phi
   DM da_c , da_phi , da_T;
   DMCompositeGetEntries( pack , &da_c , &da_phi , &da_T );

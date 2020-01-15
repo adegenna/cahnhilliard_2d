@@ -12,13 +12,17 @@ typedef struct {
   std::string physics = "ch";       // "ch": CH-only ; "thermal": thermal diffusion only ; "coupled_ch_thermal": coupled thermal-CH solver
 
   std::string boundary  = "neumann";
-  PetscReal (*residualFunction)( PetscReal*** , PetscReal , PetscReal , PetscInt , PetscInt , PetscInt , PetscInt , PetscInt , PetscInt );
+  PetscReal (*residualFunction)( PetscReal*** , PetscReal*** , PetscReal , PetscReal , PetscInt , PetscInt , PetscInt , PetscInt , PetscInt , PetscInt );
   
   PetscReal c;
   PetscReal Lx, Ly, Lz;        // Length of domain in each direction
   PetscReal t_final;           // Final time of simulation
   PetscReal dirichlet_bc;      // Value of dirichlet bc
   PetscReal dirichlet_bc_thermal;      // Value of dirichlet bc for thermal equation
+  Vec dirichlet_bc_thermal_array;      // Vec holding face values of thermal dirichlet bc
+  std::string dirichlet_thermal_array_file = "thermal_dirichlet_bc.bin";    // Filename of the binary file holding the 3D array with thermal dirichlet BC face values
+  
+  // Time stepper things
   PetscReal dt_check;          // Value of time increment where you change the parameters/temperature
   PetscInt  dt_counter = 0;    // Counter that keeps track of how many dt_check have gone by so far
   PetscReal dt_output;         // Value of time increment where you change the parameters/temperature

@@ -148,7 +148,7 @@ void set_boundary_ghost_nodes_normal_extrapolation(  AppCtx* user , PetscScalar*
   
 // };
 
-PetscReal reset_boundary_residual_values_for_neumann_bc( PetscReal*** uarray , PetscReal rhs_ijk , PetscReal udot_ijk , PetscInt Mx , PetscInt My , PetscInt Mz , PetscInt i , PetscInt j , PetscInt k ) {
+PetscReal reset_boundary_residual_values_for_neumann_bc( PetscReal*** uarray , PetscReal*** u_none , PetscReal rhs_ijk , PetscReal udot_ijk , PetscInt Mx , PetscInt My , PetscInt Mz , PetscInt i , PetscInt j , PetscInt k ) {
 
   PetscReal f_kji;
   
@@ -199,6 +199,20 @@ PetscReal reset_boundary_residual_values_for_neumann_bc( PetscReal*** uarray , P
   else
     f_kji = udot_ijk - rhs_ijk;
 
+
+  return f_kji;
+}
+
+PetscReal reset_boundary_residual_values_for_dirichlet_bc( PetscReal*** uarray , PetscReal*** u_dirichlet , PetscReal rhs_ijk , PetscReal udot_ijk , PetscInt Mx , PetscInt My , PetscInt Mz , PetscInt i , PetscInt j , PetscInt k ) {
+
+  PetscReal f_kji;
+
+  // Uses ghost nodes to impose dirichlet bcs at the wall
+  
+  if (i == 0 || j == 0 || k == 0)
+    f_kji = uarray[k][j][i] - u_dirichlet[k][j][i];
+  else
+    f_kji = udot_ijk - rhs_ijk;
 
   return f_kji;
 }
