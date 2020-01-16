@@ -61,7 +61,7 @@ PetscScalar*** FormLocalResidual_phi( DMDALocalInfo *info ,
     for (int j=info->ys; j<info->ys+info->ym; j++) {
       for (int i=info->xs; i<info->xs+info->xm; i++) {
 
-        f[k][j][i] = compute_residuals_no_explicit_boundary_resets( uarray , u_optional , rhs[k][j][i] , udot[k][j][i] , info->mx , info->my , info->mz , i , j , k );
+        f[k][j][i] = user->residualFunction_ch( uarray , u_optional , rhs[k][j][i] , udot[k][j][i] , info->mx , info->my , info->mz , i , j , k );
       
       }
     }
