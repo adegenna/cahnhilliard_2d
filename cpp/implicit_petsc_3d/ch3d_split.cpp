@@ -90,6 +90,7 @@ int main(int argc,char **argv) {
   VecDuplicate( c   , &user.X );
   VecDuplicate( T   , &user.temperature_source );
   VecDuplicate( T   , &user.dirichlet_bc_thermal_array );
+  VecDuplicate( T   , &user.dirichlet_bc_ch_array );
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create timestepping solver context
@@ -145,25 +146,17 @@ int main(int argc,char **argv) {
     return(0);
 
   }
-
   
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set boundary condition function
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   
-  if ( user.boundary.compare("neumann") == 0 ) // Neumann
-    user.residualFunction = reset_boundary_residual_values_for_neumann_bc;
+  if ( user.boundary_ch.compare("neumann") == 0 ) // Neumann
+    user.residualFunction_ch = reset_boundary_residual_values_for_neumann_bc;
 
-  else if ( user.boundary.compare("dirichlet") == 0 ) // Dirichlet
-    user.residualFunction = reset_boundary_residual_values_for_dirichlet_bc;
-  //user.residualFunction = compute_residuals_no_explicit_boundary_resets;
+  else if ( user.boundary_ch.compare("dirichlet") == 0 ) // Dirichlet
+    user.residualFunction_ch = reset_boundary_residual_values_for_dirichlet_bc;
   
-  // else if ( user.boundary.compare("bottom_dirichlet_neumann_remainder") == 0 ) // Bottom dirichlet, rest Neumann
-  //   user.residualFunction = reset_boundary_residual_values_for_dirichlet_bottom_neumann_remainder_bc;
-
-  // else if ( user.boundary.compare("topandbottom_dirichlet_neumann_remainder") == 0 ) // Bottom/top dirichlet, rest Neumann
-  //   user.residualFunction = reset_boundary_residual_values_for_dirichlet_topandbottom_neumann_remainder_bc;
-      
   else {
     // Incorrectly specified bc option
     
@@ -172,6 +165,22 @@ int main(int argc,char **argv) {
     return(0);
     
   }
+
+  if ( user.boundary_thermal.compare("neumann") == 0 ) // Neumann
+    user.residualFunction_thermal = reset_boundary_residual_values_for_neumann_bc;
+
+  else if ( user.boundary_thermal.compare("dirichlet") == 0 ) // Dirichlet
+    user.residualFunction_thermal = reset_boundary_residual_values_for_dirichlet_bc;
+  
+  else {
+    // Incorrectly specified bc option
+    
+    PetscPrintf( PETSC_COMM_WORLD , "Error: boundary option specified incorrectly ...\n\n" );
+
+    return(0);
+    
+  }
+  
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set time-stepping scheme
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

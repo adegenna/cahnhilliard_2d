@@ -5,8 +5,6 @@
 
 PetscErrorCode compute_rhs( TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx );
 
-// PetscErrorCode FormIFunction( TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx );
-
 PetscScalar*** FormLocalImplicitResidualTEST( DMDALocalInfo *info ,
 					      PetscScalar ***uarray ,
 					      PetscScalar ***f , 
@@ -19,19 +17,21 @@ PetscScalar*** FormLocalRHSTEST( DMDALocalInfo *info ,
 				PetscScalar ***rhs , 
 				AppCtx *user );
 
-// PetscErrorCode FormIFunctionTEST( TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx );
+PetscScalar*** FormLocalResidual_ch( DMDALocalInfo *info ,
+				     PetscScalar ***uarray ,
+				     PetscScalar ***u_optional ,
+				     PetscScalar ***f , 
+				     PetscScalar*** udot ,
+				     PetscScalar*** rhs ,
+				     AppCtx *ctx );
 
-// PetscErrorCode FormRHSTEST(TS ts,PetscReal t,Vec U,Vec F,void *ctx);
-
-PetscScalar*** FormLocalResidual( DMDALocalInfo *info ,
-				  PetscScalar ***uarray ,
-				  PetscScalar ***u_optional ,
-				  PetscScalar ***f , 
-				  PetscScalar*** udot ,
-				  PetscScalar*** rhs ,
-				  AppCtx *ctx );
-
-// FUNCTIONS FOR THE SPLIT-CH SOLVER
+PetscScalar*** FormLocalResidual_thermal( DMDALocalInfo *info ,
+					  PetscScalar ***uarray ,
+					  PetscScalar ***u_optional ,
+					  PetscScalar ***f , 
+					  PetscScalar*** udot ,
+					  PetscScalar*** rhs ,
+					  AppCtx *ctx );
 
 PetscScalar*** FormLocalRHS_CH_split_c( DMDALocalInfo *info ,
                                        PetscScalar ***uarray ,
