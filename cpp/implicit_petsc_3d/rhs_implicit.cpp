@@ -48,6 +48,29 @@ PetscScalar*** FormLocalResidual_thermal( DMDALocalInfo *info ,
 
 }
 
+PetscScalar*** FormLocalResidual_phi( DMDALocalInfo *info ,
+                                      PetscScalar ***uarray ,
+                                      PetscScalar ***u_optional ,
+                                      PetscScalar ***f , 
+                                      PetscScalar ***udot ,
+                                      PetscScalar ***rhs ,
+                                      AppCtx *user ) {
+  
+  // Apply correction to boundary fluxes and set residuals
+  for (int k=info->zs; k<info->zs+info->zm; k++) {
+    for (int j=info->ys; j<info->ys+info->ym; j++) {
+      for (int i=info->xs; i<info->xs+info->xm; i++) {
+
+        f[k][j][i] = compute_residuals_no_explicit_boundary_resets( uarray , u_optional , rhs[k][j][i] , udot[k][j][i] , info->mx , info->my , info->mz , i , j , k );
+      
+      }
+    }
+  }
+  
+  return f;
+
+}
+
 PetscScalar*** FormLocalRHS_thermal( DMDALocalInfo *info ,
                                      PetscScalar ***Tarray ,
                                      PetscScalar ***rhs ,
@@ -86,47 +109,6 @@ PetscScalar*** FormLocalRHS_thermal( DMDALocalInfo *info ,
   return rhs;
   
 }
-
-PetscScalar*** FormLocalImplicitResidualTEST( DMDALocalInfo *info ,
-					      PetscScalar ***uarray ,
-					      PetscScalar ***f , 
-					      PetscScalar ***udot ,
-					      PetscScalar ***rhs ,
-					      AppCtx *user ) {
-
-  PetscScalar rhs_ijk;
-
-  for ( int k = info->zs ; k < info->zs+info->zm ; k++ ) {
-    for ( int j = info->ys ; j < info->ys+info->ym ; j++ ) {
-      for ( int i = info->xs ; i < info->xs+info->xm ; i++ ) {
-	rhs_ijk    = -1.0 * uarray[k][j][i];	
-	f[k][j][i] = udot[k][j][i] - rhs_ijk;
-      }
-    }
-  }
-  
-  return f;
-
-}
-
-PetscScalar*** FormLocalRHSTEST( DMDALocalInfo *info ,
-				PetscScalar ***uarray ,
-				PetscScalar ***rhs , 
-				AppCtx *user ) {
-
-  for ( int k = info->zs ; k < info->zs+info->zm ; k++ ) {
-    for ( int j = info->ys ; j < info->ys+info->ym ; j++ ) {
-      for ( int i = info->xs ; i < info->xs+info->xm ; i++ ) {
-	rhs[k][j][i]    = -1.0 * uarray[k][j][i];	
-      }
-    }
-  }
-  
-  return rhs;
-
-}
-
-// FUNCTIONS FOR THE SPLIT-CH SOLVER
 
 PetscScalar*** FormLocalRHS_CH_split_c( DMDALocalInfo *info ,
                                         PetscScalar ***uarray ,
@@ -300,7 +282,7 @@ PetscErrorCode FormIFunction_CH_split(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,voi
   rhs_c       = FormLocalRHS_CH_split_c(    &info_c   , carray   , phiarray    , rhs_c , sigma_array , user );
   f_c         = FormLocalResidual_ch(       &info_c   , carray   , ch_bc_array , f_c      , udot_c , rhs_c , user );
   rhs_phi     = FormLocalRHS_CH_split_phi(  &info_phi , carray   , rhs_phi     , eps_2_array , user );
-  f_phi       = FormLocalResidual_ch(       &info_phi , phiarray , NULL        , f_phi    , phiarray    , rhs_phi , user );
+  f_phi       = FormLocalResidual_phi(      &info_phi , phiarray , NULL        , f_phi    , phiarray    , rhs_phi , user );
   
   /* Restore vectors */
   DMDAVecRestoreArray(da_c,local_c,&carray);
@@ -437,7 +419,7 @@ PetscErrorCode FormIFunction_CH_split_thermal(TS ts,PetscReal t,Vec U,Vec Udot,V
   rhs_c       = FormLocalRHS_CH_split_c(    &info_c   , carray   , phiarray         , rhs_c       , sigma_array , user );
   f_c         = FormLocalResidual_ch(       &info_c   , carray   , ch_bc_array      , f_c          , udot_c      , rhs_c       , user );
   rhs_phi     = FormLocalRHS_CH_split_phi(  &info_phi , carray   , rhs_phi          , eps_2_array , user );
-  f_phi       = FormLocalResidual_ch(       &info_phi , phiarray , NULL             , f_phi        , phiarray    , rhs_phi     , user );
+  f_phi       = FormLocalResidual_phi(      &info_phi , phiarray , NULL             , f_phi        , phiarray    , rhs_phi     , user );
   rhs_T       = FormLocalRHS_thermal(       &info_T   , Tarray   , rhs_T            , Tsource     , user );
   f_T         = FormLocalResidual_thermal(  &info_T   , Tarray   , thermal_bc_array , f_T          , udot_T      , rhs_T       , user );
 

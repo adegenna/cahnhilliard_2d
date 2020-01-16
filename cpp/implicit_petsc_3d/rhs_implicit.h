@@ -5,18 +5,6 @@
 
 PetscErrorCode compute_rhs( TS ts,PetscReal t,Vec U,Vec Udot,Vec F,void *ctx );
 
-PetscScalar*** FormLocalImplicitResidualTEST( DMDALocalInfo *info ,
-					      PetscScalar ***uarray ,
-					      PetscScalar ***f , 
-					      PetscScalar ***udot ,
-					      PetscScalar ***rhs ,
-					      AppCtx *user );
-
-PetscScalar*** FormLocalRHSTEST( DMDALocalInfo *info ,
-				PetscScalar ***uarray ,
-				PetscScalar ***rhs , 
-				AppCtx *user );
-
 PetscScalar*** FormLocalResidual_ch( DMDALocalInfo *info ,
 				     PetscScalar ***uarray ,
 				     PetscScalar ***u_optional ,
@@ -24,6 +12,14 @@ PetscScalar*** FormLocalResidual_ch( DMDALocalInfo *info ,
 				     PetscScalar*** udot ,
 				     PetscScalar*** rhs ,
 				     AppCtx *ctx );
+
+PetscScalar*** FormLocalResidual_phi( DMDALocalInfo *info ,
+				      PetscScalar ***uarray ,
+				      PetscScalar ***u_optional ,
+				      PetscScalar ***f , 
+				      PetscScalar*** udot ,
+				      PetscScalar*** rhs ,
+				      AppCtx *ctx );
 
 PetscScalar*** FormLocalResidual_thermal( DMDALocalInfo *info ,
 					  PetscScalar ***uarray ,

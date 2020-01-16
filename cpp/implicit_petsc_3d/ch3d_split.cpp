@@ -150,7 +150,8 @@ int main(int argc,char **argv) {
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set boundary condition function
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  
+
+  // CH equation: c
   if ( user.boundary_ch.compare("neumann") == 0 ) // Neumann
     user.residualFunction_ch = reset_boundary_residual_values_for_neumann_bc;
 
@@ -165,7 +166,8 @@ int main(int argc,char **argv) {
     return(0);
     
   }
-
+  
+  // Thermal equation
   if ( user.boundary_thermal.compare("neumann") == 0 ) // Neumann
     user.residualFunction_thermal = reset_boundary_residual_values_for_neumann_bc;
 
