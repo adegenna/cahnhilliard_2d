@@ -61,7 +61,7 @@ PetscScalar*** FormLocalResidual_phi( DMDALocalInfo *info ,
     for (int j=info->ys; j<info->ys+info->ym; j++) {
       for (int i=info->xs; i<info->xs+info->xm; i++) {
 
-        f[k][j][i] = user->residualFunction_ch( uarray , u_optional , rhs[k][j][i] , udot[k][j][i] , info->mx , info->my , info->mz , i , j , k );
+        f[k][j][i] = reset_boundary_residual_values_for_neumann_bc( uarray , u_optional , rhs[k][j][i] , udot[k][j][i] , info->mx , info->my , info->mz , i , j , k );
       
       }
     }
@@ -282,7 +282,7 @@ PetscErrorCode FormIFunction_CH_split(TS ts,PetscReal t,Vec U,Vec Udot,Vec F,voi
   rhs_c       = FormLocalRHS_CH_split_c(    &info_c   , carray   , phiarray    , rhs_c , sigma_array , user );
   f_c         = FormLocalResidual_ch(       &info_c   , carray   , ch_bc_array , f_c      , udot_c , rhs_c , user );
   rhs_phi     = FormLocalRHS_CH_split_phi(  &info_phi , carray   , rhs_phi     , eps_2_array , user );
-  f_phi       = FormLocalResidual_phi(      &info_phi , phiarray , NULL        , f_phi    , phiarray    , rhs_phi , user );
+  f_phi       = FormLocalResidual_phi(      &info_phi , phiarray , ch_bc_array , f_phi    , phiarray    , rhs_phi , user );
   
   /* Restore vectors */
   DMDAVecRestoreArray(da_c,local_c,&carray);
@@ -419,7 +419,7 @@ PetscErrorCode FormIFunction_CH_split_thermal(TS ts,PetscReal t,Vec U,Vec Udot,V
   rhs_c       = FormLocalRHS_CH_split_c(    &info_c   , carray   , phiarray         , rhs_c       , sigma_array , user );
   f_c         = FormLocalResidual_ch(       &info_c   , carray   , ch_bc_array      , f_c          , udot_c      , rhs_c       , user );
   rhs_phi     = FormLocalRHS_CH_split_phi(  &info_phi , carray   , rhs_phi          , eps_2_array , user );
-  f_phi       = FormLocalResidual_phi(      &info_phi , phiarray , NULL             , f_phi        , phiarray    , rhs_phi     , user );
+  f_phi       = FormLocalResidual_phi(      &info_phi , phiarray , ch_bc_array      , f_phi        , phiarray    , rhs_phi     , user );
   rhs_T       = FormLocalRHS_thermal(       &info_T   , Tarray   , rhs_T            , Tsource     , user );
   f_T         = FormLocalResidual_thermal(  &info_T   , Tarray   , thermal_bc_array , f_T          , udot_T      , rhs_T       , user );
 
