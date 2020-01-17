@@ -208,12 +208,12 @@ int main(int argc,char **argv) {
   KSPSetFromOptions(ksp);
   PetscOptionsView( NULL , PETSC_VIEWER_STDOUT_WORLD );  
   
-  // // Setup event handling
-  // PetscInt       direction[3];
-  // PetscBool      terminate[3];
-  // direction[0] = 1;           direction[1] = 1;           direction[2] = 1;
-  // terminate[0] = PETSC_FALSE; terminate[1] = PETSC_FALSE; terminate[2] = PETSC_FALSE;
-  // TSSetEventHandler( ts , 3 , direction , terminate , EventFunction , PostEventFunction_ResetTemperatureGaussianProfile , (void*)&user );
+  // Setup event handling
+  PetscInt       direction[3];
+  PetscBool      terminate[3];
+  direction[0] = 1;           direction[1] = 1;           direction[2] = 1;
+  terminate[0] = PETSC_FALSE; terminate[1] = PETSC_FALSE; terminate[2] = PETSC_FALSE;
+  TSSetEventHandler( ts , 3 , direction , terminate , EventFunction , PostEventFunction_RecomputeThermalProperties , (void*)&user );
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Solve nonlinear system

@@ -42,6 +42,9 @@ PetscErrorCode EventFunction( TS ts , PetscReal t , Vec U , PetscScalar *fvalue 
   
   // Event 2: output solution
   fvalue[1] = t - (app->dt_output_counter + 1) * app->dt_output;
+  
+  // Event 3: recalculate thermal-dependent parameters each new solution timestep
+  fvalue[2] = t - (app->dt_thermal_counter + 1) * app->dt_thermal_reset;
 
   PetscFunctionReturn(0);
 
@@ -117,6 +120,26 @@ PetscErrorCode PostEventFunction_ResetM(TS ts,PetscInt nevents,PetscInt event_li
 
 }
 
+PetscErrorCode PostEventFunction_RecomputeThermalProperties(TS ts,PetscInt nevents,PetscInt event_list[],PetscReal t,Vec U,PetscBool forwardsolve,void* ctx) {
+
+  AppCtx         *app = (AppCtx*)ctx;
+  
+  for (int i=0; i<nevents; i++) {
+
+    if ( (event_list[i] == 2) && ( t < app->t_final ) ) {
+
+      PetscPrintf( PETSC_COMM_WORLD , "Recalculating thermal properties t = %5.4f seconds\n" , (double)t );
+      
+      compute_eps2_and_sigma_from_temperature( ctx , U );
+
+      app->dt_thermal_counter += 1;
+
+    }
+    
+  }
+  
+}
+
 PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt nevents,PetscInt event_list[],PetscReal t,Vec U,PetscBool forwardsolve,void* ctx) {
 
   AppCtx         *app = (AppCtx*)ctx;
@@ -189,7 +212,7 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
     }
     
   }
-
+  
   PetscFunctionReturn(0);
 
 }

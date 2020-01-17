@@ -39,6 +39,7 @@ AppCtx parse_petsc_options( ) {
   PetscOptionsGetReal(NULL,NULL,"-dt_check",&user.dt_check,NULL);
   PetscOptionsGetReal(NULL,NULL,"-dt_output",&user.dt_output,NULL);
   PetscOptionsGetReal(NULL,NULL,"-dt",&user.dt,NULL);
+  PetscOptionsGetReal(NULL,NULL,"-dt_thermal_reset",&user.dt_thermal_reset,NULL);
 
   // Thermal options  
   char tempfile[PETSC_MAX_PATH_LEN];
