@@ -138,6 +138,8 @@ PetscErrorCode PostEventFunction_RecomputeThermalProperties(TS ts,PetscInt neven
     
   }
   
+  PetscFunctionReturn(0);
+
 }
 
 PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt nevents,PetscInt event_list[],PetscReal t,Vec U,PetscBool forwardsolve,void* ctx) {
