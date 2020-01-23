@@ -135,6 +135,20 @@ PetscErrorCode PostEventFunction_RecomputeThermalProperties(TS ts,PetscInt neven
       app->dt_thermal_counter += 1;
 
     }
+
+    // Log solution
+    if ( (event_list[i] == 1) && ( t < app->t_final ) ) {
+
+      PetscPrintf( PETSC_COMM_WORLD , "Logging solution at t = %5.4f seconds\n" , (double)t );
+
+      const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".bin";
+
+      log_solution( U , outname );
+      
+      app->dt_output_counter += 1;
+
+    }
+
     
   }
   
