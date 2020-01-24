@@ -14,17 +14,17 @@
 
 # CH parameters
 -CH_m 0.1
--D_T 0.00001
+-D_T 10.0
 -physics coupled_ch_thermal
 
 # Boundary conditions
 
 -boundary_ch neumann
--boundary_thermal neumann
+-boundary_thermal dirichlet
 -dirichlet_bc 0.0
 -dirichlet_bc_thermal 0.1
--dirichlet_bc_ch_array_file none
--dirichlet_bc_thermal_array_file none
+-dirichlet_bc_ch_array_file dirichlet_ch.bin
+-dirichlet_bc_thermal_array_file dirichlet_T.bin
 
 # Temporal scheme
 
@@ -36,8 +36,9 @@
 -ts_adapt_dt_max 0.1
 -ts_max_snes_failures -1
 -t_final 1.0
--dt_check 0.04
--dt_output 0.04
+-dt_check 2
+-dt_output 2
+-dt_thermal_reset 0.0001
 
 # Petsc solver options
 

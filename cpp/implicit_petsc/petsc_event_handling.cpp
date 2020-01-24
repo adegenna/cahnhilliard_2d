@@ -46,6 +46,42 @@ PetscErrorCode EventFunction( TS ts , PetscReal t , Vec U , PetscScalar *fvalue 
 
 }
 
+PetscErrorCode PostEventFunction_RecomputeThermalProperties(TS ts,PetscInt nevents,PetscInt event_list[],PetscReal t,Vec U,PetscBool forwardsolve,void* ctx) {
+
+  AppCtx         *app = (AppCtx*)ctx;
+  
+  for (int i=0; i<nevents; i++) {
+
+    if ( (event_list[i] == 2) && ( t < app->t_final ) ) {
+
+      PetscPrintf( PETSC_COMM_WORLD , "Recalculating thermal properties t = %5.4f seconds\n" , (double)t );
+      
+      compute_eps2_and_sigma_from_temperature( ctx , U );
+
+      app->dt_thermal_counter += 1;
+
+    }
+
+    // Log solution
+    if ( (event_list[i] == 1) && ( t < app->t_final ) ) {
+
+      PetscPrintf( PETSC_COMM_WORLD , "Logging solution at t = %5.4f seconds\n" , (double)t );
+
+      const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".bin";
+
+      log_solution( U , outname );
+      
+      app->dt_output_counter += 1;
+
+    }
+
+    
+  }
+  
+  PetscFunctionReturn(0);
+
+}
+
 PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt nevents,PetscInt event_list[],PetscReal t,Vec U,PetscBool forwardsolve,void* ctx) {
 
   AppCtx         *app = (AppCtx*)ctx;

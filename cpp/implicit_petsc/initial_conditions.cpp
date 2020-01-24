@@ -39,7 +39,7 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   }
   
   // Load initial concentration and temperature from file
-  PetscViewer viewer_T , viewer_U , viewer_Tsource; 
+  PetscViewer viewer_T , viewer_U , viewer_Tsource , viewer_dirichlet_ch , viewer_dirichlet_thermal; 
   MPI_Comm comm = PETSC_COMM_WORLD;
   PetscViewer    viewer_out;
   PetscViewerCreate( comm , &viewer_out );
@@ -52,6 +52,18 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   PetscViewerDestroy(&viewer_T);
   PetscViewerDestroy(&viewer_Tsource);
   PetscViewerDestroy(&viewer_U);
+  
+  if ( user->boundary_ch.compare("dirichlet") == 0 ) {
+    PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->dirichlet_ch_array_file.c_str()    , FILE_MODE_READ , &viewer_dirichlet_ch );
+    VecLoad( user->dirichlet_bc_ch_array , viewer_dirichlet_ch );
+    PetscViewerDestroy(&viewer_dirichlet_ch);
+  }
+  
+  if ( user->boundary_thermal.compare("dirichlet") == 0 ) {
+    PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->dirichlet_thermal_array_file.c_str()    , FILE_MODE_READ , &viewer_dirichlet_thermal );
+    VecLoad( user->dirichlet_bc_thermal_array , viewer_dirichlet_thermal );
+    PetscViewerDestroy(&viewer_dirichlet_thermal);
+  }
 
   // Populate phi
   DMDAVecGetArray( da_phi , U_phi , &phi );

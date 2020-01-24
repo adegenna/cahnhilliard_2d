@@ -192,7 +192,7 @@ PetscReal reset_boundary_residual_values_for_dirichlet_bc( PetscReal** uarray , 
 
   // Uses ghost nodes to impose dirichlet bcs at the wall
   
-  if (i == 0 || j == 0)
+  if (i == 0 || j == 0 || i == (Mx-1) || j == (My-1) )
     f_ji = uarray[j][i] - u_dirichlet[j][i];
   else
     f_ji = udot_ij - rhs_ij;
