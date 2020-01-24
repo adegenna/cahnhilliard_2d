@@ -24,21 +24,30 @@ typedef struct {
   std::string physics = "ch";       // "ch": CH-only ; "thermal": thermal diffusion only ; "coupled_ch_thermal": coupled thermal-CH solver
   PetscReal c;
 
-  std::string boundary  = "neumann";
-  PetscReal (*residualFunction)( PetscReal** , PetscReal , PetscReal , PetscInt , PetscInt , PetscInt , PetscInt );
-  
-  PetscReal Lx, Ly;            // Length of domain in each direction
+  PetscReal (*residualFunction_ch)(      PetscReal** , PetscReal** , PetscReal , PetscReal , PetscInt , PetscInt , PetscInt , PetscInt );
+  PetscReal (*residualFunction_thermal)( PetscReal** , PetscReal** , PetscReal , PetscReal , PetscInt , PetscInt , PetscInt , PetscInt );
+
+  // Boundary condition things
+  std::string boundary_ch       = "neumann"; // Type of bc for ch field variables
+  std::string boundary_thermal  = "neumann"; // Type of bc for thermal field variable
+  PetscReal Lx, Ly;                          // Length of domain in each direction
+  PetscReal dirichlet_bc;                    // Value of dirichlet bc
+  PetscReal dirichlet_bc_thermal;            // Value of dirichlet bc for thermal equation
+  std::string dirichlet_thermal_array_file = "thermal_dirichlet_bc.bin";    // Filename of the binary file holding the 3D array with thermal dirichlet BC face values
+  std::string dirichlet_ch_array_file      = "ch_dirichlet_bc.bin";         // Filename of the binary file holding the 3D array with ch dirichlet BC face values
+  Vec dirichlet_bc_thermal_array;            // Vec holding face values of thermal dirichlet bc
+  Vec dirichlet_bc_ch_array;                 // Vec holding face values of ch dirichlet bc
+
+  // Time stepper things
   PetscReal t_final;           // Final time of simulation
-  PetscReal dirichlet_bc;      // Value of dirichlet bc
-  PetscReal dirichlet_bc_thermal;      // Value of dirichlet bc for thermal equation
   PetscReal dt_check;          // Value of time increment where you change the parameters/temperature
   PetscInt  dt_counter = 0;    // Counter that keeps track of how many dt_check have gone by so far
   PetscReal dt_output;         // Value of time increment where you change the parameters/temperature
-  PetscInt  dt_output_counter = 0;   // Counter that keeps track of how many dt_output have gone by so far
-  PetscReal dt_thermal_reset    = 0.001; // Value of time increment where you recalculate thermal properties
-  PetscInt  dt_thermal_counter  = 0;     // Counter that keeps track of how many dt_thermal_reset have gone by so far
-  std::string time_stepper    = "implicit";   // "implicit" or "explicit"
-  PetscScalar dt          = 0.005;   // Default dt
+  PetscInt  dt_output_counter   = 0;      // Counter that keeps track of how many dt_output have gone by so far
+  PetscReal dt_thermal_reset    = 0.001;  // Value of time increment where you recalculate thermal properties
+  PetscInt  dt_thermal_counter  = 0;      // Counter that keeps track of how many dt_thermal_reset have gone by so far  
+  std::string time_stepper      = "implicit";  // "implicit" or "explicit"
+  PetscScalar dt                = 0.005;       // Default dt
 
   // Polymer physics defaults
   PetscScalar X_min    = 0.055;

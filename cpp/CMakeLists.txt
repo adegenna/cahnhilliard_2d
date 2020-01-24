@@ -104,28 +104,6 @@ SWIG_LINK_LIBRARIES( cahnhilliard
 #   DEPENDS "${CMAKE_SOURCE_DIR}/build/cahnhilliard.py"
 # )
 
-#############################################
-# Petsc-2D implicit solver
-#############################################
-
-add_executable( jfnk_2d
-  implicit_petsc/jfnk_2d.cpp
-  implicit_petsc/utils_ch_implicit.cpp
-  implicit_petsc/boundary_conditions.cpp
-  implicit_petsc/initial_conditions.cpp
-  implicit_petsc/rhs_implicit.cpp
-  implicit_petsc/petsc_event_handling.cpp
-  implicit_petsc/temperature_dependence.cpp
-)
-
-add_dependencies(jfnk_2d petsc_external)
-
-target_link_libraries( jfnk_2d
-  m
-  ${MPI_LIBRARIES}
-  ${HDF5_LIBRARIES}
-  ${PETSC_LIBRARIES}
-)
 
 #############################################
 # Petsc-3D split solver

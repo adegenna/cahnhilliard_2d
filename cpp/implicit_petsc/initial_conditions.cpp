@@ -26,7 +26,17 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   PetscFunctionBeginUser;
 
   // Unpack composite DM
-  DMCompositeGetAccess( pack , U , &U_c , &U_phi , &U_T );
+  DM da_c , da_phi , da_T;  
+  if (user->physics.compare("coupled_ch_thermal") == 0) {
+    DMCompositeGetEntries( pack , &da_c , &da_phi , &da_T );
+    DMCompositeGetAccess(  pack , U     , &U_c    , &U_phi    , &U_T );
+  }
+  else if (user->physics.compare("ch") == 0) {
+    DMCompositeGetEntries( pack , &da_c    , &da_phi );
+    DMCompositeGetAccess(  pack , U , &U_c , &U_phi );
+    da_T = user->da_T;
+    DMGetGlobalVector( da_T , &U_T );
+  }
   
   // Load initial concentration and temperature from file
   PetscViewer viewer_T , viewer_U , viewer_Tsource; 
@@ -44,8 +54,6 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   PetscViewerDestroy(&viewer_U);
 
   // Populate phi
-  DM da_c , da_phi , da_T;
-  DMCompositeGetEntries( pack , &da_c    , &da_phi   , &da_T );
   DMDAVecGetArray( da_phi , U_phi , &phi );
   DMDAGetCorners( da_phi , &xs,&ys , NULL , &xm,&ym , NULL);
   for (j=ys; j<ys+ym; j++) {
@@ -56,7 +64,13 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   DMDAVecRestoreArray( da_phi , U_phi , &phi );
 
   // Repack everything
-  DMCompositeRestoreAccess( pack , U , &U_c , &U_phi , &U_T );
+  if (user->physics.compare("coupled_ch_thermal") == 0) {
+    DMCompositeRestoreAccess( pack , U , &U_c , &U_phi , &U_T );
+  }
+  else if (user->physics.compare("ch") == 0) {
+    DMCompositeRestoreAccess( pack , U , &U_c , &U_phi );
+    DMRestoreGlobalVector( da_T , &U_T );
+  }
   
   // Compute temperature-dependent polymer limiters
   user->eps2_min = compute_eps2_from_chparams( user->X_max ,

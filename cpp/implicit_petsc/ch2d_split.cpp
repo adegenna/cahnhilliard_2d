@@ -24,7 +24,7 @@ int main(int argc,char **argv) {
 
   TS             ts;                          /* nonlinear solver */
   Vec            u,c,phi,T,r,r_c,r_phi,r_T;   /* solution, residual vectors */
-  Vec            U_c , U_T;
+  Vec            U_c , U_phi , U_T;
   Mat            J,Jmf = NULL;                /* Jacobian matrices */
   PetscErrorCode ierr;
   DM             da_c , da_phi , da_T , pack;
@@ -59,21 +59,25 @@ int main(int argc,char **argv) {
   DMSetOptionsPrefix( pack , "pack_" );
   DMCompositeAddDM( pack , da_c );
   DMCompositeAddDM( pack , da_phi );
-  DMCompositeAddDM( pack , da_T );
   DMDASetFieldName( da_c , 0 , "c" );
   DMDASetFieldName( da_phi , 0 , "phi" );
-  DMDASetFieldName( da_T , 0 , "T" );
-  DMSetFromOptions( pack );
-  
-  // Rescale value of L_omega to match the user-specified domain size
-  PetscScalar L_domain = sqrtf( user.Lx * user.Ly );
-  user.L_omega        *= L_domain;
 
   user.da_c   = da_c;
   user.da_phi = da_phi;
   user.da_T   = da_T;
   user.pack   = pack;
   
+  if (user.physics.compare("coupled_ch_thermal") == 0) {
+    DMCompositeAddDM( pack , da_T );
+    DMDASetFieldName( da_T , 0 , "T" );
+  }
+  
+  DMSetFromOptions( pack );
+  
+  // Rescale value of L_omega to match the user-specified domain size
+  PetscScalar L_domain = sqrtf( user.Lx * user.Ly );
+  user.L_omega        *= L_domain;
+
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Extract global vectors from DMDA;
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -89,7 +93,9 @@ int main(int argc,char **argv) {
   VecDuplicate( phi , &user.eps_2 );
   VecDuplicate( c   , &user.X );
   VecDuplicate( T   , &user.temperature_source );
-  
+  VecDuplicate( T   , &user.dirichlet_bc_thermal_array );
+  VecDuplicate( T   , &user.dirichlet_bc_ch_array );
+
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create timestepping solver context
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -103,16 +109,21 @@ int main(int argc,char **argv) {
   FormInitialSolution( u , &user );
   
   // Thermal CH parameters
-  compute_eps2_and_sigma_from_constant_temperature( &user , u , 0.7 );
+  compute_eps2_and_sigma_from_temperature( &user , u );
   
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set type of physics
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   // Unpack the stuff you need
-  DMCompositeGetAccess( pack , u , &U_c , &U_T );
-
-  PetscErrorCode (*rhsFunctionExplicit)( TS ts , PetscReal t , Vec U , Vec F , void *ctx );
+  if (user.physics.compare("ch") == 0) {
+    DMCompositeGetAccess( pack , u , &U_c , &U_phi );
+    DMGetGlobalVector( da_T , &U_T );
+  }
+  else if (user.physics.compare("coupled_ch_thermal") == 0) {
+    DMCompositeGetAccess( pack , u , &U_c , &U_phi , &U_T );
+  }
+    
   PetscErrorCode (*rhsFunctionImplicit)( TS ts , PetscReal t , Vec U , Vec Udot , Vec F , void *ctx );
   DM  da_user;
   Vec U_user , r_user;
@@ -124,8 +135,17 @@ int main(int argc,char **argv) {
     U_user  = u;
     r_user  = r;
     rhsFunctionImplicit = FormIFunction_CH_split;
-    rhsFunctionExplicit = FormRHS_CH_split;
     
+  }
+  
+  else if (user.physics.compare("coupled_ch_thermal") == 0) {
+    // Coupled CH-thermal
+    
+    da_user = pack;
+    U_user  = u;
+    r_user  = r;
+    rhsFunctionImplicit = FormIFunction_CH_split_thermal;
+
   }
 
   else {
@@ -141,19 +161,37 @@ int main(int argc,char **argv) {
    Set boundary condition function
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  user.residualFunction = compute_residuals_no_explicit_boundary_resets;
+  // CH equation: c
+  if ( user.boundary_ch.compare("neumann") == 0 ) // Neumann
+    user.residualFunction_ch = reset_boundary_residual_values_for_neumann_bc;
+
+  else if ( user.boundary_ch.compare("dirichlet") == 0 ) // Dirichlet
+    user.residualFunction_ch = reset_boundary_residual_values_for_dirichlet_bc;
   
-  // if ( user.boundary.compare("neumann") == 0 ) // Neumann
-  //   user.residualFunction = reset_boundary_residual_values_for_neumann_bc;
+  else {
+    // Incorrectly specified bc option
+    
+    PetscPrintf( PETSC_COMM_WORLD , "Error: boundary option specified incorrectly ...\n\n" );
 
-  // else if ( user.boundary.compare("bottom_dirichlet_neumann_remainder") == 0 ) // Bottom dirichlet, rest Neumann
-  //   user.residualFunction = reset_boundary_residual_values_for_dirichlet_bottom_neumann_remainder_bc;
+    return(0);
+    
+  }
+  
+  // Thermal equation
+  if ( user.boundary_thermal.compare("neumann") == 0 ) // Neumann
+    user.residualFunction_thermal = reset_boundary_residual_values_for_neumann_bc;
 
-  // else if ( user.boundary.compare("topandbottom_dirichlet_neumann_remainder") == 0 ) // Bottom/top dirichlet, rest Neumann
-  //   user.residualFunction = reset_boundary_residual_values_for_dirichlet_topandbottom_neumann_remainder_bc;
-      
-  // else // Dirichlet or periodic: just compute with ghost nodes
-  //   user.residualFunction = compute_residuals_no_explicit_boundary_resets;
+  else if ( user.boundary_thermal.compare("dirichlet") == 0 ) // Dirichlet
+    user.residualFunction_thermal = reset_boundary_residual_values_for_dirichlet_bc;
+  
+  else {
+    // Incorrectly specified bc option
+    
+    PetscPrintf( PETSC_COMM_WORLD , "Error: boundary option specified incorrectly ...\n\n" );
+
+    return(0);
+    
+  }
 
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set time-stepping scheme
@@ -162,27 +200,13 @@ int main(int argc,char **argv) {
   TSSetDM( ts , da_user );
   TSSetSolution( ts , U_user );
   
-  if (user.time_stepper.compare("implicit") == 0) {
-    // Implicit
-
-    TSSetIFunction( ts , r_user , rhsFunctionImplicit , &user );
-    DMSetMatType( da_user , MATAIJ );
-    DMCreateMatrix( da_user , &J );
-    TSGetSNES( ts , &snes );
-    MatCreateSNESMF( snes , &Jmf );
-    SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
+  TSSetIFunction( ts , r_user , rhsFunctionImplicit , &user );
+  DMSetMatType( da_user , MATAIJ );
+  DMCreateMatrix( da_user , &J );
+  TSGetSNES( ts , &snes );
+  MatCreateSNESMF( snes , &Jmf );
+  SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
     
-  }
-
-  else {
-    // Incorrectly specified timestepper option
-    
-    PetscPrintf( PETSC_COMM_WORLD , "Error: time_stepper option specified incorrectly ...\n\n" );
-
-    return(0);
-    
-  }
-
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set user options and event handling
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -190,10 +214,8 @@ int main(int argc,char **argv) {
   // User-options
   TSSetFromOptions(ts);
   SNESSetFromOptions(snes);
-  if ( user.time_stepper.compare("implicit") == 0 ) {
-    SNESGetKSP(snes,&ksp);
-    KSPSetFromOptions(ksp);
-  }
+  SNESGetKSP(snes,&ksp);
+  KSPSetFromOptions(ksp);
   PetscOptionsView( NULL , PETSC_VIEWER_STDOUT_WORLD );  
   
   // Setup event handling
@@ -222,15 +244,18 @@ int main(int argc,char **argv) {
   log_solution( U_c , final_soln );
   
   PetscPrintf( PETSC_COMM_WORLD , "SIMULATION DONE\n\n" );
-
-  std::cout << '\n' << "Press the Enter key to continue.";
-  do {
-  } while (std::cin.get() != '\n'); 
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Free work space.
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  DMCompositeRestoreAccess( pack , u , &U_c , &U_T );
+  if (user.physics.compare("coupled_ch_thermal") == 0) {
+    DMCompositeRestoreAccess( pack , u , &U_c , &U_phi , &U_T );
+  }
+  else if (user.physics.compare("ch") == 0) {
+    DMCompositeRestoreAccess( pack , u , &U_c , &U_phi );
+    DMRestoreGlobalVector( da_T , &U_T );
+  }
+  
   MatDestroy(&J);
   MatDestroy(&Jmf);
   VecDestroy(&u);

@@ -17,10 +17,18 @@ ThirteenPointStencil get_thirteen_point_stencil( AppCtx* user ,
 						 PetscInt i , PetscInt j );
 
 PetscReal reset_boundary_residual_values_for_neumann_bc( PetscReal** uarray ,
+							 PetscReal** u_none ,
 							 PetscReal rhs_ij ,
 							 PetscReal udot_ij ,
 							 PetscInt Mx , PetscInt My ,
 							 PetscInt i , PetscInt j );
+
+PetscReal reset_boundary_residual_values_for_dirichlet_bc( PetscReal** uarray ,
+							   PetscReal** u_dirichlet ,
+							   PetscReal rhs_ij ,
+							   PetscReal udot_ij ,
+							   PetscInt Mx , PetscInt My ,
+							   PetscInt i , PetscInt j );
 
 PetscReal reset_boundary_residual_values_for_dirichlet_bottom_neumann_remainder_bc( PetscReal** uarray ,
 										    PetscReal rhs_ij ,

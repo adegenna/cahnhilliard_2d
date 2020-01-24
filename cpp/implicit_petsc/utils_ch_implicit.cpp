@@ -11,6 +11,8 @@ AppCtx parse_petsc_options( ) {
   /* Initialize user application context */
 
   user.da_c           = NULL;
+  user.da_phi         = NULL;
+  user.da_T           = NULL;
   user.pack           = NULL;
   
   // Grid
@@ -18,20 +20,26 @@ AppCtx parse_petsc_options( ) {
   PetscOptionsGetReal(NULL,NULL,"-Ly",&user.Ly,NULL);
 
   // Boundary conditions
-  char tempfile_boundary[PETSC_MAX_PATH_LEN];
-  PetscOptionsGetString(NULL,NULL,"-boundary",tempfile_boundary,sizeof(tempfile_boundary),NULL);
-  user.boundary = std::string(tempfile_boundary);
+  char tempfile_boundary_ch[PETSC_MAX_PATH_LEN];
+  PetscOptionsGetString(NULL,NULL,"-boundary_ch",tempfile_boundary_ch,sizeof(tempfile_boundary_ch),NULL);
+  user.boundary_ch = std::string(tempfile_boundary_ch);
+  char tempfile_boundary_thermal[PETSC_MAX_PATH_LEN];
+  PetscOptionsGetString(NULL,NULL,"-boundary_thermal",tempfile_boundary_thermal,sizeof(tempfile_boundary_thermal),NULL);
+  user.boundary_thermal = std::string(tempfile_boundary_thermal);
   PetscOptionsGetReal(NULL,NULL,"-dirichlet_bc",&user.dirichlet_bc,NULL);
-  PetscOptionsGetReal(NULL,NULL,"-dirichlet_bc_thermal",&user.dirichlet_bc_thermal,NULL);
-
+  char tempfile_dirichlet_array[PETSC_MAX_PATH_LEN];
+  PetscOptionsGetString(NULL,NULL,"-dirichlet_bc_thermal_array_file",tempfile_dirichlet_array,sizeof(tempfile_dirichlet_array),NULL);
+  user.dirichlet_thermal_array_file = std::string(tempfile_dirichlet_array);
+  char tempfile_dirichlet_array_ch[PETSC_MAX_PATH_LEN];
+  PetscOptionsGetString(NULL,NULL,"-dirichlet_bc_ch_array_file",tempfile_dirichlet_array_ch,sizeof(tempfile_dirichlet_array_ch),NULL);
+  user.dirichlet_ch_array_file = std::string(tempfile_dirichlet_array_ch);
+  
   // Temporal scheme
   PetscOptionsGetReal(NULL,NULL,"-t_final",&user.t_final,NULL);
   PetscOptionsGetReal(NULL,NULL,"-dt_check",&user.dt_check,NULL);
   PetscOptionsGetReal(NULL,NULL,"-dt_output",&user.dt_output,NULL);
-  char tempfile_timestepper[PETSC_MAX_PATH_LEN];
-  PetscOptionsGetString(NULL,NULL,"-time_stepper",tempfile_timestepper,sizeof(tempfile_timestepper),NULL);
-  user.time_stepper = std::string(tempfile_timestepper);
   PetscOptionsGetReal(NULL,NULL,"-dt",&user.dt,NULL);
+  PetscOptionsGetReal(NULL,NULL,"-dt_thermal_reset",&user.dt_thermal_reset,NULL);
 
   // Thermal options
   char tempfile[PETSC_MAX_PATH_LEN];

@@ -150,7 +150,7 @@ ThirteenPointStencil get_thirteen_point_stencil( AppCtx* user , PetscReal** uarr
   
 }
 
-PetscReal reset_boundary_residual_values_for_neumann_bc( PetscReal** uarray , PetscReal rhs_ij , PetscReal udot_ij , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
+PetscReal reset_boundary_residual_values_for_neumann_bc( PetscReal** uarray , PetscReal** u_none , PetscReal rhs_ij , PetscReal udot_ij , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
 
   PetscReal f_ji;
   
@@ -185,6 +185,21 @@ PetscReal reset_boundary_residual_values_for_neumann_bc( PetscReal** uarray , Pe
 
   return f_ji;
 }
+
+PetscReal reset_boundary_residual_values_for_dirichlet_bc( PetscReal** uarray , PetscReal** u_dirichlet , PetscReal rhs_ij , PetscReal udot_ij , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
+
+  PetscReal f_ji;
+
+  // Uses ghost nodes to impose dirichlet bcs at the wall
+  
+  if (i == 0 || j == 0)
+    f_ji = uarray[j][i] - u_dirichlet[j][i];
+  else
+    f_ji = udot_ij - rhs_ij;
+
+  return f_ji;
+}
+
 
 PetscReal reset_boundary_residual_values_for_dirichlet_bottom_neumann_remainder_bc( PetscReal** uarray , PetscReal rhs_ij , PetscReal udot_ij , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
 

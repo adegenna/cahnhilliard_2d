@@ -57,8 +57,15 @@ PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx , Vec U ) {
 
   PetscFunctionBeginUser;
 
-  DMCompositeGetEntries( pack , &da_c , &da_phi , &da_T );
-  DMCompositeGetAccess(  pack , U     , &U_c    , &U_phi , &U_T );
+  if (user->physics.compare("ch") == 0) {
+    DMCompositeGetEntries( pack , &da_c , &da_phi );
+    da_T = user->da_T;
+  }
+  else if (user->physics.compare("coupled_ch_thermal") == 0) {
+    DMCompositeGetEntries( pack , &da_c , &da_phi , &da_T );
+  }
+
+  DMGetGlobalVector( da_T , &U_T );
   
   DMGetLocalVector(da_c,&local_X);
   DMGetLocalVector(da_T,&local_temperature);
@@ -129,8 +136,6 @@ PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx , Vec U ) {
   DMRestoreLocalVector(da_c,&local_X);
   DMRestoreLocalVector(da_phi,&local_eps2);
   DMRestoreLocalVector(da_c,&local_sigma);
-
-  DMCompositeRestoreAccess(  pack , U , &U_c , &U_phi , &U_T );
   
   PetscFunctionReturn(0);
       

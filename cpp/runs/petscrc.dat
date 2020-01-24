@@ -15,14 +15,16 @@
 # CH parameters
 -CH_m 0.1
 -D_T 0.00001
-# -D_T 10.0
 -physics ch
 
 # Boundary conditions
 
--boundary dirichlet
--dirichlet_bc -1.0
+-boundary_ch neumann
+-boundary_thermal neumann
+-dirichlet_bc 0.0
 -dirichlet_bc_thermal 0.1
+-dirichlet_bc_ch_array_file none
+-dirichlet_bc_thermal_array_file none
 
 # Temporal scheme
 
