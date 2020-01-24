@@ -579,12 +579,13 @@ PetscErrorCode FormIFunction_CH_split_thermal(TS ts,PetscReal t,Vec U,Vec Udot,V
   DMDAVecGetArrayRead( da_c , local_udotC , &udot_c );
   DMDAVecGetArray(     da_c , local_fC , &f_c );
   DMDAVecGetArrayRead( da_c , local_ch_bc_array , &ch_bc_array );
+  DMDAVecGetArray(     da_c , local_crhs , &rhs_c );
   DMDAVecGetArray(     da_phi , local_phi   , &phiarray );
   DMDAVecGetArrayRead( da_phi , local_eps_2 , &eps_2_array );
   DMDAVecGetArrayRead( da_phi , local_udotPhi , &udot_phi );
   DMDAVecGetArray(     da_phi , local_fPhi , &f_phi );
   DMDAVecGetArray(     da_phi , local_phirhs , &rhs_phi );
-  DMDAVecGetArray(     da_T , local_crhs , &rhs_c );
+  DMDAVecGetArray(     da_T , local_Trhs , &rhs_T );
   DMDAVecGetArrayRead( da_T , local_udotT , &udot_T );
   DMDAVecGetArray(     da_T , local_T , &Tarray );
   DMDAVecGetArray(     da_T , local_Trhs , &rhs_thermal );

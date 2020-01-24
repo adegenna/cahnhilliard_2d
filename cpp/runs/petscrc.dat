@@ -15,7 +15,7 @@
 # CH parameters
 -CH_m 0.1
 -D_T 0.00001
--physics ch
+-physics coupled_ch_thermal
 
 # Boundary conditions
 
