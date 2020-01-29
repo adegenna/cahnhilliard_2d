@@ -75,6 +75,10 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   }
   DMDAVecRestoreArray( da_phi , U_phi , &phi );
 
+  // Save U_T to user struct  
+  DMCreateGlobalVector( da_T , &user->temperature_field );
+  user->temperature_field = U_T; // hopefully this is copy assignment??
+  
   // Repack everything
   if (user->physics.compare("coupled_ch_thermal") == 0) {
     DMCompositeRestoreAccess( pack , U , &U_c , &U_phi , &U_T );

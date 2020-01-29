@@ -2,8 +2,8 @@
 
 # Grid
 
--da_grid_x 64
--da_grid_y 64
+-da_grid_x 80
+-da_grid_y 80
 -Lx 1.0
 -Ly 1.0
 
@@ -16,6 +16,7 @@
 -CH_m 0.1
 -D_T 10.0
 -physics coupled_ch_thermal
+# -physics ch
 
 # Boundary conditions
 
@@ -29,16 +30,16 @@
 # Temporal scheme
 
 -time_stepper implicit
--dt 0.00001
+-dt 0.0001
 -ts_type beuler
 # -ts_type arkimex
--ts_adapt_type basic
--ts_adapt_dt_max 0.1
+# -ts_adapt_type basic
+# -ts_adapt_dt_max 0.001
 -ts_max_snes_failures -1
 -t_final 1.0
 -dt_check 2
 -dt_output 2
--dt_thermal_reset 0.0001
+-dt_thermal_reset 0.001
 
 # Petsc solver options
 
@@ -55,10 +56,16 @@
 
 ## COMMON SOLVER SETTINGS
 -ksp_gmres_restart 200
--ksp_atol 1e-9
+-ksp_atol 1e-5
 -ksp_rtol 1e-2
--snes_atol 1e-8
--snes_rtol 1e-3
+-snes_atol 1e-5
+-snes_rtol 1e-2
+
+# -ksp_atol 1e-9
+# -ksp_rtol 1e-2
+# -snes_atol 1e-8
+# -snes_rtol 1e-3
+
 
 # Solver monitors
 

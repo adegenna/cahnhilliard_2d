@@ -72,7 +72,7 @@ typedef struct {
   PetscScalar eps2_max  = 1.0;
   PetscScalar sigma_min = 0.0;
   PetscScalar sigma_max = pow( 10.0 , 10 );
-  Vec         eps_2,sigma,temperature_source,X;
+  Vec         eps_2,sigma,temperature_source,X,temperature_field;
   
 } AppCtx;
 
