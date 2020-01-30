@@ -150,8 +150,9 @@ ThirteenPointStencil get_thirteen_point_stencil( AppCtx* user , PetscReal** uarr
   
 }
 
-PetscReal reset_boundary_values_for_neumann_bc( PetscReal** uarray , PetscReal** u_none , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
+PetscReal reset_boundary_rhs_values_for_neumann_bc( PetscReal** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
 
+  // Resets rhs values at boundary boundary rows/cols
   PetscReal u_ji;
 
   if (      (i == 0 && j == 0)       || (i == 1 && j == 1) )            // SW corners
@@ -179,12 +180,13 @@ PetscReal reset_boundary_values_for_neumann_bc( PetscReal** uarray , PetscReal**
 
 }
 
-PetscReal reset_boundary_values_for_dirichlet_bc( PetscReal** uarray , PetscReal** u_dirichlet , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
+PetscReal reset_boundary_rhs_values_for_dirichlet_bc( PetscReal** uarray , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
 
+  // Resets rhs values at boundary boundary rows/cols
   PetscReal u_ji;
   
   if (i <= 1 || j <= 1 || i >= (Mx-2) || j >= (My-2) )
-    u_ji = u_dirichlet[j][i];
+    u_ji = 0.0;
   else
     u_ji = uarray[j][i];
 

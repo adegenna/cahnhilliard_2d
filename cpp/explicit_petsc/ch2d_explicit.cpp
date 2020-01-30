@@ -29,7 +29,7 @@ int main(int argc,char **argv) {
   PetscErrorCode ierr;
   DM             da_c , da_T , pack;
   PetscReal      dt;
-  SNES           snes;
+  //SNES           snes;
   KSP            ksp;
 
   AppCtx         user = parse_petsc_options();
@@ -109,7 +109,8 @@ int main(int argc,char **argv) {
   VecDuplicate(c,&user.sigma);
   VecDuplicate(T,&user.temperature_source);
   VecDuplicate(c,&user.X);
-  VecDuplicate(T,&user.dirichlet_bc_ch_array);
+  VecDuplicate(c,&user.dirichlet_bc_ch_array);
+  VecDuplicate(T,&user.dirichlet_bc_thermal_array);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create timestepping solver context
@@ -182,10 +183,10 @@ int main(int argc,char **argv) {
 
     // CH equation: c
   if ( user.boundary_ch.compare("neumann") == 0 ) // Neumann
-    user.residualFunction_ch = reset_boundary_values_for_neumann_bc;
+    user.residualFunction_ch = reset_boundary_rhs_values_for_neumann_bc;
 
   else if ( user.boundary_ch.compare("dirichlet") == 0 ) // Dirichlet
-    user.residualFunction_ch = reset_boundary_values_for_dirichlet_bc;
+    user.residualFunction_ch = reset_boundary_rhs_values_for_dirichlet_bc;
   
   else {
     // Incorrectly specified bc option
@@ -198,10 +199,10 @@ int main(int argc,char **argv) {
   
   // Thermal equation
   if ( user.boundary_thermal.compare("neumann") == 0 ) // Neumann
-    user.residualFunction_thermal = reset_boundary_values_for_neumann_bc;
+    user.residualFunction_thermal = reset_boundary_rhs_values_for_neumann_bc;
 
   else if ( user.boundary_thermal.compare("dirichlet") == 0 ) // Dirichlet
-    user.residualFunction_thermal = reset_boundary_values_for_dirichlet_bc;
+    user.residualFunction_thermal = reset_boundary_rhs_values_for_dirichlet_bc;
   
   else {
     // Incorrectly specified bc option
@@ -226,15 +227,15 @@ int main(int argc,char **argv) {
   
   // User-options
   TSSetFromOptions(ts);
-  SNESSetFromOptions(snes);
+  //SNESSetFromOptions(snes);
   PetscOptionsView( NULL , PETSC_VIEWER_STDOUT_WORLD );  
   
   // Setup event handling
-  PetscInt       direction[2];
-  PetscBool      terminate[2];
-  direction[0] = 1; direction[1] = 1;
-  terminate[0] = PETSC_FALSE; terminate[1] = PETSC_FALSE;
-  TSSetEventHandler( ts , 2 , direction , terminate , EventFunction , PostEventFunction_ResetTemperatureGaussianProfile , (void*)&user );
+  PetscInt       direction[3];
+  PetscBool      terminate[3];
+  direction[0] = 1; direction[1] = 1; direction[2] = 1;
+  terminate[0] = PETSC_FALSE; terminate[1] = PETSC_FALSE; terminate[2] = PETSC_FALSE;
+  TSSetEventHandler( ts , 3 , direction , terminate , EventFunction , PostEventFunction_RecomputeThermalProperties , (void*)&user );
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Solve nonlinear system

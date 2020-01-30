@@ -24,8 +24,8 @@ typedef struct {
   std::string physics = "ch";       // "ch": CH-only ; "thermal": thermal diffusion only ; "coupled_ch_thermal": coupled thermal-CH solver
   PetscReal c;
 
-  PetscReal (*residualFunction_ch)(      PetscReal** , PetscReal** , PetscInt , PetscInt , PetscInt , PetscInt );
-  PetscReal (*residualFunction_thermal)( PetscReal** , PetscReal** , PetscInt , PetscInt , PetscInt , PetscInt );
+  PetscReal (*residualFunction_ch)(      PetscReal** , PetscInt , PetscInt , PetscInt , PetscInt );
+  PetscReal (*residualFunction_thermal)( PetscReal** , PetscInt , PetscInt , PetscInt , PetscInt );
 
   // Boundary condition things
   std::string boundary_ch       = "neumann"; // Type of bc for ch field variables

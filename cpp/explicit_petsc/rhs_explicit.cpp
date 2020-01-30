@@ -12,7 +12,7 @@ PetscScalar** set_boundary_values( DMDALocalInfo *info ,
   for (int j=info->ys; j<info->ys+info->ym; j++) {
     for (int i=info->xs; i<info->xs+info->xm; i++) {
 
-      uarray[j][i] = user->residualFunction_ch( uarray , u_optional , info->mx , info->my , i , j );
+      uarray[j][i] = user->residualFunction_ch( uarray , info->mx , info->my , i , j );
 
     }
   }

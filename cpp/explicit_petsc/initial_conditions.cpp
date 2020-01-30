@@ -1,5 +1,6 @@
 #include "initial_conditions.h"
 #include "temperature_dependence.h"
+#include "boundary_conditions.h"
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
@@ -52,17 +53,78 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   PetscViewerDestroy(&viewer_U);
 
   // Set boundary values
+  Vec local_c, local_T , local_c_dirichlet, local_T_dirichlet;
+  PetscScalar **u_dirichlet , **T_dirichlet;
+  DMDAGetCorners(da_c,&xs,&ys,NULL,&xm,&ym,NULL);
+  DMGetLocalVector( da_c , &local_c );
+  DMGlobalToLocalBegin( da_c , U_c , INSERT_VALUES , local_c );
+  DMGlobalToLocalEnd(   da_c , U_c , INSERT_VALUES , local_c );
+  DMDAVecGetArray( da_c , local_c , &u );
+  
   if ( user->boundary_ch.compare("dirichlet") == 0 ) {
     PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->dirichlet_ch_array_file.c_str()    , FILE_MODE_READ , &viewer_dirichlet_ch );
     VecLoad( user->dirichlet_bc_ch_array , viewer_dirichlet_ch );
     PetscViewerDestroy(&viewer_dirichlet_ch);
+    DMGetLocalVector(     da_c , &local_c_dirichlet );
+    DMGlobalToLocalBegin( da_c , user->dirichlet_bc_ch_array , INSERT_VALUES , local_c_dirichlet );
+    DMGlobalToLocalEnd(   da_c , user->dirichlet_bc_ch_array , INSERT_VALUES , local_c_dirichlet );
+    DMDAVecGetArray(      da_c , local_c_dirichlet , &u_dirichlet );
+    for (int j=ys; j<ys+ym; j++) {
+      for (int i=xs; i<xs+xm; i++) {
+        if ( i <= 1 || j <= 1 || i >= (Mx-2) || j >= (My-2) )
+          u[j][i] = u_dirichlet[j][i];
+      }
+    }
   }
+
+  else if ( user->boundary_ch.compare("neumann") == 0 ) {
+    for (int j=ys; j<ys+ym; j++) {
+      for (int i=xs; i<xs+xm; i++) {
+        u[j][i] = reset_boundary_rhs_values_for_neumann_bc( u , Mx , My , i , j );
+      } 
+    }
+  }
+
+  DMDAVecRestoreArray(  da_c , local_c , &u );
+  DMLocalToGlobalBegin( da_c , local_c , INSERT_VALUES , U_c );
+  DMLocalToGlobalEnd(   da_c , local_c , INSERT_VALUES , U_c );
+  DMRestoreLocalVector( da_c , &local_c );
+
+  DMDAGetCorners(da_T,&xs,&ys,NULL,&xm,&ym,NULL);
+  DMGetLocalVector(     da_T , &local_T );
+  DMGlobalToLocalBegin( da_T , U_T , INSERT_VALUES , local_T );
+  DMGlobalToLocalEnd(   da_T , U_T , INSERT_VALUES , local_T );
+  DMDAVecGetArray(      da_T , local_T , &T );
   
   if ( user->boundary_thermal.compare("dirichlet") == 0 ) {
     PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->dirichlet_thermal_array_file.c_str()    , FILE_MODE_READ , &viewer_dirichlet_thermal );
     VecLoad( user->dirichlet_bc_thermal_array , viewer_dirichlet_thermal );
     PetscViewerDestroy(&viewer_dirichlet_thermal);
+    DMGetLocalVector(     da_T , &local_T_dirichlet );
+    DMGlobalToLocalBegin( da_T , user->dirichlet_bc_thermal_array , INSERT_VALUES , local_T_dirichlet );
+    DMGlobalToLocalEnd(   da_T , user->dirichlet_bc_thermal_array , INSERT_VALUES , local_T_dirichlet );
+    DMDAVecGetArray(      da_T , local_T_dirichlet , &T_dirichlet );
+    for (int j=ys; j<ys+ym; j++) {
+      for (int i=xs; i<xs+xm; i++) {
+        if ( i <= 1 || j <= 1 || i >= (Mx-2) || j >= (My-2) )
+          T[j][i] = T_dirichlet[j][i];
+      }
+    }
+
   }
+  
+  else if ( user->boundary_thermal.compare("neumann") == 0 ) {
+    for (int j=ys; j<ys+ym; j++) {
+      for (int i=xs; i<xs+xm; i++) {
+        T[j][i] = reset_boundary_rhs_values_for_neumann_bc( T , Mx , My , i , j );
+      } 
+    }
+  }
+
+  DMDAVecRestoreArray(  da_T , local_T , &u );
+  DMLocalToGlobalBegin( da_T , local_T , INSERT_VALUES , U_T );
+  DMLocalToGlobalEnd(   da_T , local_T , INSERT_VALUES , U_T );
+  DMRestoreLocalVector( da_T , &local_T );
   
   DMCompositeRestoreAccess( pack , U , &U_c , &U_T );
   
@@ -91,22 +153,3 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   
   PetscFunctionReturn(0);
 }
-
-
-/* Compute function over the locally owned part of the grid */
-// DMDAVecGetArray(da,U,&u);
-// DMDAVecGetArray(da,Temperature,&T);
-// DMDAGetCorners(da,&xs,&ys,NULL,&xm,&ym,NULL);
-// PetscRandomCreate(PETSC_COMM_WORLD,&rng);
-// PetscRandomSetType(rng,PETSCRAND48);
-
-// for (j=ys; j<ys+ym; j++) {
-//   for (i=xs; i<xs+xm; i++) {
-//     PetscRandomGetValueReal(rng , &value_rng);
-//     u[j][i]     = 0.005 * ( 2.0 * value_rng - 1.0 );
-//     T[j][i]     = 1.0;
-//   } 
-// }
-// DMDAVecRestoreArray(da,U,&u);
-// DMDAVecRestoreArray(da,Temperature,&T);  
-// PetscRandomDestroy(&rng);
