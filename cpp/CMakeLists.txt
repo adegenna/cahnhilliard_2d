@@ -229,3 +229,27 @@ target_link_libraries( ch2d_split
   ${HDF5_LIBRARIES}
   ${PETSC_LIBRARIES}
 )
+
+
+#############################################
+# Petsc-2D explicit solver
+#############################################
+
+add_executable( ch2d_explicit
+  explicit_petsc/ch2d_explicit.cpp
+  explicit_petsc/utils_ch_explicit.cpp
+  explicit_petsc/boundary_conditions.cpp
+  explicit_petsc/initial_conditions.cpp
+  explicit_petsc/rhs_explicit.cpp
+  explicit_petsc/petsc_event_handling.cpp
+  explicit_petsc/temperature_dependence.cpp
+)
+
+add_dependencies(ch2d_explicit petsc_external)
+
+target_link_libraries( ch2d_explicit
+  m
+  ${MPI_LIBRARIES}
+  ${HDF5_LIBRARIES}
+  ${PETSC_LIBRARIES}
+)

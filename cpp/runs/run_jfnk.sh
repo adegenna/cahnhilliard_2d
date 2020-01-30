@@ -1,7 +1,7 @@
 export petsc_inputfile="/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/runs/petscrc.dat"
 export mpiexec_petsc="/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/bin/mpiexec"
-#export petsc_solver="/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/jfnk_2d"
-export petsc_solver="/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/ch2d_split"
+export petsc_solver="/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/ch2d_explicit"
+#export petsc_solver="/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/ch2d_split"
 
 echo "PETSc inputfile =" $petsc_inputfile
 echo "PETSc solver =" $petsc_solver

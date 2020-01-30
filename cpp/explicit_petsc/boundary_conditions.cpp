@@ -150,33 +150,71 @@ ThirteenPointStencil get_thirteen_point_stencil( AppCtx* user , PetscReal** uarr
   
 }
 
+PetscReal reset_boundary_values_for_neumann_bc( PetscReal** uarray , PetscReal** u_none , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
+
+  PetscReal u_ji;
+
+  if (      (i == 0 && j == 0)       || (i == 1 && j == 1) )            // SW corners
+    u_ji = uarray[2][2];
+  else if ( (i == Mx-1 && j == 0)    || (i == Mx-2 && j == 1) )         // SE corners
+    u_ji = uarray[2][Mx-3];
+  else if ( (i == 0 && j == My-1)    || (i == 1 && j == My-2) )         // NW corners
+    u_ji = uarray[My-3][2];
+  else if ( (i == Mx-1 && j == My-1) || (i == Mx-2 && j == My-2) )      // NE corners
+    u_ji = uarray[My-3][Mx-3];
+	  
+  else if ( (i == 0) || (i == 1) )          // Left 
+    u_ji = uarray[j][2];
+  else if ( (i == Mx-1) || (i == Mx-2) )    // Right 
+    u_ji = uarray[j][Mx-3];
+  else if ( (j == 0) || (j == 1) )          // Bottom 
+    u_ji = uarray[2][i];
+  else if ( (j == My-1) || (j == My-2) )    // Top 
+    u_ji = uarray[My-3][i];
+  
+  else
+    u_ji = uarray[j][i];
+
+  return u_ji;
+
+}
+
+PetscReal reset_boundary_values_for_dirichlet_bc( PetscReal** uarray , PetscReal** u_dirichlet , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
+
+  PetscReal u_ji;
+  
+  if (i <= 1 || j <= 1 || i >= (Mx-2) || j >= (My-2) )
+    u_ji = u_dirichlet[j][i];
+  else
+    u_ji = uarray[j][i];
+
+  return u_ji;
+}
+
+
 PetscReal reset_boundary_residual_values_for_neumann_bc( PetscReal** uarray , PetscReal** u_none , PetscReal rhs_ij , PetscReal udot_ij , PetscInt Mx , PetscInt My , PetscInt i , PetscInt j ) {
 
   PetscReal f_ji;
   
-  if (i == 0 && j == 0) {            // SW corner
+  if (      (i == 0 && j == 0)       || (i == 1 && j == 1) )            // SW corners
     f_ji = uarray[j][i] - uarray[j+1][i+1];
-  }
-  else if (i == Mx-1 && j == 0) {    // SE corner 
+  else if ( (i == Mx-1 && j == 0)    || (i == Mx-2 && j == 1) )         // SE corners
     f_ji = uarray[j][i] - uarray[j+1][i-1];
-  }
-  else if (i == 0 && j == My-1) {    // NW corner 
+  else if ( (i == 0 && j == My-1)    || (i == 1 && j == My-2) )         // NW corners
     f_ji = uarray[j][i] - uarray[j-1][i+1];
-  }
-  else if (i == Mx-1 && j == My-1) { // NE corner 
+  else if ( (i == Mx-1 && j == My-1) || (i == Mx-2 && j == My-2) )      // NE corners
     f_ji = uarray[j][i] - uarray[j-1][i-1];
-  }
 	  
-  else if ( (i == 0)  ) {        // Left 
+  else if ( (i == 0) || (i == 1) ) {        // Left 
     f_ji = uarray[j][i] - uarray[j][i+1];
   }
-  else if ( (i == Mx-1)  ) {  // Right 
+  else if ( (i == Mx-1) || (i == Mx-2) ) {  // Right 
     f_ji = uarray[j][i] - uarray[j][i-1];
   }
-  else if ( (j == 0) ) {        // Bottom 
+  else if ( (j == 0) || (j == 1) ) {        // Bottom 
     f_ji = uarray[j][i] - uarray[j+1][i];
   }
-  else if ( (j == My-1)  ) {  // Top 
+  else if ( (j == My-1) || (j == My-2) ) {  // Top 
     f_ji = uarray[j][i] - uarray[j-1][i];
   }
   else
@@ -192,7 +230,7 @@ PetscReal reset_boundary_residual_values_for_dirichlet_bc( PetscReal** uarray , 
 
   // Uses ghost nodes to impose dirichlet bcs at the wall
   
-  if (i == 0 || j == 0 || i == (Mx-1) || j == (My-1) )
+  if (i <= 1 || j <= 1 || i >= (Mx-2) || j >= (My-2) )
     f_ji = uarray[j][i] - u_dirichlet[j][i];
   else
     f_ji = udot_ij - rhs_ij;
