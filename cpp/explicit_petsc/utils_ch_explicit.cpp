@@ -47,8 +47,13 @@ AppCtx parse_petsc_options( ) {
   user.initial_temperature_file = std::string(tempfile);
   PetscOptionsGetString(NULL,NULL,"-initial_temperature_source_file",tempfile_Tsource,sizeof(tempfile_Tsource),NULL);
   user.initial_temperature_source_file = std::string(tempfile_Tsource);
-  PetscOptionsGetReal(NULL,NULL,"-D_T",&user.D_T,NULL);  
-
+  PetscOptionsGetReal(NULL,NULL,"-D_T",&user.D_T,NULL);
+  
+  // Temporal event monitoring
+  char tempfile_event[PETSC_MAX_PATH_LEN];
+  PetscOptionsGetString(NULL,NULL,"-temporal_event",tempfile_event,sizeof(tempfile_event),NULL);
+  user.temporal_event = std::string(tempfile_event);
+  
   // CH options
   PetscOptionsGetReal(NULL,NULL,"-CH_m",&user.m,NULL);
   char tempfile_U[PETSC_MAX_PATH_LEN];

@@ -121,7 +121,7 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
     }
   }
 
-  DMDAVecRestoreArray(  da_T , local_T , &u );
+  DMDAVecRestoreArray(  da_T , local_T , &T );
   DMLocalToGlobalBegin( da_T , local_T , INSERT_VALUES , U_T );
   DMLocalToGlobalEnd(   da_T , local_T , INSERT_VALUES , U_T );
   DMRestoreLocalVector( da_T , &local_T );

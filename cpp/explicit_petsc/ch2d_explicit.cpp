@@ -29,7 +29,6 @@ int main(int argc,char **argv) {
   PetscErrorCode ierr;
   DM             da_c , da_T , pack;
   PetscReal      dt;
-  //SNES           snes;
   KSP            ksp;
 
   AppCtx         user = parse_petsc_options();
@@ -227,7 +226,6 @@ int main(int argc,char **argv) {
   
   // User-options
   TSSetFromOptions(ts);
-  //SNESSetFromOptions(snes);
   PetscOptionsView( NULL , PETSC_VIEWER_STDOUT_WORLD );  
   
   // Setup event handling
@@ -235,7 +233,11 @@ int main(int argc,char **argv) {
   PetscBool      terminate[3];
   direction[0] = 1; direction[1] = 1; direction[2] = 1;
   terminate[0] = PETSC_FALSE; terminate[1] = PETSC_FALSE; terminate[2] = PETSC_FALSE;
-  TSSetEventHandler( ts , 3 , direction , terminate , EventFunction , PostEventFunction_RecomputeThermalProperties , (void*)&user );
+  
+  if ( user.temporal_event.compare("RecomputeThermalProperties") == 0 )
+    TSSetEventHandler( ts , 3 , direction , terminate , EventFunction , PostEventFunction_RecomputeThermalProperties      , (void*)&user );
+  else if ( user.temporal_event.compare("ResetTemperatureGaussianProfile") == 0 )
+    TSSetEventHandler( ts , 3 , direction , terminate , EventFunction , PostEventFunction_ResetTemperatureGaussianProfile , (void*)&user );
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Solve nonlinear system

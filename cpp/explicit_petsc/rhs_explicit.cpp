@@ -250,8 +250,10 @@ PetscErrorCode FormRHS_CH_coupled(TS ts,PetscReal t,Vec U,Vec F,void *ctx) {
   
   /* Compute function over the locally owned part of the grid */
   rhs_c       = FormLocalRHS_CH(      &info_c , carray , rhs_c , eps2 , sigma , user );
+  rhs_c       = set_boundary_values(  &info_c , rhs_c , NULL , user );
   rhs_thermal = FormLocalRHS_thermal( &info_T , Tarray , rhs_thermal , Tsource , user );
-  
+  rhs_thermal = set_boundary_values(  &info_T , rhs_thermal , NULL , user );
+
   /* Restore vectors */
   DMDAVecRestoreArrayRead( da_c , local_c , &carray );
   DMDAVecRestoreArrayRead( da_c , local_eps2 , &eps2 );

@@ -1,0 +1,83 @@
+## Input file for PETSc implicit CH-2D solver
+
+# Grid
+
+-da_grid_x 80
+-da_grid_y 80
+-Lx 1.0
+-Ly 1.0
+
+# Initial conditions
+-initial_temperature_file initial_temperature.bin
+-initial_temperature_source_file initial_temperature_source.bin
+-initial_soln_file initial_soln.bin
+
+# CH parameters
+-CH_m 0.1
+-D_T 0.01
+-physics coupled_ch_thermal
+# -physics ch
+
+# Boundary conditions
+
+-boundary_ch neumann
+-boundary_thermal neumann
+
+# Temporal scheme
+
+-t_final 0.01
+-dt 0.0001
+-dt_check 0.001
+-dt_output 2
+-dt_thermal_reset 0.001
+-ts_type rk
+# -ts_type beuler
+# -ts_max_snes_failures -1
+# # -ts_type arkimex
+# # -ts_adapt_type basic
+# # -ts_adapt_dt_max 0.001
+
+# Temporal event type
+-temporal_event ResetTemperatureGaussianProfile
+
+# Petsc solver options
+
+## GMRES SETTINGS
+# -pc_type asm
+# -ksp_type gmres
+
+## MULTIGRID SETTINGS
+# -pc_type gamg
+# -ksp_type fgmres
+# -mg_levels_pc_type asm
+# -mg_levels_ksp_type richardson
+# -mg_levels_ksp_max_it 1
+
+## COMMON SOLVER SETTINGS
+# -ksp_gmres_restart 200
+# -ksp_atol 1e-5
+# -ksp_rtol 1e-2
+# -snes_atol 1e-5
+# -snes_rtol 1e-2
+
+# -ksp_atol 1e-9
+# -ksp_rtol 1e-2
+# -snes_atol 1e-8
+# -snes_rtol 1e-3
+
+
+# Solver monitors
+
+-ts_monitor
+-ts_monitor_draw_solution
+# -log_view :log.out
+# -ts_monitor_lg_snes_iterations
+# -ts_monitor_lg_ksp_iterations
+# -snes_monitor
+# -ksp_monitor
+# -snes_linesearch_monitor
+# -ts_adapt_monitor
+# -draw_pause .1
+
+#-on_error_attach_debugger
+#-start_in_debugger

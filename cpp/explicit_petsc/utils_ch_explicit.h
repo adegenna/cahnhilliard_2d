@@ -65,6 +65,9 @@ typedef struct {
   std::string initial_temperature_source_file = "initial_temperature_source.dat"; // File that holds the initial temperature source field
   std::string initial_soln_file               = "initial_soln.dat"; // File that holds the initial solution field
   PetscScalar D_T       = 1.0;  // Thermal diffusion coefficient
+
+  // Temporal event monitoring
+  std::string temporal_event = "none"; // Specifies type of event for Petsc event handler; options: "none" , "RecomputeThermalProperties" , "ResetTemperatureGaussianProfile"
   
   // CH paramater defaults
   PetscScalar m         = 0.1;  // CH parameter: value of m (avg concentration)

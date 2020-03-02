@@ -181,6 +181,7 @@ PetscErrorCode PostEventFunction_ResetTemperatureGaussianProfile(TS ts,PetscInt 
       }
 
       // Recompute ch parameters based on new temperature
+      PetscPrintf( PETSC_COMM_WORLD , "Recalculating thermal properties t = %5.4f seconds\n" , (double)t );
       compute_eps2_and_sigma_from_temperature( ctx , U );
     }
     
