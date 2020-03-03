@@ -98,7 +98,7 @@ def generate_constant_temperature_profile_2d( amp , nx , ny ):
 
 def main():
 
-    builddir = '../../build/'
+    builddir = '../../../build/'
 
     settings = parse_inputs_from_petscfile( 'petscrc.dat' )
 
@@ -128,15 +128,15 @@ def main():
     np.savetxt( initial_U_file , initial_U , fmt='%1.8f' )
     os.system( builddir + 'preprocess petscrc.dat ' + initial_U_file )
 
-    # Write temperature dirichlet field to disk for petsc
-    y0                  = settings.ny // 2
-    amp_temp            = 1.0
-    xx,yy,initial_T     = generate_gaussian_temperature_profile_on_2d_face( amp_temp , sigma_temp , settings.nx , settings.ny , y0 )
-    initial_T           = initial_T.ravel()
-    initial_T           = np.maximum( initial_T , 0.3 )
-    initial_T_file      = 'dirichlet_T.ascii'
-    np.savetxt( initial_T_file , initial_T , fmt='%1.8f' )
-    os.system( builddir + 'preprocess petscrc.dat ' + initial_T_file )
+    # # Write temperature dirichlet field to disk for petsc
+    # y0                  = settings.ny // 2
+    # amp_temp            = 1.0
+    # xx,yy,initial_T     = generate_gaussian_temperature_profile_on_2d_face( amp_temp , sigma_temp , settings.nx , settings.ny , y0 )
+    # initial_T           = initial_T.ravel()
+    # initial_T           = np.maximum( initial_T , 0.3 )
+    # initial_T_file      = 'dirichlet_T.ascii'
+    # np.savetxt( initial_T_file , initial_T , fmt='%1.8f' )
+    # os.system( builddir + 'preprocess petscrc.dat ' + initial_T_file )
 
     # Write ch dirichlet field to disk for petsc
     y0                  = settings.ny // 2

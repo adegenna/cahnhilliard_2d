@@ -40,23 +40,22 @@ def parse_inputs_from_petscfile( petscfile ):
             
     return settings
 
-def write_temperature_laser_parameters_for_petsc_solver( T_amp , T_x , T_y , T_z , T_sigma , filename ):
+def write_temperature_laser_parameters_for_petsc_solver( T_amp , T_x , T_y , T_sigma , filename ):
 
-    outlist = [ T_amp , T_x , T_y , T_z , T_sigma ]
+    outlist = [ T_amp , T_x , T_y , T_sigma ]
     np.savetxt( filename , outlist , fmt='%.4f' )
 
     return
 
-def generate_quarter_circle_laser_path( amp , sigma_temp , nx , ny , nz , num_changes ):
+def generate_quarter_circle_laser_path( amp , sigma_temp , nx , ny , num_changes ):
 
     T_amp       = amp * np.ones( num_changes )
     th          = np.linspace( 0.75 * np.pi , 1.75*np.pi , num_changes )
     T_x         = nx * ( 1 + 0.75 * np.cos( th ) )
     T_y         = ny * ( 1 + 0.75 * np.sin( th ) )
-    T_z         = nz//2 * np.ones( num_changes )
     T_sigma     = sigma_temp * np.ones( num_changes )
     
-    return T_amp , T_x , T_y , T_z , T_sigma
+    return T_amp , T_x , T_y , T_sigma
 
 def generate_const_global_temperature( amp , nx , ny , nz , num_changes ):
 
@@ -98,7 +97,7 @@ def generate_constant_temperature_profile_2d( amp , nx , ny ):
 
 def main():
 
-    builddir = '../../build/'
+    builddir = '../../../build/'
 
     settings = parse_inputs_from_petscfile( 'petscrc.dat' )
 
@@ -106,9 +105,8 @@ def main():
     num_changes                 = int( settings.tf / settings.dt )
     sigma_temp                  = 1.0*settings.nx / 4.
     amp_temp                    = 1.0
-    #T_amp , T_x , T_y , T_z , T_sigma = generate_quarter_circle_laser_path( amp_temp , sigma_temp , settings.nx , settings.ny , settings.nz , num_changes )
-    #T_amp , T_x , T_y , T_z , T_sigma = generate_const_global_temperature( 0.75 , settings.nx , settings.ny , settings.nz , num_changes )
-
+    T_amp , T_x , T_y , T_sigma = generate_quarter_circle_laser_path( amp_temp , sigma_temp , settings.nx , settings.ny , num_changes )
+    
     # Write initial temperature field to disk for petsc
     const_T             = 0.3
     initial_T           = const_T * np.ones( settings.nx * settings.ny )
@@ -128,25 +126,47 @@ def main():
     np.savetxt( initial_U_file , initial_U , fmt='%1.8f' )
     os.system( builddir + 'preprocess petscrc.dat ' + initial_U_file )
 
-    # # Write temperature dirichlet field to disk for petsc
-    # y0                  = settings.ny // 2
-    # amp_temp            = 1.0
-    # xx,yy,initial_T     = generate_gaussian_temperature_profile_on_2d_face( amp_temp , sigma_temp , settings.nx , settings.ny , y0 )
-    # initial_T           = initial_T.ravel()
-    # initial_T           = np.maximum( initial_T , 0.3 )
-    # initial_T_file      = 'dirichlet_T.ascii'
-    # np.savetxt( initial_T_file , initial_T , fmt='%1.8f' )
-    # os.system( builddir + 'preprocess petscrc.dat ' + initial_T_file )
+    # Write temperature dirichlet field to disk for petsc
+    y0                  = settings.ny // 2
+    amp_temp            = 1.0
+    xx,yy,initial_T     = generate_gaussian_temperature_profile_on_2d_face( amp_temp , sigma_temp , settings.nx , settings.ny , y0 )
+    initial_T           = initial_T.ravel()
+    initial_T           = np.maximum( initial_T , 0.3 )
+    initial_T_file      = 'dirichlet_T.ascii'
+    np.savetxt( initial_T_file , initial_T , fmt='%1.8f' )
+    os.system( builddir + 'preprocess petscrc.dat ' + initial_T_file )
 
-    # # Write ch dirichlet field to disk for petsc
-    # y0                  = settings.ny // 2
-    # amp_ch              = 1.0
-    # xx,yy,initial_T     = generate_constant_temperature_profile_2d( amp_ch , settings.nx , settings.ny )
-    # initial_T           = initial_T.ravel()
-    # initial_T_file      = 'dirichlet_ch.ascii'
-    # np.savetxt( initial_T_file , initial_T , fmt='%1.8f' )
-    # os.system( builddir + 'preprocess petscrc.dat ' + initial_T_file )
+    # Write ch dirichlet field to disk for petsc
+    y0                  = settings.ny // 2
+    amp_ch              = 1.0
+    xx,yy,initial_T     = generate_constant_temperature_profile_2d( amp_ch , settings.nx , settings.ny )
+    initial_T           = initial_T.ravel()
+    initial_T_file      = 'dirichlet_ch.ascii'
+    np.savetxt( initial_T_file , initial_T , fmt='%1.8f' )
+    os.system( builddir + 'preprocess petscrc.dat ' + initial_T_file )
 
+    # Run solver
+    count = 0
+    os.system( './run_test.sh &' )
+
+    # Check filesystem for indication from solver that it is waiting for next temperature profile
+    while True:
+        timestamp        = '_{:0.4f}.bin'.format( (count+1) * settings.dt )
+        timestamp_final  = '_{:0.4f}.bin'.format( settings.tf )
+        petsc_done = os.path.exists( 'complete' + timestamp )
+        sim_done   = os.path.exists( 'c' + timestamp_final )
+        if sim_done:
+            print("DRIVER PROGRAM DONE")
+            break
+        else:
+            if petsc_done:
+                write_temperature_laser_parameters_for_petsc_solver( T_amp[count] ,
+                                                                     T_x[count] ,
+                                                                     T_y[count] ,
+                                                                     T_sigma[count],
+                                                                     'T' + timestamp )
+                count += 1
             
+
 if __name__ == '__main__':
     main()

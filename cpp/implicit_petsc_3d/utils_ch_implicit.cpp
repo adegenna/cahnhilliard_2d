@@ -2,6 +2,7 @@
 #include <petscdmda.h>
 #include <petscts.h>
 #include <stdio.h>
+#include <petscdmcomposite.h>
 #include "utils_ch_implicit.h"
 
 AppCtx parse_petsc_options( ) {
@@ -104,3 +105,16 @@ DM createLinkedDA_starStencil3D( DM da_base , std::string fieldname ) {
   return da_coupled;
 
 };
+
+DM create_DM_pack( const std::vector<DM> &dm_list ) {
+
+  DM pack;
+  DMCompositeCreate( PETSC_COMM_WORLD , &pack );
+  DMSetOptionsPrefix( pack , "pack_" );
+  
+  for (int i = 0; i < dm_list.size(); i++)
+    DMCompositeAddDM( pack , dm_list[i] );
+
+  return pack;
+  
+}

@@ -5,6 +5,7 @@
 #include <petscdmda.h>
 #include <petscts.h>
 #include <stdio.h>
+#include <vector>
 
 /* AppCtx: used by FormIFunction() and FormIJacobian() */
 typedef struct {
@@ -68,5 +69,7 @@ typedef struct {
 AppCtx parse_petsc_options( );
 
 DM createLinkedDA_starStencil3D( DM da_base , std::string fieldname );
+
+DM create_DM_pack( const std::vector<DM> &dm_list );
 
 #endif

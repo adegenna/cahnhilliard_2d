@@ -1,5 +1,5 @@
 ### RUN THE ACTUAL CH SOLVER
-export build_dir="../../build/"
+export build_dir="../../../build/"
 
 export petsc_inputfile="./petscrc.dat"
 export mpiexec_petsc=${build_dir}"external/petsc/arch-linux2-c-opt/bin/mpiexec"

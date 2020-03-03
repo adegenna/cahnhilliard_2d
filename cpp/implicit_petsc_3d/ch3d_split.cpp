@@ -1,5 +1,5 @@
 
-static char help[] = "JFNK implicit solver for 2D CH with PETSc \n";
+static char help[] = "JFNK implicit solver for 3D thermal-CH with PETSc \n";
 
 #include <petscdm.h>
 #include <petscdmda.h>
@@ -27,7 +27,7 @@ int main(int argc,char **argv) {
   Vec            U_c , U_phi , U_T;
   Mat            J,Jmf = NULL;                /* Jacobian matrices */
   PetscErrorCode ierr;
-  DM             da_c , da_phi , da_T , pack;
+  DM             da_c , da_phi , da_T;
   PetscReal      dt;
   SNES           snes;
   KSP            ksp;
@@ -38,7 +38,7 @@ int main(int argc,char **argv) {
      Create distributed array (DMDA) to manage parallel grid and vectors
   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */  
 
-  // DM for concentration c
+  // Three DMs required: c , phi , and T  
   DMDACreate3d( PETSC_COMM_WORLD, 
                 DM_BOUNDARY_GHOSTED, DM_BOUNDARY_GHOSTED, DM_BOUNDARY_GHOSTED,   // type of boundary nodes
                 DMDA_STENCIL_STAR,                                               // type of stencil
@@ -54,25 +54,22 @@ int main(int argc,char **argv) {
   da_phi = createLinkedDA_starStencil3D( da_c , "phi_" );
   da_T   = createLinkedDA_starStencil3D( da_phi , "T_" );
 
-  // Pack the DMs together into a single composite manager
-  DMCompositeCreate( PETSC_COMM_WORLD , &pack );
-  DMSetOptionsPrefix( pack , "pack_" );
-  DMCompositeAddDM( pack , da_c );
-  DMCompositeAddDM( pack , da_phi );
-  DMCompositeAddDM( pack , da_T );
   DMDASetFieldName( da_c , 0 , "c" );
   DMDASetFieldName( da_phi , 0 , "phi" );
   DMDASetFieldName( da_T , 0 , "T" );
+
+  // Pack the DMs together into a single composite manager
+  DM pack      = create_DM_pack( { da_c , da_phi , da_T } );
   DMSetFromOptions( pack );
   
   // Rescale value of L_omega to match the user-specified domain size
   PetscScalar L_domain = powf( user.Lx * user.Ly * user.Lz , 1./3. );
   user.L_omega        *= L_domain;
-
-  user.da_c   = da_c;
-  user.da_phi = da_phi;
-  user.da_T   = da_T;
-  user.pack   = pack;
+  
+  user.da_c    = da_c;
+  user.da_phi  = da_phi;
+  user.da_T    = da_T;
+  user.pack    = pack;
   
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Extract global vectors from DMDA;

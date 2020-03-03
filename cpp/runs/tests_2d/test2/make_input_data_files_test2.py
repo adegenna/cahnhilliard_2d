@@ -98,7 +98,7 @@ def generate_constant_temperature_profile_2d( amp , nx , ny ):
 
 def main():
 
-    builddir = '../../build/'
+    builddir = '../../../build/'
 
     settings = parse_inputs_from_petscfile( 'petscrc.dat' )
 
@@ -138,14 +138,14 @@ def main():
     # np.savetxt( initial_T_file , initial_T , fmt='%1.8f' )
     # os.system( builddir + 'preprocess petscrc.dat ' + initial_T_file )
 
-    # Write ch dirichlet field to disk for petsc
-    y0                  = settings.ny // 2
-    amp_ch              = 1.0
-    xx,yy,initial_T     = generate_constant_temperature_profile_2d( amp_ch , settings.nx , settings.ny )
-    initial_T           = initial_T.ravel()
-    initial_T_file      = 'dirichlet_ch.ascii'
-    np.savetxt( initial_T_file , initial_T , fmt='%1.8f' )
-    os.system( builddir + 'preprocess petscrc.dat ' + initial_T_file )
+    # # Write ch dirichlet field to disk for petsc
+    # y0                  = settings.ny // 2
+    # amp_ch              = 1.0
+    # xx,yy,initial_T     = generate_constant_temperature_profile_2d( amp_ch , settings.nx , settings.ny )
+    # initial_T           = initial_T.ravel()
+    # initial_T_file      = 'dirichlet_ch.ascii'
+    # np.savetxt( initial_T_file , initial_T , fmt='%1.8f' )
+    # os.system( builddir + 'preprocess petscrc.dat ' + initial_T_file )
 
             
 if __name__ == '__main__':
