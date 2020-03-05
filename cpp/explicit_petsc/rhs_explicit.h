@@ -27,4 +27,18 @@ PetscErrorCode FormRHS_CH(TS ts,PetscReal t,Vec U,Vec F,void *ctx);
 
 PetscErrorCode FormRHS_thermal(TS ts,PetscReal t,Vec U,Vec F,void *ctx);
 
+// Manufactured solution stuff
+
+double compute_MMStest_source_term( double x , double y , double wx , double wt , double t , double eps_2 , double sigma , double m);
+
+PetscScalar** FormLocalRHS_CH_MMStest( DMDALocalInfo *info ,
+				       PetscScalar **uarray ,
+				       PetscScalar **rhs ,
+				       PetscScalar **eps_2_array ,
+				       PetscScalar **sigma_array ,
+                                       PetscScalar t ,
+				       AppCtx *user );
+
+PetscErrorCode FormRHS_CH_MMStest(TS ts,PetscReal t,Vec U,Vec F,void *ctx);
+
 #endif

@@ -2,13 +2,12 @@
 
 # Grid
 
--da_grid_x 512
--da_grid_y 512
+-da_grid_x 32
+-da_grid_y 32
 -Lx 1.0
 -Ly 1.0
 
 # Initial conditions
-
 -initial_temperature_file initial_temperature.bin
 -initial_temperature_source_file initial_temperature_source.bin
 -initial_soln_file initial_soln.bin
@@ -16,30 +15,25 @@
 # CH parameters
 -CH_m 0.1
 -D_T 10.0
--physics coupled_ch_thermal
+# -physics coupled_ch_thermal
+-physics ch
 
 # Boundary conditions
 
--boundary_ch dirichlet
--boundary_thermal dirichlet
--dirichlet_bc 0.0
--dirichlet_bc_thermal 0.1
--dirichlet_bc_ch_array_file dirichlet_ch.bin
--dirichlet_bc_thermal_array_file dirichlet_T.bin
-
-# Temporal event type
--temporal_event RecomputeThermalProperties
+-boundary_ch neumann
+-boundary_thermal neumann
 
 # Temporal scheme
 
--t_final 0.01
--dt 0.0001
+-t_final 1.0
+-dt 0.00001
 -dt_check 2
--dt_output 0.001
+-dt_output 2
 -dt_thermal_reset 0.001
-# -ts_type rk
--ts_type beuler
--ts_max_snes_failures -1
+-ts_type rk
+-ts_adapt_type none
+# -ts_type beuler
+# -ts_max_snes_failures -1
 # # -ts_type arkimex
 # # -ts_adapt_type basic
 # # -ts_adapt_dt_max 0.001
@@ -47,26 +41,24 @@
 # Petsc solver options
 
 ## GMRES SETTINGS
-
--pc_type asm
--ksp_type gmres
+# -pc_type asm
+# -ksp_type gmres
 
 ## MULTIGRID SETTINGS
-
 # -pc_type gamg
 # -ksp_type fgmres
 # -mg_levels_pc_type asm
 # -mg_levels_ksp_type richardson
 # -mg_levels_ksp_max_it 1
 
-## COMMON IMPLICIT SOLVER SETTINGS
+## COMMON SOLVER SETTINGS
 
--ksp_gmres_restart 200
+# -ksp_gmres_restart 200
 
--ksp_atol 1e-5
--ksp_rtol 1e-2
--snes_atol 1e-5
--snes_rtol 1e-2
+# -ksp_atol 1e-5
+# -ksp_rtol 1e-2
+# -snes_atol 1e-5
+# -snes_rtol 1e-2
 
 # -ksp_atol 1e-9
 # -ksp_rtol 1e-2
@@ -78,9 +70,9 @@
 
 -ts_monitor
 -ts_monitor_draw_solution
-#-log_view :log.out
--ts_monitor_lg_snes_iterations
--ts_monitor_lg_ksp_iterations
+# -log_view :log.out
+# -ts_monitor_lg_snes_iterations
+# -ts_monitor_lg_ksp_iterations
 # -snes_monitor
 # -ksp_monitor
 # -snes_linesearch_monitor

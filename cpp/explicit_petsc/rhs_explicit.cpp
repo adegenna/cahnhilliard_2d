@@ -1,4 +1,5 @@
 #include <petscdmcomposite.h>
+#include <math.h>
 #include "rhs_explicit.h"
 #include "boundary_conditions.h"
 #include "temperature_dependence.h"
@@ -327,6 +328,148 @@ PetscErrorCode FormRHS_thermal(TS ts,PetscReal t,Vec U,Vec F,void *ctx) {
   DMRestoreLocalVector(da_T,&local_T);
   DMRestoreLocalVector(da_T,&local_Tsource);
   DMRestoreLocalVector(da_T,&local_rhs);
+
+  PetscFunctionReturn(0);
+  
+}
+
+// Manufactured solution stuff
+
+double compute_MMStest_source_term( double x , double y , double wx , double wt , double t , double eps_2 , double sigma , double m ) {
+
+  // Compute source term for c(x,y,t) = cos( w * x ) * cos( w * y ) * sin( wt * t )
+  // Assumes constant epsilon
+
+  double c_t   = wt * cos( wx*x ) * cos( wx*y ) * cos( wt*t );
+  double u     = cos(wx*x) * cos(wx*y) * sin(wt*t);
+
+  double rhs_1 = -eps_2 * pow(wx,4) * 4 * u;
+  double rhs_2 = 6 * pow(wx,2) * u * ( pow(sin(wx*x),2) * pow(cos(wx*y),2) - pow(cos(wx*x),2) * pow(cos(wx*y),2) ) + 2 * pow(wx,2) * u;
+  double rhs_3 = -sigma * ( u - m );
+  double rhs   = rhs_1 + rhs_2 + rhs_3;
+  
+  double g_mms = c_t - rhs;
+
+  return g_mms;
+
+}
+
+PetscScalar** FormLocalRHS_CH_MMStest( DMDALocalInfo *info ,
+                                       PetscScalar **uarray ,
+                                       PetscScalar **rhs ,
+                                       PetscScalar **eps_2_array ,
+                                       PetscScalar **sigma_array ,
+                                       PetscScalar t ,
+                                       AppCtx *user ) {
+  
+  rhs = FormLocalRHS_CH( info , uarray , rhs , eps_2_array , sigma_array , user );
+  
+  // NOTE: these CH eqns are dimensionless with domain length scale = 1. Physical domain size shows up in L_omega.
+  PetscScalar hx = 1.0 / (PetscReal)(info->mx-1);
+  PetscScalar sx = 1.0/(hx*hx);
+  PetscScalar hy = 1.0 / (PetscReal)(info->my-1);
+  PetscScalar sy = 1.0/(hy*hy);
+  
+  double wx = 2*M_PI;
+  double wt = 100 * wx;
+  
+  /* Compute function over the locally owned part of the grid */
+  for (int j=info->ys; j<info->ys+info->ym; j++) {
+    for (int i=info->xs; i<info->xs+info->xm; i++) {
+
+      double x = i * hx;
+      double y = j * hy;
+      
+      rhs[j][i] += compute_MMStest_source_term( x , y , wx , wt , t , eps_2_array[j][i] , sigma_array[j][i] , user->m );
+      
+      // Boundary conditions
+      if ( i <= 1 || j <= 1 || i >= (info->mx-2) || j >= (info->my-2) )
+        rhs[j][i] = 0.0; //w * cos( w*x ) * cos( w*y ) * cos( w*t );
+
+    }
+
+  }
+
+  return rhs;
+
+}
+
+PetscErrorCode FormRHS_CH_MMStest(TS ts,PetscReal t,Vec U,Vec F,void *ctx) {
+
+  // Computes F = RHSfunction
+
+  AppCtx         *user = (AppCtx*)ctx;
+  DM              pack = (DM)user->pack;
+  DM              da_c , da_T;
+  DMDALocalInfo   info_c;
+  PetscScalar     **carray,**eps2,**sigma,**rhs_c , **ch_bc_array;
+  Vec             local_c,local_eps2,local_sigma,local_rhs , local_ch_bc_array;
+  
+  PetscFunctionBeginUser;
+
+  DMCompositeGetEntries( pack , &da_c , &da_T );
+  
+  DMGetLocalVector( da_c , &local_c );
+  DMGetLocalVector( da_c , &local_eps2 );
+  DMGetLocalVector( da_c , &local_sigma );
+  DMGetLocalVector( da_c , &local_rhs );
+  DMGetLocalVector( da_c , &local_ch_bc_array);
+
+  DMDAGetLocalInfo( da_c , &info_c );
+  
+  DMGlobalToLocalBegin( da_c , U , INSERT_VALUES , local_c );
+  DMGlobalToLocalEnd(   da_c , U , INSERT_VALUES , local_c );
+  DMGlobalToLocalBegin( da_c , F , INSERT_VALUES , local_rhs );
+  DMGlobalToLocalEnd(   da_c , F , INSERT_VALUES , local_rhs );
+  DMGlobalToLocalBegin( da_c , user->eps_2 , INSERT_VALUES , local_eps2 );
+  DMGlobalToLocalEnd(   da_c , user->eps_2 , INSERT_VALUES , local_eps2 );
+  DMGlobalToLocalBegin( da_c , user->sigma , INSERT_VALUES , local_sigma );
+  DMGlobalToLocalEnd(   da_c , user->sigma , INSERT_VALUES , local_sigma );
+  DMGlobalToLocalBegin( da_c , user->dirichlet_bc_ch_array , INSERT_VALUES , local_ch_bc_array );
+  DMGlobalToLocalEnd(   da_c , user->dirichlet_bc_ch_array , INSERT_VALUES , local_ch_bc_array );
+
+  DMDAVecGetArray( da_c , local_c , &carray );
+  DMDAVecGetArrayRead( da_c , local_eps2 , &eps2 );
+  DMDAVecGetArrayRead( da_c , local_sigma , &sigma );
+  DMDAVecGetArray(     da_c , local_rhs , &rhs_c );
+  DMDAVecGetArrayRead( da_c , local_ch_bc_array , &ch_bc_array );
+
+  /* Compute function over the locally owned part of the grid */
+  rhs_c  = FormLocalRHS_CH_MMStest( &info_c , carray , rhs_c , eps2 , sigma , t , user );
+  rhs_c = set_boundary_values( &info_c , rhs_c , ch_bc_array , user );
+
+  PetscScalar hx = 1.0 / (PetscReal)(info_c.mx-1);
+  PetscScalar hy = 1.0 / (PetscReal)(info_c.my-1);
+  for (int j=info_c.ys; j<info_c.ys+info_c.ym; j++) {
+    for (int i=info_c.xs; i<info_c.xs+info_c.xm; i++) {
+
+      double wx = 2*M_PI;
+      double wt = 100 * wx;
+
+      double x = i * hx;
+      double y = j * hy;
+      
+      // Boundary conditions
+      if ( i <= 1 || j <= 1 || i >= (info_c.mx-2) || j >= (info_c.my-2) )
+        rhs_c[j][i] = wt * cos( wx*x ) * cos( wx*y ) * cos( wt*t );
+
+    }
+
+  }
+
+  /* Restore vectors */
+  DMDAVecRestoreArray( da_c , local_c , &carray );
+  DMDAVecRestoreArrayRead( da_c , local_eps2 , &eps2 );
+  DMDAVecRestoreArrayRead( da_c , local_sigma , &sigma );
+  DMDAVecRestoreArray(     da_c , local_rhs , &rhs_c );
+
+  DMLocalToGlobalBegin( da_c , local_rhs , INSERT_VALUES , F );
+  DMLocalToGlobalEnd(   da_c , local_rhs , INSERT_VALUES , F );
+  
+  DMRestoreLocalVector( da_c , &local_c );
+  DMRestoreLocalVector( da_c , &local_eps2 );
+  DMRestoreLocalVector( da_c , &local_sigma );
+  DMRestoreLocalVector( da_c , &local_rhs );
 
   PetscFunctionReturn(0);
   

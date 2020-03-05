@@ -253,3 +253,26 @@ target_link_libraries( ch2d_explicit
   ${HDF5_LIBRARIES}
   ${PETSC_LIBRARIES}
 )
+
+#############################################
+# MMS test: Petsc-2D explicit solver 
+#############################################
+
+add_executable( mmstest_ch2d_explicit
+  explicit_petsc/mmstest_ch2d_explicit.cpp
+  explicit_petsc/utils_ch_explicit.cpp
+  explicit_petsc/boundary_conditions.cpp
+  explicit_petsc/initial_conditions.cpp
+  explicit_petsc/rhs_explicit.cpp
+  explicit_petsc/petsc_event_handling.cpp
+  explicit_petsc/temperature_dependence.cpp
+)
+
+add_dependencies(mmstest_ch2d_explicit petsc_external)
+
+target_link_libraries( mmstest_ch2d_explicit
+  m
+  ${MPI_LIBRARIES}
+  ${HDF5_LIBRARIES}
+  ${PETSC_LIBRARIES}
+)

@@ -57,9 +57,16 @@ PetscErrorCode compute_eps2_and_sigma_from_temperature( void *ctx , Vec U ) {
 
   PetscFunctionBeginUser;
   
-  DMCompositeGetEntries( pack , &da_c , &da_phi , &da_T );
-  DMCompositeGetAccess(  pack , U     , &U_c    , &U_phi , &U_T );
-
+  if (user->physics.compare("ch") == 0) {
+    DMCompositeGetEntries( pack , &da_c , &da_phi );
+    da_T = user->da_T;
+    U_T  = user->temperature_field;
+  }
+  else if (user->physics.compare("coupled_ch_thermal") == 0) {
+    DMCompositeGetEntries( pack , &da_c , &da_phi , &da_T );
+    DMCompositeGetAccess(  pack , U     , &U_c    , &U_phi , &U_T );
+  }
+  
   DMGetLocalVector(da_c,&local_X);
   DMGetLocalVector(da_T,&local_temperature);
   DMGetLocalVector(da_phi,&local_eps2);

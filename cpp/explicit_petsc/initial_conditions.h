@@ -5,5 +5,7 @@
 
 PetscErrorCode FormInitialSolution( Vec U , void *ptr );
 
+PetscErrorCode FormInitialSolution_mmstest(Vec U , void *ptr);
+
 
 #endif

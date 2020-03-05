@@ -128,8 +128,16 @@ PetscErrorCode PostEventFunction_RecomputeThermalProperties(TS ts,PetscInt neven
   DM             da_c , da_phi , da_T;
   Vec            U_c , U_phi , U_T;
   
-  DMCompositeGetEntries( pack , &da_c , &da_phi , &da_T );
-  DMCompositeGetAccess(  pack , U     , &U_c    , &U_phi , &U_T );
+  if (app->physics.compare("ch") == 0) {
+    DMCompositeGetEntries( pack , &da_c , &da_phi );
+    DMCompositeGetAccess(  pack , U     , &U_c    , &U_phi );
+    da_T = app->da_T;
+    U_T  = app->temperature_field;
+  }
+  else if (app->physics.compare("coupled_ch_thermal") == 0) {
+    DMCompositeGetEntries( pack , &da_c , &da_phi , &da_T );
+    DMCompositeGetAccess(  pack , U     , &U_c    , &U_phi , &U_T );
+  }
   
   for (int i=0; i<nevents; i++) {
 

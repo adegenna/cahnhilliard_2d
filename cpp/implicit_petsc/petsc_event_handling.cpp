@@ -49,6 +49,21 @@ PetscErrorCode EventFunction( TS ts , PetscReal t , Vec U , PetscScalar *fvalue 
 PetscErrorCode PostEventFunction_RecomputeThermalProperties(TS ts,PetscInt nevents,PetscInt event_list[],PetscReal t,Vec U,PetscBool forwardsolve,void* ctx) {
 
   AppCtx         *app = (AppCtx*)ctx;
+
+  DM             pack   = app->pack;
+  DM             da_c , da_phi , da_T;
+  Vec            U_c , U_phi , U_T;
+  
+  if (app->physics.compare("ch") == 0) {
+    DMCompositeGetEntries( pack , &da_c , &da_phi );
+    DMCompositeGetAccess(  pack , U     , &U_c    , &U_phi );
+    da_T = app->da_T;
+    U_T  = app->temperature_field;
+  }
+  else if (app->physics.compare("coupled_ch_thermal") == 0) {
+    DMCompositeGetEntries( pack , &da_c , &da_phi , &da_T );
+    DMCompositeGetAccess(  pack , U     , &U_c    , &U_phi , &U_T );
+  }
   
   for (int i=0; i<nevents; i++) {
 
@@ -67,10 +82,14 @@ PetscErrorCode PostEventFunction_RecomputeThermalProperties(TS ts,PetscInt neven
 
       PetscPrintf( PETSC_COMM_WORLD , "Logging solution at t = %5.4f seconds\n" , (double)t );
 
-      const std::string outname = "c_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".bin";
+      const std::string outname     = "c_"   + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".bin";
+      const std::string outname_phi = "phi_" + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".bin";
+      const std::string outname_T   = "T_"   + std::to_string( (app->dt_output_counter + 1) * app->dt_output ).substr(0,6) + ".bin";
 
-      log_solution( U , outname );
-      
+      log_solution( U_c   , outname );
+      log_solution( U_phi , outname_phi );
+      log_solution( U_T   , outname_T );
+
       app->dt_output_counter += 1;
 
     }

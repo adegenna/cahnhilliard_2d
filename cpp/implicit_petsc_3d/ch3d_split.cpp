@@ -56,20 +56,22 @@ int main(int argc,char **argv) {
 
   DMDASetFieldName( da_c , 0 , "c" );
   DMDASetFieldName( da_phi , 0 , "phi" );
-  DMDASetFieldName( da_T , 0 , "T" );
 
   // Pack the DMs together into a single composite manager
-  DM pack      = create_DM_pack( { da_c , da_phi , da_T } );
+  DM pack      = create_DM_pack( { da_c , da_phi } );
+  if (user.physics.compare("coupled_ch_thermal") == 0) {
+    DMCompositeAddDM( pack , da_T );
+    DMDASetFieldName( da_T , 0 , "T" );
+  }
   DMSetFromOptions( pack );
+  user.da_c    = da_c;
+  user.da_phi  = da_phi;
+  user.da_T    = da_T;
+  user.pack    = pack;  
   
   // Rescale value of L_omega to match the user-specified domain size
   PetscScalar L_domain = powf( user.Lx * user.Ly * user.Lz , 1./3. );
   user.L_omega        *= L_domain;
-  
-  user.da_c    = da_c;
-  user.da_phi  = da_phi;
-  user.da_T    = da_T;
-  user.pack    = pack;
   
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Extract global vectors from DMDA;
@@ -109,39 +111,32 @@ int main(int argc,char **argv) {
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   // Unpack the stuff you need
-  DMCompositeGetAccess( pack , u , &U_c , &U_phi , &U_T );
+  if (user.physics.compare("ch") == 0) {
+    DMCompositeGetAccess( pack , u , &U_c , &U_phi );
+    DMGetGlobalVector( da_T , &U_T );
+  }
+  else if (user.physics.compare("coupled_ch_thermal") == 0) {
+    DMCompositeGetAccess( pack , u , &U_c , &U_phi , &U_T );
+  }
 
   PetscErrorCode (*rhsFunctionImplicit)( TS ts , PetscReal t , Vec U , Vec Udot , Vec F , void *ctx );
   DM  da_user;
   Vec U_user , r_user;
   
-  if (user.physics.compare("ch") == 0) {
-    // CH only
-    
-    da_user = pack;
-    U_user  = u;
-    r_user  = r;
+  da_user = pack;
+  U_user  = u;
+  r_user  = r;
+
+  if (user.physics.compare("ch") == 0)
     rhsFunctionImplicit = FormIFunction_CH_split;
-    
-  }
 
-  else if (user.physics.compare("coupled_ch_thermal") == 0) {
-    // Coupled CH-thermal
-    
-    da_user = pack;
-    U_user  = u;
-    r_user  = r;
+  else if (user.physics.compare("coupled_ch_thermal") == 0) 
     rhsFunctionImplicit = FormIFunction_CH_split_thermal;
-
-  }
 
   else {
     // Incorrectly specified physics option
-    
     PetscPrintf( PETSC_COMM_WORLD , "Error: physics option specified incorrectly ...\n\n" );
-
     return(0);
-
   }
   
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -157,11 +152,8 @@ int main(int argc,char **argv) {
   
   else {
     // Incorrectly specified bc option
-    
     PetscPrintf( PETSC_COMM_WORLD , "Error: boundary option specified incorrectly ...\n\n" );
-
-    return(0);
-    
+    return(0);    
   }
   
   // Thermal equation

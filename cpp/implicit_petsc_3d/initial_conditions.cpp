@@ -19,8 +19,18 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   PetscFunctionBeginUser;
 
   // Unpack composite DM
-  DMCompositeGetAccess( pack , U , &U_c , &U_phi , &U_T );
-  
+  DM da_c , da_phi , da_T;  
+  if (user->physics.compare("coupled_ch_thermal") == 0) {
+    DMCompositeGetEntries( pack , &da_c , &da_phi , &da_T );
+    DMCompositeGetAccess(  pack , U     , &U_c    , &U_phi    , &U_T );
+  }
+  else if (user->physics.compare("ch") == 0) {
+    DMCompositeGetEntries( pack , &da_c    , &da_phi );
+    DMCompositeGetAccess(  pack , U , &U_c , &U_phi );
+    da_T = user->da_T;
+    DMGetGlobalVector( da_T , &U_T );
+  }
+
   // Interior
   PetscViewer viewer_U , viewer_T , viewer_Tsource , viewer_dirichlet_ch , viewer_dirichlet_thermal;
   PetscViewerBinaryOpen( PETSC_COMM_WORLD , user->initial_temperature_file.c_str()        , FILE_MODE_READ , &viewer_T );
@@ -46,7 +56,6 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
   }
 
   // Populate phi
-  DM da_c , da_phi , da_T;
   DMCompositeGetEntries( pack , &da_c , &da_phi , &da_T );
   DMDAVecGetArray( da_phi , U_phi , &phi );
   DMDAGetCorners( da_phi , &xs,&ys,&zs , &xm,&ym,&zm );
@@ -58,6 +67,10 @@ PetscErrorCode FormInitialSolution(Vec U , void *ptr)
     }
   }
   DMDAVecRestoreArray( da_phi , U_phi , &phi );
+  
+  // Save U_T to user struct  
+  DMCreateGlobalVector( da_T , &user->temperature_field );
+  user->temperature_field = U_T; // hopefully this is copy assignment??
 
   // Repack everything
   DMCompositeRestoreAccess( pack , U , &U_c , &U_phi , &U_T );

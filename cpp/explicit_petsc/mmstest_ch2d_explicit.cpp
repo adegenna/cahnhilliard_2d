@@ -1,5 +1,5 @@
 
-static char help[] = "JFNK implicit solver for 2D CH with PETSc \n";
+static char help[] = "Explicit solver for 2D CH with PETSc \n";
 
 #include <petscdm.h>
 #include <petscdmda.h>
@@ -11,10 +11,10 @@ static char help[] = "JFNK implicit solver for 2D CH with PETSc \n";
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
-#include "utils_ch_implicit.h"
+#include "utils_ch_explicit.h"
 #include "boundary_conditions.h"
 #include "initial_conditions.h"
-#include "rhs_implicit.h"
+#include "rhs_explicit.h"
 #include "petsc_event_handling.h"
 #include "temperature_dependence.h"
 
@@ -29,7 +29,6 @@ int main(int argc,char **argv) {
   PetscErrorCode ierr;
   DM             da_c , da_T , pack;
   PetscReal      dt;
-  SNES           snes;
   KSP            ksp;
 
   AppCtx         user = parse_petsc_options();
@@ -109,7 +108,9 @@ int main(int argc,char **argv) {
   VecDuplicate(c,&user.sigma);
   VecDuplicate(T,&user.temperature_source);
   VecDuplicate(c,&user.X);
-  
+  VecDuplicate(c,&user.dirichlet_bc_ch_array);
+  VecDuplicate(T,&user.dirichlet_bc_thermal_array);
+
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create timestepping solver context
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -120,7 +121,7 @@ int main(int argc,char **argv) {
   TSSetTimeStep(ts,user.dt);
 
   // Initial solution
-  FormInitialSolution( u , &user );
+  FormInitialSolution_mmstest( u , &user );
   
   // Thermal CH parameters
   compute_eps2_and_sigma_from_temperature( &user , u );
@@ -133,102 +134,41 @@ int main(int argc,char **argv) {
   DMCompositeGetAccess( pack , u , &U_c , &U_T );
 
   PetscErrorCode (*rhsFunctionExplicit)( TS ts , PetscReal t , Vec U , Vec F , void *ctx );
-  PetscErrorCode (*rhsFunctionImplicit)( TS ts , PetscReal t , Vec U , Vec Udot , Vec F , void *ctx );
   DM  da_user;
   Vec U_user , r_user;
   
-  if (user.physics.compare("ch") == 0) {
-    // CH only
-    
-    da_user = da_c;
-    U_user  = U_c;
-    r_user  = r_c;
-    rhsFunctionImplicit = FormIFunction_CH;
-    rhsFunctionExplicit = FormRHS_CH;
-    
-  }
-  
-  else if (user.physics.compare("thermal") == 0) {
-    // Thermal only
-
-    da_user = da_T;
-    U_user  = U_T;
-    r_user  = r_T;
-    rhsFunctionImplicit = FormIFunction_thermal;
-    rhsFunctionExplicit = FormRHS_thermal;
-    
-  }
-  
-  else if (user.physics.compare("coupled_ch_thermal") == 0) {
-    // Coupled CH + thermal
-
-    da_user = pack;
-    U_user  = u;
-    r_user  = r;
-    rhsFunctionImplicit = FormIFunction_CH_coupled;
-    rhsFunctionExplicit = FormRHS_CH_coupled;
-    
-  }
-
-  else {
-    // Incorrectly specified physics option
-    
-    PetscPrintf( PETSC_COMM_WORLD , "Error: physics option specified incorrectly ...\n\n" );
-
-    return(0);
-
-  }
+  da_user = da_c;
+  U_user  = U_c;
+  r_user  = r_c;
+  rhsFunctionExplicit = FormRHS_CH_MMStest;
   
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set boundary condition function
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+  
+  // CH equation: c
+  if ( user.boundary_ch.compare("neumann") == 0 ) // Neumann
+    user.residualFunction_ch = reset_boundary_rhs_values_for_neumann_bc;
 
-  if ( user.boundary.compare("neumann") == 0 ) // Neumann
-    user.residualFunction = reset_boundary_residual_values_for_neumann_bc;
+  else if ( user.boundary_ch.compare("dirichlet") == 0 ) // Dirichlet
+    user.residualFunction_ch = reset_boundary_rhs_values_for_dirichlet_bc;
+  
+  else {
+    // Incorrectly specified bc option
+    
+    PetscPrintf( PETSC_COMM_WORLD , "Error: boundary option specified incorrectly ...\n\n" );
 
-  else if ( user.boundary.compare("bottom_dirichlet_neumann_remainder") == 0 ) // Bottom dirichlet, rest Neumann
-    user.residualFunction = reset_boundary_residual_values_for_dirichlet_bottom_neumann_remainder_bc;
-
-  else if ( user.boundary.compare("topandbottom_dirichlet_neumann_remainder") == 0 ) // Bottom/top dirichlet, rest Neumann
-    user.residualFunction = reset_boundary_residual_values_for_dirichlet_topandbottom_neumann_remainder_bc;
-      
-  else // Dirichlet or periodic: just compute with ghost nodes
-    user.residualFunction = compute_residuals_no_explicit_boundary_resets;
-
+    return(0);
+    
+  }
+    
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set time-stepping scheme
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   TSSetDM( ts , da_user );
-  TSSetSolution( ts , U_user );
-  
-  if (user.time_stepper.compare("implicit") == 0) {
-    // Implicit
-
-    TSSetIFunction( ts , r_user , rhsFunctionImplicit , &user );
-    DMSetMatType( da_user , MATAIJ );
-    DMCreateMatrix( da_user , &J );
-    TSGetSNES( ts , &snes );
-    MatCreateSNESMF( snes , &Jmf );
-    SNESSetJacobian( snes , Jmf , J , SNESComputeJacobianDefaultColor , 0 );
-    
-  }
-
-  else if (user.time_stepper.compare("explicit") == 0) {
-    // Explicit
-
-    TSSetRHSFunction( ts , r_user , rhsFunctionExplicit , &user );
-
-  }
-
-  else {
-    // Incorrectly specified timestepper option
-    
-    PetscPrintf( PETSC_COMM_WORLD , "Error: time_stepper option specified incorrectly ...\n\n" );
-
-    return(0);
-    
-  }
+  TSSetSolution( ts , U_user );  
+  TSSetRHSFunction( ts , r_user , rhsFunctionExplicit , &user );
 
   /*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    Set user options and event handling
@@ -236,19 +176,18 @@ int main(int argc,char **argv) {
   
   // User-options
   TSSetFromOptions(ts);
-  SNESSetFromOptions(snes);
-  if ( user.time_stepper.compare("implicit") == 0 ) {
-    SNESGetKSP(snes,&ksp);
-    KSPSetFromOptions(ksp);
-  }
   PetscOptionsView( NULL , PETSC_VIEWER_STDOUT_WORLD );  
   
   // Setup event handling
-  PetscInt       direction[2];
-  PetscBool      terminate[2];
-  direction[0] = 1; direction[1] = 1;
-  terminate[0] = PETSC_FALSE; terminate[1] = PETSC_FALSE;
-  TSSetEventHandler( ts , 2 , direction , terminate , EventFunction , PostEventFunction_ResetTemperatureGaussianProfile , (void*)&user );
+  PetscInt       direction[3];
+  PetscBool      terminate[3];
+  direction[0] = 1; direction[1] = 1; direction[2] = 1;
+  terminate[0] = PETSC_FALSE; terminate[1] = PETSC_FALSE; terminate[2] = PETSC_FALSE;
+  
+  if ( user.temporal_event.compare("RecomputeThermalProperties") == 0 )
+    TSSetEventHandler( ts , 3 , direction , terminate , EventFunction , PostEventFunction_RecomputeThermalProperties      , (void*)&user );
+  else if ( user.temporal_event.compare("ResetTemperatureGaussianProfile") == 0 )
+    TSSetEventHandler( ts , 3 , direction , terminate , EventFunction , PostEventFunction_ResetTemperatureGaussianProfile , (void*)&user );
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Solve nonlinear system
@@ -259,20 +198,12 @@ int main(int argc,char **argv) {
   log_solution( U_c , initial_soln );
 
   TSSolve( ts , U_user );
-  
-  TSGetSNES( ts , &snes );
-  SNESGetJacobian( snes , &Jmf , &J , NULL , NULL );
-  MatView( J , PETSC_VIEWER_DRAW_WORLD );
-  
+    
   const std::string final_soln = "c_" + std::to_string( user.t_final ).substr(0,6) + ".bin";
   PetscPrintf( PETSC_COMM_WORLD , "Logging final solution at t = %5.4f seconds\n" , (double)user.t_final );
   log_solution( U_c , final_soln );
   
   PetscPrintf( PETSC_COMM_WORLD , "SIMULATION DONE\n\n" );
-
-  std::cout << '\n' << "Press the Enter key to continue.";
-  do {
-  } while (std::cin.get() != '\n'); 
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Free work space.
