@@ -189,25 +189,6 @@ target_link_libraries( preprocess_3d
 #   )
 
 #############################################
-# PETSc ex15
-#############################################
-
-add_executable( ex15
-  implicit_petsc/ex15.cpp
-)
-
-add_dependencies( ex15 petsc_external )
-
-target_link_libraries( ex15
-  m
-  ${MPI_LIBRARIES}
-  ${HDF5_LIBRARIES}
-  ${PETSC_LIBRARIES}
-)
-
-
-
-#############################################
 # Petsc-2D implicit solver
 #############################################
 
