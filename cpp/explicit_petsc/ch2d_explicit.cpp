@@ -69,7 +69,7 @@ int main(int argc,char **argv) {
                nx,ny,                           // global dimns of array
                sizes_x,sizes_y,                 // #procs in each dimn
                1,                               // DOF per node
-               2,                               // Stencil width
+               1,                               // Stencil width
                lxT,lyT,&da_T);
   DMSetFromOptions(da_T);
   DMSetOptionsPrefix(da_T,"T_");
@@ -101,6 +101,7 @@ int main(int argc,char **argv) {
   DMCreateGlobalVector( da_c , &c );
   DMCreateGlobalVector( da_T , &T );
   DMCreateGlobalVector( pack , &u );
+  
   VecDuplicate( c , &r_c ); // Residual used for CH-only calculations
   VecDuplicate( T , &r_T ); // Residual used for thermal-only calculations
   VecDuplicate( u , &r );   // Residual used for coupled calculations
@@ -136,7 +137,7 @@ int main(int argc,char **argv) {
   PetscErrorCode (*rhsFunctionExplicit)( TS ts , PetscReal t , Vec U , Vec F , void *ctx );
   DM  da_user;
   Vec U_user , r_user;
-  
+       
   if (user.physics.compare("ch") == 0) {
     // CH only
     
@@ -259,23 +260,23 @@ int main(int argc,char **argv) {
      Free work space.
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   DMCompositeRestoreAccess( pack , u , &U_c , &U_T );
-  MatDestroy(&J);
-  MatDestroy(&Jmf);
-  VecDestroy(&u);
-  VecDestroy(&c);
-  VecDestroy(&r_c);
-  VecDestroy(&r_T);
-  VecDestroy(&r);
-  VecDestroy(&user.eps_2);
-  VecDestroy(&user.sigma);
-  VecDestroy(&user.temperature_source);
-  VecDestroy(&user.X);
-  VecDestroy(&U_user);
-  VecDestroy(&r_user);
-  TSDestroy(&ts);
-  DMDestroy(&da_c);
-  DMDestroy(&da_T);
-  DMDestroy(&da_user);
+  //MatDestroy(&J);
+  //MatDestroy(&Jmf);
+  // VecDestroy(&u);
+  // VecDestroy(&c);
+  // VecDestroy(&r_c);
+  // VecDestroy(&r_T);
+  // VecDestroy(&r);
+  // VecDestroy(&user.eps_2);
+  // VecDestroy(&user.sigma);
+  // VecDestroy(&user.temperature_source);
+  // VecDestroy(&user.X);
+  // VecDestroy(&U_user);
+  // VecDestroy(&r_user);
+  // TSDestroy(&ts);
+  // DMDestroy(&da_c);
+  // DMDestroy(&da_T);
+  // DMDestroy(&da_user);
   
   PetscFinalize();
   return ierr;

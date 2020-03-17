@@ -96,55 +96,62 @@ PetscErrorCode FormRHS_CH(TS ts,PetscReal t,Vec U,Vec F,void *ctx) {
   DMDALocalInfo   info_c;
   PetscScalar     **carray,**eps2,**sigma,**rhs_c , **ch_bc_array;
   Vec             local_c,local_eps2,local_sigma,local_rhs , local_ch_bc_array;
+
+  PetscErrorCode ierr;
   
   PetscFunctionBeginUser;
 
-  DMCompositeGetEntries( pack , &da_c , &da_T );
+  ierr = DMCompositeGetEntries( pack , &da_c , &da_T ); CHKERRQ(ierr);
   
-  DMGetLocalVector( da_c , &local_c );
-  DMGetLocalVector( da_c , &local_eps2 );
-  DMGetLocalVector( da_c , &local_sigma );
-  DMGetLocalVector( da_c , &local_rhs );
-  DMGetLocalVector( da_c , &local_ch_bc_array);
+  ierr = DMGetLocalVector( da_c , &local_c ); CHKERRQ(ierr);
+  ierr = DMGetLocalVector( da_c , &local_eps2 ); CHKERRQ(ierr);
+  ierr = DMGetLocalVector( da_c , &local_sigma ); CHKERRQ(ierr);
+  ierr = DMGetLocalVector( da_c , &local_rhs ); CHKERRQ(ierr);
+  ierr = DMGetLocalVector( da_c , &local_ch_bc_array); CHKERRQ(ierr);
 
-  DMDAGetLocalInfo( da_c , &info_c );
+  ierr = DMDAGetLocalInfo( da_c , &info_c ); CHKERRQ(ierr);
   
-  DMGlobalToLocalBegin( da_c , U , INSERT_VALUES , local_c );
-  DMGlobalToLocalEnd(   da_c , U , INSERT_VALUES , local_c );
-  DMGlobalToLocalBegin( da_c , F , INSERT_VALUES , local_rhs );
-  DMGlobalToLocalEnd(   da_c , F , INSERT_VALUES , local_rhs );
-  DMGlobalToLocalBegin( da_c , user->eps_2 , INSERT_VALUES , local_eps2 );
-  DMGlobalToLocalEnd(   da_c , user->eps_2 , INSERT_VALUES , local_eps2 );
-  DMGlobalToLocalBegin( da_c , user->sigma , INSERT_VALUES , local_sigma );
-  DMGlobalToLocalEnd(   da_c , user->sigma , INSERT_VALUES , local_sigma );
-  DMGlobalToLocalBegin( da_c , user->dirichlet_bc_ch_array , INSERT_VALUES , local_ch_bc_array );
-  DMGlobalToLocalEnd(   da_c , user->dirichlet_bc_ch_array , INSERT_VALUES , local_ch_bc_array );
+  ierr = DMGlobalToLocalBegin( da_c , U , INSERT_VALUES , local_c ); CHKERRQ(ierr);
+  ierr = DMGlobalToLocalEnd(   da_c , U , INSERT_VALUES , local_c ); CHKERRQ(ierr);
+  ierr = DMGlobalToLocalBegin( da_c , F , INSERT_VALUES , local_rhs ); CHKERRQ(ierr);
+  ierr = DMGlobalToLocalEnd(   da_c , F , INSERT_VALUES , local_rhs ); CHKERRQ(ierr);
+  ierr = DMGlobalToLocalBegin( da_c , user->eps_2 , INSERT_VALUES , local_eps2 ); CHKERRQ(ierr);
+  ierr = DMGlobalToLocalEnd(   da_c , user->eps_2 , INSERT_VALUES , local_eps2 ); CHKERRQ(ierr);
+  ierr = DMGlobalToLocalBegin( da_c , user->sigma , INSERT_VALUES , local_sigma ); CHKERRQ(ierr);
+  ierr = DMGlobalToLocalEnd(   da_c , user->sigma , INSERT_VALUES , local_sigma ); CHKERRQ(ierr);
 
-  DMDAVecGetArray( da_c , local_c , &carray );
-  DMDAVecGetArrayRead( da_c , local_eps2 , &eps2 );
-  DMDAVecGetArrayRead( da_c , local_sigma , &sigma );
-  DMDAVecGetArray(     da_c , local_rhs , &rhs_c );
-  DMDAVecGetArrayRead( da_c , local_ch_bc_array , &ch_bc_array );
+  ierr = DMDAVecGetArray( da_c , local_c , &carray ); CHKERRQ(ierr);
+  ierr = DMDAVecGetArrayRead( da_c , local_eps2 , &eps2 ); CHKERRQ(ierr);
+  ierr = DMDAVecGetArrayRead( da_c , local_sigma , &sigma ); CHKERRQ(ierr);
+  ierr = DMDAVecGetArray(     da_c , local_rhs , &rhs_c ); CHKERRQ(ierr);
+
+  if ( user->boundary_ch.compare("dirichlet") == 0 ) {
+    ierr = DMGlobalToLocalBegin( da_c , user->dirichlet_bc_ch_array , INSERT_VALUES , local_ch_bc_array ); CHKERRQ(ierr);
+    ierr = DMGlobalToLocalEnd(   da_c , user->dirichlet_bc_ch_array , INSERT_VALUES , local_ch_bc_array ); CHKERRQ(ierr);
+    ierr = DMDAVecGetArrayRead( da_c , local_ch_bc_array , &ch_bc_array ); CHKERRQ(ierr);
+  }
 
   /* Compute function over the locally owned part of the grid */
-  rhs_c  = FormLocalRHS_CH( &info_c , carray , rhs_c , eps2 , sigma , user );
-  rhs_c = set_boundary_values( &info_c , rhs_c , ch_bc_array , user );
+  rhs_c  = FormLocalRHS_CH( &info_c , carray , rhs_c , eps2 , sigma , user ); CHKERRQ(ierr);
+  rhs_c = set_boundary_values( &info_c , rhs_c , ch_bc_array , user ); CHKERRQ(ierr);
   
   /* Restore vectors */
-  DMDAVecRestoreArray( da_c , local_c , &carray );
-  DMDAVecRestoreArrayRead( da_c , local_eps2 , &eps2 );
-  DMDAVecRestoreArrayRead( da_c , local_sigma , &sigma );
-  DMDAVecRestoreArray(     da_c , local_rhs , &rhs_c );
+  ierr = DMDAVecRestoreArray( da_c , local_c , &carray ); CHKERRQ(ierr);
+  ierr = DMDAVecRestoreArrayRead( da_c , local_eps2 , &eps2 ); CHKERRQ(ierr);
+  ierr = DMDAVecRestoreArrayRead( da_c , local_sigma , &sigma ); CHKERRQ(ierr);
+  ierr = DMDAVecRestoreArray(     da_c , local_rhs , &rhs_c ); CHKERRQ(ierr);
 
-  DMLocalToGlobalBegin( da_c , local_rhs , INSERT_VALUES , F );
-  DMLocalToGlobalEnd(   da_c , local_rhs , INSERT_VALUES , F );
+  ierr = DMLocalToGlobalBegin( da_c , local_rhs , INSERT_VALUES , F ); CHKERRQ(ierr);
+  ierr = DMLocalToGlobalEnd(   da_c , local_rhs , INSERT_VALUES , F ); CHKERRQ(ierr);
   
-  DMRestoreLocalVector( da_c , &local_c );
-  DMRestoreLocalVector( da_c , &local_eps2 );
-  DMRestoreLocalVector( da_c , &local_sigma );
-  DMRestoreLocalVector( da_c , &local_rhs );
+  ierr = DMRestoreLocalVector( da_c , &local_c ); CHKERRQ(ierr);
+  ierr = DMRestoreLocalVector( da_c , &local_eps2 ); CHKERRQ(ierr);
+  ierr = DMRestoreLocalVector( da_c , &local_sigma ); CHKERRQ(ierr);
+  ierr = DMRestoreLocalVector( da_c , &local_rhs ); CHKERRQ(ierr);
+  ierr = DMRestoreLocalVector( da_c , &local_ch_bc_array ); CHKERRQ(ierr);
 
-  PetscFunctionReturn(0);
+  return ierr;
+  //PetscFunctionReturn(0);
   
 }
 
