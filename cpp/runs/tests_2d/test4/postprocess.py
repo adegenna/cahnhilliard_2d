@@ -1,5 +1,5 @@
 import numpy as np
-import os,sys
+import os,sys,subprocess
 
 class PetscSettings:
 
@@ -40,17 +40,22 @@ def parse_inputs_from_petscfile( petscfile ):
 def main( petscfile ):
     
     settings  = parse_inputs_from_petscfile( petscfile )
-    num_bin_files = int( settings.tf // settings.dt_out + 2 )
+    
+    num_bin_files = 0
+    for file in os.listdir("./"):
+        if ( file.endswith(".bin") & file.startswith('c_') ):
+            num_bin_files += 1
     
     for i in range( num_bin_files ):
         timestamp  = '_{:0.4f}.bin'.format( i * settings.dt_out )
         solnfile_i = 'c' + timestamp
-        print( '../build/postprocess ' + petscfile + ' ' + solnfile_i )
-        os.system( '../build/postprocess ' + petscfile + ' ' + solnfile_i )
+        print( '../../../build/postprocess ' + petscfile + ' ' + solnfile_i )
+        os.system( '../../../build/postprocess ' + petscfile + ' ' + solnfile_i )
 
     return
 
 
 
 if __name__ == '__main__':
+    
     main( sys.argv[1] )

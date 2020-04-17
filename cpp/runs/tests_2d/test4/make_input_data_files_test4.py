@@ -106,7 +106,7 @@ def main():
     sigma_temp                  = 1.0*settings.nx / 4.
     amp_temp                    = 1.0
     T_amp , T_x , T_y , T_sigma = generate_quarter_circle_laser_path( amp_temp , sigma_temp , settings.nx , settings.ny , num_changes )
-    
+
     # Write initial temperature field to disk for petsc
     const_T             = 0.3
     initial_T           = const_T * np.ones( settings.nx * settings.ny )
