@@ -22,7 +22,6 @@ DM createLinkedDA_starStencil2D( DM da_base , std::string fieldname );
 typedef struct {
   DM        da_c , da_T , pack;
   std::string physics = "ch";       // "ch": CH-only ; "thermal": thermal diffusion only ; "coupled_ch_thermal": coupled thermal-CH solver
-  PetscReal c;
 
   PetscReal (*residualFunction_ch)(      PetscReal** , PetscInt , PetscInt , PetscInt , PetscInt );
   PetscReal (*residualFunction_thermal)( PetscReal** , PetscInt , PetscInt , PetscInt , PetscInt );
@@ -42,12 +41,12 @@ typedef struct {
   PetscReal t_final;           // Final time of simulation
   PetscReal dt_check;          // Value of time increment where you change the parameters/temperature
   PetscInt  dt_counter = 0;    // Counter that keeps track of how many dt_check have gone by so far
-  PetscReal dt_output;         // Value of time increment where you change the parameters/temperature
+  PetscReal dt_output;         // Value of time increment where you output the solution
   PetscInt  dt_output_counter   = 0;      // Counter that keeps track of how many dt_output have gone by so far
   PetscReal dt_thermal_reset    = 0.001;  // Value of time increment where you recalculate thermal properties
   PetscInt  dt_thermal_counter  = 0;      // Counter that keeps track of how many dt_thermal_reset have gone by so far  
-  std::string time_stepper      = "implicit";  // "implicit" or "explicit"
   PetscScalar dt                = 0.005;       // Default dt
+  std::string temporal_scheme   = "explicit"; // Options: "explicit", "implicit"
 
   // Polymer physics defaults
   PetscScalar X_min    = 0.055;
@@ -80,5 +79,7 @@ typedef struct {
 } AppCtx;
 
 AppCtx parse_petsc_options( );
+
+void set_petsc_temporal_scheme_options( std::string& user_option , TS& ts );
 
 #endif

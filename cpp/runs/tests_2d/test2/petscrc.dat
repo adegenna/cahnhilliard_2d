@@ -8,14 +8,15 @@
 -Ly 1.0
 
 # Initial conditions
+
 -initial_temperature_file initial_temperature.bin
 -initial_temperature_source_file initial_temperature_source.bin
 -initial_soln_file initial_soln.bin
 
 # CH parameters
+
 -CH_m 0.1
 -D_T 10.0
-# -physics coupled_ch_thermal
 -physics ch
 
 # Boundary conditions
@@ -23,16 +24,32 @@
 -boundary_ch neumann
 -boundary_thermal neumann
 
-# Temporal scheme
+# Temporal event handling
 
 -temporal_event RecomputeThermalProperties
-
--t_final 1.0
--dt 1e-4
 -dt_check 0.001
 -dt_output 0.002
 -dt_thermal_reset 0.001
--ts_type rk
+
+# Temporal scheme
+
+-temporal_scheme explicit
+-t_final 1.0
+-dt 1e-4
+
+
+
+
+
+
+
+
+
+# ************************
+# EXAMPLES OF MORE PETSC OPTIONS YOU MIGHT SET, BUT DON'T HAVE TO
+# ************************
+
+# -ts_type rk
 # -ts_type beuler
 # -ts_max_snes_failures -1
 # # -ts_type arkimex

@@ -29,7 +29,6 @@ int main(int argc,char **argv) {
   PetscErrorCode ierr;
   DM             da_c , da_T , pack;
   PetscReal      dt;
-  KSP            ksp;
 
   AppCtx         user = parse_petsc_options();
 
@@ -239,6 +238,9 @@ int main(int argc,char **argv) {
     TSSetEventHandler( ts , 3 , direction , terminate , EventFunction , PostEventFunction_RecomputeThermalProperties      , (void*)&user );
   else if ( user.temporal_event.compare("ResetTemperatureGaussianProfile") == 0 )
     TSSetEventHandler( ts , 3 , direction , terminate , EventFunction , PostEventFunction_ResetTemperatureGaussianProfile , (void*)&user );
+
+  // Set temporal integration options (implicit/explicit stuff)
+  set_petsc_temporal_scheme_options( user.temporal_scheme , ts );
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Solve nonlinear system
@@ -260,23 +262,6 @@ int main(int argc,char **argv) {
      Free work space.
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   DMCompositeRestoreAccess( pack , u , &U_c , &U_T );
-  //MatDestroy(&J);
-  //MatDestroy(&Jmf);
-  // VecDestroy(&u);
-  // VecDestroy(&c);
-  // VecDestroy(&r_c);
-  // VecDestroy(&r_T);
-  // VecDestroy(&r);
-  // VecDestroy(&user.eps_2);
-  // VecDestroy(&user.sigma);
-  // VecDestroy(&user.temperature_source);
-  // VecDestroy(&user.X);
-  // VecDestroy(&U_user);
-  // VecDestroy(&r_user);
-  // TSDestroy(&ts);
-  // DMDestroy(&da_c);
-  // DMDestroy(&da_T);
-  // DMDestroy(&da_user);
   
   PetscFinalize();
   return ierr;

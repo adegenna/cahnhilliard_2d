@@ -39,6 +39,9 @@ AppCtx parse_petsc_options( ) {
   PetscOptionsGetReal(NULL,NULL,"-dt_output",&user.dt_output,NULL);
   PetscOptionsGetReal(NULL,NULL,"-dt",&user.dt,NULL);
   PetscOptionsGetReal(NULL,NULL,"-dt_thermal_reset",&user.dt_thermal_reset,NULL);
+  char temp_temporalscheme[PETSC_MAX_PATH_LEN];
+  PetscOptionsGetString(NULL,NULL,"-temporal_scheme",temp_temporalscheme,sizeof(temp_temporalscheme),NULL);
+  user.temporal_scheme = std::string(temp_temporalscheme);
 
   // Thermal options
   char tempfile[PETSC_MAX_PATH_LEN];
@@ -105,3 +108,32 @@ DM createLinkedDA_starStencil2D( DM da_base , std::string fieldname ) {
   return da_coupled;
 
 };
+
+void set_petsc_temporal_scheme_options( std::string& user_option , TS& ts ) {
+
+  KSP            ksp;
+  PC             pc;
+  SNES           snes;
+
+  if ( user_option.compare("explicit") == 0 ) {
+    TSSetType( ts , TSRK );
+  }
+  
+  else if ( user_option.compare("implicit") == 0 ) {
+    TSGetSNES(  ts   , &snes);
+    SNESGetKSP( snes , &ksp );
+    KSPGetPC(   ksp  , &pc );
+    
+    TSSetType( ts , TSBEULER );
+    TSSetMaxSNESFailures( ts , -1 );
+    
+    PCSetType( pc   , PCASM );
+    KSPSetType( ksp , KSPGMRES );
+
+    KSPGMRESSetRestart( ksp , 200 );
+    KSPSetTolerances( ksp , 1e-2 , 1e-5 , PETSC_DEFAULT , PETSC_DEFAULT );
+    
+    SNESSetTolerances( snes , 1e-5 , 1e-2 , PETSC_DEFAULT , PETSC_DEFAULT , PETSC_DEFAULT );
+  }
+
+}
