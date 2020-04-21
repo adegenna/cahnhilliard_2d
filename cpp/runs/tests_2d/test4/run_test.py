@@ -147,7 +147,7 @@ def main():
 
     # Run solver
     count = 0
-    os.system( './run_test.sh &' )
+    os.system( './run_solver.sh &' )
 
     # Check filesystem for indication from solver that it is waiting for next temperature profile
     while True:

@@ -1,4 +1,4 @@
-## Input file for PETSc implicit CH-2D solver
+## Input file for PETSc CH-2D solver
 
 # Grid
 
@@ -8,14 +8,15 @@
 -Ly 1.0
 
 # Initial conditions
+
 -initial_temperature_file initial_temperature.bin
 -initial_temperature_source_file initial_temperature_source.bin
 -initial_soln_file initial_soln.bin
 
 # CH parameters
+
 -CH_m 0.1
 -D_T 10.0
-# -physics coupled_ch_thermal
 -physics ch
 
 # Boundary conditions
@@ -24,14 +25,39 @@
 -boundary_thermal neumann
 -dirichlet_bc_ch_array_file dirichlet_ch.bin
 
-# Temporal scheme
+# Temporal event handling
 
--t_final 1.0
--dt 0.0001
+-temporal_event none
 -dt_check 2
 -dt_output 2
 -dt_thermal_reset 0.001
--ts_type rk
+
+# Temporal scheme
+
+-temporal_scheme explicit
+-t_final 1.0
+-dt 0.00001
+
+# Solver monitors
+
+-ts_monitor
+-ts_monitor_draw_solution
+
+
+
+
+
+
+
+
+
+# ************************
+# EXAMPLES OF MORE PETSC OPTIONS YOU MIGHT SET, BUT DON'T HAVE TO
+# ************************
+
+# Temporal scheme stuff (this gives more control than the "-temporal_scheme" flag)
+
+# -ts_type rk
 # -ts_type beuler
 # -ts_max_snes_failures -1
 # # -ts_type arkimex
@@ -66,8 +92,6 @@
 
 # Solver monitors
 
--ts_monitor
--ts_monitor_draw_solution
 # -log_view :log.out
 # -ts_monitor_lg_snes_iterations
 # -ts_monitor_lg_ksp_iterations

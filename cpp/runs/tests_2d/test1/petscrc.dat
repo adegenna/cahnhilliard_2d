@@ -1,4 +1,4 @@
-## Input file for PETSc implicit CH-2D solver
+## Input file for PETSc CH-2D solver
 
 # Grid
 
@@ -38,6 +38,13 @@
 -temporal_scheme implicit
 -t_final 0.01
 -dt 0.0001
+
+# Solver monitors
+
+-ts_monitor
+-ts_monitor_draw_solution
+
+
 
 
 
@@ -90,8 +97,6 @@
 
 # Solver monitors
 
--ts_monitor
--ts_monitor_draw_solution
 #-log_view :log.out
 -ts_monitor_lg_snes_iterations
 -ts_monitor_lg_ksp_iterations
