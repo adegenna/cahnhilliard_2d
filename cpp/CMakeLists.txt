@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(ch2d)
 
-include(ExternalProject)
+#include(ExternalProject)
 
 find_package(Boost COMPONENTS program_options REQUIRED)
 find_package(Threads)
@@ -13,11 +13,11 @@ if (OPENMP_FOUND)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-# Set paths to external library files here
-set( MPI_LIBRARIES "/home/adegennaro/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/lib/libmpi.so" )
-message( STATUS "MPI_LIBRARIES ${MPI_LIBRARIES}")
-set( HDF5_LIBRARIES "/home/adegennaro/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/lib/libhdf5.so" )
-message( STATUS "HDF5_LIBRARIES ${HDF5_LIBRARIES}")
+# # Set paths to external library files here
+# set( MPI_LIBRARIES "/home/adegennaro/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/lib/libmpi.so" )
+# message( STATUS "MPI_LIBRARIES ${MPI_LIBRARIES}")
+# set( HDF5_LIBRARIES "/home/adegennaro/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/lib/libhdf5.so" )
+# message( STATUS "HDF5_LIBRARIES ${HDF5_LIBRARIES}")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -34,12 +34,12 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -DBOOST_LOG_DYN_LINK -DNDEBUG")
 set( EXTERNAL_INSTALL_DIR ${CMAKE_BINARY_DIR}/external_install )
 add_subdirectory(external)
 
-message( STATUS "PETSC_INCLUDES ${PETSC_INCLUDES}")
-message( STATUS "PETSC_LIBRARIES ${PETSC_LIBRARIES}")
+#message( STATUS "PETSC_INCLUDES ${PETSC_INCLUDES}")
+#message( STATUS "PETSC_LIBRARIES ${PETSC_LIBRARIES}")
 
 include_directories( ${CMAKE_SOURCE_DIR}
                      ${Boost_INCLUDE_DIRS}
-		     ${PETSC_INCLUDES}
+		     #${PETSC_INCLUDES}
 	     
 )
 
@@ -102,110 +102,3 @@ SWIG_LINK_LIBRARIES( cahnhilliard
 #   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/cahnhilliard.py" "${CMAKE_SOURCE_DIR}/swig/cahnhilliard.py"
 #   DEPENDS "${CMAKE_SOURCE_DIR}/build/cahnhilliard.py"
 # )
-
-#############################################
-# Petsc-2D implicit solver
-#############################################
-
-add_executable( jfnk_2d
-  implicit_petsc/jfnk_2d.cpp
-  implicit_petsc/utils_ch_implicit.cpp
-  implicit_petsc/boundary_conditions.cpp
-  implicit_petsc/initial_conditions.cpp
-  implicit_petsc/rhs_implicit.cpp
-  implicit_petsc/petsc_event_handling.cpp
-  implicit_petsc/temperature_dependence.cpp
-)
-
-add_dependencies(jfnk_2d petsc_external)
-
-target_link_libraries( jfnk_2d
-  m
-  ${MPI_LIBRARIES}
-  ${HDF5_LIBRARIES}
-  ${PETSC_LIBRARIES}
-)
-
-#############################################
-# Petsc-3D implicit solver
-#############################################
-
-add_executable( jfnk_3d
-  implicit_petsc_3d/jfnk_3d.cpp
-  implicit_petsc_3d/utils_ch_implicit.cpp
-  implicit_petsc_3d/boundary_conditions.cpp
-  implicit_petsc_3d/initial_conditions.cpp
-  implicit_petsc_3d/rhs_implicit.cpp
-  implicit_petsc_3d/petsc_event_handling.cpp
-  implicit_petsc_3d/temperature_dependence.cpp
-)
-
-add_dependencies(jfnk_3d petsc_external)
-
-target_link_libraries( jfnk_3d
-  m
-  ${MPI_LIBRARIES}
-  ${HDF5_LIBRARIES}
-  ${PETSC_LIBRARIES}
-)
-
-#############################################
-# Postprocessing
-#############################################
-
-add_executable( postprocess
-  implicit_petsc/postprocess.cpp
-  implicit_petsc/utils_ch_implicit.cpp
-)
-
-add_dependencies(postprocess petsc_external)
-
-target_link_libraries( postprocess
-  m
-  ${MPI_LIBRARIES}
-  ${HDF5_LIBRARIES}
-  ${PETSC_LIBRARIES}
-)
-
-#############################################
-# Preprocessing
-#############################################
-
-add_executable( preprocess
-  implicit_petsc/preprocess.cpp
-  implicit_petsc/utils_ch_implicit.cpp
-)
-
-add_dependencies( preprocess petsc_external )
-
-target_link_libraries( preprocess
-  m
-  ${MPI_LIBRARIES}
-  ${HDF5_LIBRARIES}
-  ${PETSC_LIBRARIES}
-)
-
-#############################################
-# Preprocessing-3d
-#############################################
-
-add_executable( preprocess_3d
-  implicit_petsc_3d/preprocess.cpp
-  implicit_petsc_3d/utils_ch_implicit.cpp
-)
-
-add_dependencies( preprocess_3d petsc_external )
-
-target_link_libraries( preprocess_3d
-  m
-  ${MPI_LIBRARIES}
-  ${HDF5_LIBRARIES}
-  ${PETSC_LIBRARIES}
-)
-
-# # Copy petsc implicit solver driver executable to implicit_petsc/examples/
-# add_custom_target( mvcmd_implicit ALL
-#   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/jfnk_2d" "${CMAKE_SOURCE_DIR}/implicit_petsc/examples/jfnk_2d"
-#   DEPENDS "${CMAKE_SOURCE_DIR}/build/jfnk_2d"
-#   )
-
