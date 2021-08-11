@@ -1,16 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fftpack import dct
+from utils_plotting import *
 
 def dct2d(x,inverse=False):
     t    = 2 if not inverse else 3
     temp = dct(x,type=t,norm='ortho').transpose()
     return dct(temp,type=t,norm='ortho').transpose()
 
-statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/build/C_'
-#statefile   = '/home/adegennaro/Projects/AEOLUS/cahnhilliard_2d/cpp/swig/C_'
-N           = 128
-M           = N
+statefile , xx , yy = get_basefilepath_and_grid()
+N,M = xx.shape
 Tfinal      = 10
 Tsave       = 1
 

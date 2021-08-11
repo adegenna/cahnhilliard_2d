@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 project(ch2d)
 
-#include(ExternalProject)
-
 find_package(Boost COMPONENTS program_options REQUIRED)
 find_package(Threads)
 
@@ -12,12 +10,6 @@ if (OPENMP_FOUND)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
-
-# # Set paths to external library files here
-# set( MPI_LIBRARIES "/home/adegennaro/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/lib/libmpi.so" )
-# message( STATUS "MPI_LIBRARIES ${MPI_LIBRARIES}")
-# set( HDF5_LIBRARIES "/home/adegennaro/cahnhilliard_2d/cpp/build/external/petsc/arch-linux2-c-opt/lib/libhdf5.so" )
-# message( STATUS "HDF5_LIBRARIES ${HDF5_LIBRARIES}")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -32,10 +24,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -Werror=reorder")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -DBOOST_LOG_DYN_LINK -DNDEBUG")
 
 set( EXTERNAL_INSTALL_DIR ${CMAKE_BINARY_DIR}/external_install )
-add_subdirectory(external)
-
-#message( STATUS "PETSC_INCLUDES ${PETSC_INCLUDES}")
-#message( STATUS "PETSC_LIBRARIES ${PETSC_LIBRARIES}")
 
 include_directories( ${CMAKE_SOURCE_DIR}
                      ${Boost_INCLUDE_DIRS}
