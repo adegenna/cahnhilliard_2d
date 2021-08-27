@@ -1,5 +1,7 @@
 # Introduction
 
+Implementation of nonlocal Cahn-Hilliard equations in 2D with coupled thermal dynamics. Main solver source is written in C++ and parallelized with OpenMP. There are Swig wrappers to enable users to write client code in Python.
+
 ## Concentration dynamics
 The main field that evolves is relative concentration of the A phase at the mesoscale of a block copolymer, which occurs through a modified 2D Cahn Hilliard equation:
 
