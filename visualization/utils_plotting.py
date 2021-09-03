@@ -1,38 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-
-
-class SimData:
-
-    def __init__( self , nx , ny , nfiles , statefile='../cpp/swig/C_' ):
-
-        self.xx , self.yy = self.make_grid( nx , ny )
-        self.nfiles = nfiles
-        self.solnbase = statefile
-    
-    @property
-    def nx( self ):
-        return self.xx.shape[0]
-
-    @property
-    def ny( self ):
-        return self.xx.shape[1]
-
-    def make_grid( self , nx , ny ):
-        
-        x     = np.arange(nx)
-        y     = np.arange(ny)
-        xx,yy = np.meshgrid(x,y)
-        xx = xx.T; yy = yy.T
-
-        return xx , yy
-
-    def read_swig_soln_file( self , i  ):
-        
-        filenametotal = self.solnbase + str(i) + '.out'
-        print( filenametotal )
-        return np.genfromtxt( filenametotal ).reshape( [self.nx,self.ny] , order = 'C' )
+from utils_postproc import *
 
 
 
@@ -55,3 +24,28 @@ def make_simdata_video( simdata , mp4name='simvideo.mp4' , fig=None ):
     
     ani = animation.ArtistAnimation( fig , frames , interval=20 , blit=True )
     ani.save('ch2d.mp4' )
+
+
+def plot_mc_results( idx_snapshot , mc_workdir_name , n_mc , simdata_base , fig=None ):
+
+    if fig is None:
+        fig   = plt.figure( 10 , figsize=(8,8) )
+    ax    = fig.gca()
+
+    f_mc_dir = lambda idx : simdata_base.base_dir + "/" + mc_workdir_name + str(idx) + "/" + simdata_base.base_filename
+
+    simdata_list = ( SimData( simdata_base.nx , simdata_base.ny , simdata_base.nfiles , f_mc_dir(i) ) 
+                                for i in np.random.choice( np.arange(n_mc)+1 , 25 ) )
+    
+    for (i,si) in enumerate(simdata_list):
+        
+        axi = plt.subplot( 5,5,i+1 )
+        try:
+            plot_state_snapshot( idx_snapshot , si , axi )
+        except:
+            pass
+    
+    plt.show()
+
+    return ax
+
