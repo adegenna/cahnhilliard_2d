@@ -105,7 +105,7 @@ def run_sample( chparams : ch.CHparamsVector , info : ch.SimInfo , mcparams : Di
         info : instance of ch.SimInfo
         p : dict of mc material parameters, e.g. produced by MaterialParamsUniformDistribution::draw()
     """
-    
+
     n_dt = 100
 
     stiff_dt = compute_linear_timescale( chparams , info )
@@ -145,7 +145,7 @@ def main():
         run_sample( chparams , info , pi )
 
         # Save mc parameters
-        w = csv.writer( open( "params_" + str(i+1) + ".csv" , "w" ) )
+        w = csv.writer( open( outdir + "params_" + str(i+1) + ".csv" , "w" ) )
         for key, val in pi.items():
             w.writerow( [ key , val ] )
 
