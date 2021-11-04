@@ -4,7 +4,7 @@ from numpy.core.arrayprint import IntegerFormat
 from scipy import misc
 import cahnhilliard as ch
 import csv
-import os
+import os , sys
 from typing import Dict, Tuple , List
 
 
@@ -126,14 +126,14 @@ def run_sample( chparams : ch.CHparamsVector , info : ch.SimInfo , mcparams : Di
 
 
 
-def main():
+def main( root_outdir : str ):
 
     nmc  = 2
     pgen = MaterialParamsUniformDistribution()
     
     for i in range(nmc):
 
-        outdir       = '/home/adegennaro/Projects/appmath/cahnhilliard_2d/data/mc_params/mc_' + str(i+1) + '/'
+        outdir       = root_outdir + '/mc_' + str(i+1) + '/'
         if not os.path.exists(outdir):
             os.makedirs(outdir)
 
@@ -155,4 +155,9 @@ def main():
 
 if __name__ == '__main__':
 
-    main()
+    root_outdir = '/home/adegennaro/Projects/appmath/cahnhilliard_2d/data/mc_params'
+
+    if len(sys.argv) != 1:
+        root_outdir = sys.argv[1]
+    
+    main( root_outdir )
