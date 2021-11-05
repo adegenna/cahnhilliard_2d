@@ -13,7 +13,7 @@ def convert_temperature_to_flory_huggins( T , Tmin , Tmax , Xmin , Xmax ):
     return ch.CHparamsVector().convert_temperature_to_flory_huggins( T , Tmin , Tmax , Xmin , Xmax )
 
 def compute_dimensionless_ch_params_from_polymer_params( X , N , L_omega , L_kuhn , m ):
-    eps_2    = ch.CHparamsVector().compute_eps2_from_polymer_params( X , m , L_kuhn , N )
+    eps_2    = ch.CHparamsVector().compute_eps2_from_polymer_params( X , m , L_kuhn , L_omega , N )
     sigma    = ch.CHparamsVector().compute_sigma_from_polymer_params( X , m , L_kuhn , L_omega , N )
     return eps_2 , sigma
 
@@ -29,7 +29,7 @@ class MaterialParamsUniformDistribution:
               200. , 
               ( 20e-9 ) * 15 , # [ repeat spacing in meters ] * [ number of repeats ]
               0.5e-9 , # meters
-              0.0 ]
+              -1.0 ]
         ) )
 
         self.upper = dict( zip( self.params , 
@@ -37,12 +37,18 @@ class MaterialParamsUniformDistribution:
               2000. , 
               ( 80e-9 ) * 15 , # [ repeat spacing in meters ] * [ number of repeats ]
               3.0e-9 , # meters
-              0.0 ]
+              1.0 ]
         ) )
+
+        self.Tmin = 0.1
+        self.Tmax = 1.0
 
     def draw( self ) -> Dict[ str , float ]:
         
         vals = np.random.uniform( list( self.lower.values() ) , list( self.upper.values() ) )
+
+        vals[0] = convert_temperature_to_flory_huggins( 
+            np.random.uniform(self.Tmin,self.Tmax) , self.Tmin , self.Tmax , self.lower['X'] , self.upper['X'] )
 
         return dict( zip( self.params , vals ) )
 
@@ -97,16 +103,17 @@ def compute_linear_timescale( chparams : ch.CHparamsVector , info : ch.SimInfo )
 
 
 
-def run_sample( chparams : ch.CHparamsVector , info : ch.SimInfo , mcparams : Dict[ str , float ] ):
+def run_sample( chparams : ch.CHparamsVector , info : ch.SimInfo , mcparams : Dict[ str , float ] , nsample : int ):
 
     """
     inputs: 
         chparams : instance of ch.CHparamsVector
         info : instance of ch.SimInfo
         p : dict of mc material parameters, e.g. produced by MaterialParamsUniformDistribution::draw()
+        nsample : mc sample number (e.g., this is nsample=5 of 100 total samples)
     """
 
-    n_dt = 100
+    n_dt = 10
 
     stiff_dt = compute_linear_timescale( chparams , info )
 
@@ -115,12 +122,13 @@ def run_sample( chparams : ch.CHparamsVector , info : ch.SimInfo , mcparams : Di
     t                 = np.linspace(info.t0 , info.t0 + n_dt * stiff_dt , n_tsteps+1)
 
     # Run solver
-    print( 'Sampling interval = ' , (t[1]-t[0]) / stiff_dt , ' dt_stiff' )
+    w = csv.writer( open( info.outdir + "ch_" + str(nsample) + ".csv" , "w" ) )
+    w.writerow( ['Sampling interval = %.2f dt_lin = %.2e' %( ( (t[1]-t[0]) / stiff_dt) , (t[1]-t[0]) )] )
 
     for i in range(n_tsteps):
         info.t0          = t[i]
         info.tf          = t[i+1]
-        print( 't0 = ', t[i]/stiff_dt, ' dt_lin , tf = ', t[i+1]/stiff_dt, ' dt_lin')
+        w.writerow( ['t0 = %.2f dt_lin = %.2e , tf = %.2f dt_lin = %.2e' %( (t[i]/stiff_dt) , t[i] , (t[i+1]/stiff_dt) , t[i+1] )] )
         ch.run_ch_solver_non_thermal(chparams,info)
 
 
@@ -142,7 +150,7 @@ def main( root_outdir : str ):
         info.outdir  = outdir
         chparams = setup_chparams( info , pi )
 
-        run_sample( chparams , info , pi )
+        run_sample( chparams , info , pi , i+1 )
 
         # Save mc parameters
         w = csv.writer( open( outdir + "params_" + str(i+1) + ".csv" , "w" ) )

@@ -162,6 +162,19 @@ double CHparamsVector::compute_eps2_from_polymer_params( const double X ,
   return Eps_2;
 };
 
+double CHparamsVector::compute_eps2_from_polymer_params( const double X ,
+                                                         const double m ,
+                                                         const double L_kuhn ,
+                                                         const double L_omega ,
+                                                         const double N ) {
+  
+  const double m_scaled   = 0.5 * ( 1.0 - m );
+  const double Eps_2      = L_kuhn * L_kuhn / ( 3.0 * m_scaled * (1.0 - m_scaled) * X * L_omega * L_omega );
+
+  return Eps_2;
+};
+
+
 double CHparamsVector::compute_sigma_from_polymer_params( const double X ,
                                                           const double m ,
                                                           const double L_kuhn ,

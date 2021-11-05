@@ -129,6 +129,11 @@ class CHparamsVector
 					       const double m ,
 					       const double L_kuhn ,
 					       const double N );
+  double compute_eps2_from_polymer_params(     const double T ,
+					       const double m ,
+					       const double L_kuhn ,
+                 const double L_omega ,
+					       const double N );
   double compute_sigma_from_polymer_params(    const double T ,
 					       const double m ,
 					       const double L_kuhn ,
