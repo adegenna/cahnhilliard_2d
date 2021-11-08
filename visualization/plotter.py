@@ -31,10 +31,11 @@ def main( popt : PlottingOptions ):
         plot_mc_results( popt.snapshot_num , \
                          popt.mc_workdir_name , \
                          popt.n_mc , \
+                         popt.nfiles , \
                          simdata )
 
 
 
 if __name__ == "__main__":
-
-    main( PlottingOptions(snapshot_num=2) )
+    
+    main( PlottingOptions( snapshot_num=20 , file_base_name="../data/mc_params/C_" , n_mc=1024 , nfiles=100 , nx=150 , ny=150 ) )

@@ -26,7 +26,11 @@ def make_simdata_video( simdata , mp4name='simvideo.mp4' , fig=None ):
     ani.save('ch2d.mp4' )
 
 
-def plot_mc_results( idx_snapshot , mc_workdir_name , n_mc , simdata_base , fig=None ):
+def plot_mc_results( idx_snapshot , mc_workdir_name , n_mc , n_files , simdata_base , fig=None ):
+    
+    """
+    plots n_files chosen from n_mc total possibilities
+    """
 
     if fig is None:
         fig   = plt.figure( 10 , figsize=(8,8) )
@@ -35,11 +39,14 @@ def plot_mc_results( idx_snapshot , mc_workdir_name , n_mc , simdata_base , fig=
     f_mc_dir = lambda idx : simdata_base.base_dir + "/" + mc_workdir_name + str(idx) + "/" + simdata_base.base_filename
 
     simdata_list = ( SimData( simdata_base.nx , simdata_base.ny , simdata_base.nfiles , f_mc_dir(i) ) 
-                                for i in np.random.choice( np.arange(n_mc)+1 , 25 ) )
+                                for i in np.random.choice( np.arange(n_mc)+1 , n_files ) )
     
+    nrows = int( np.floor( np.sqrt(n_files) ) )
+    ncols = int( np.ceil( n_files / nrows ) )
+
     for (i,si) in enumerate(simdata_list):
         
-        axi = plt.subplot( 5,5,i+1 )
+        axi = plt.subplot( nrows , ncols , i+1 )
         try:
             plot_state_snapshot( idx_snapshot , si , axi )
         except:
