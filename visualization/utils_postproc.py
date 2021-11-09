@@ -1,5 +1,6 @@
 import numpy as np
-
+from dataclasses import dataclass
+import glob
 
 class SimData:
 
@@ -22,6 +23,10 @@ class SimData:
         return '/'.join( self.solnbase.split("/")[0:-1] )
 
     @property
+    def work_dir( self ):
+        return self.solnbase.split("/")[-2]
+
+    @property
     def base_filename( self ):
         return self.solnbase.split("/")[-1]
 
@@ -41,9 +46,31 @@ class SimData:
     def read_swig_soln_file( self , i  ):
         
         filenametotal = self.solnbase + str(i) + self.filename_extension
-        print( filenametotal )
-        return np.genfromtxt( filenametotal ).reshape( [self.nx,self.ny] , order = 'C' )
 
+        try:
+            return np.genfromtxt( filenametotal ).reshape( [self.nx,self.ny] , order = 'C' )
+        except:
+            return None
+
+    def read_param( self , strFile : str , idx : int ):
+        
+        pi = np.genfromtxt( glob.glob( self.base_dir + '/' + strFile + '*' )[0] , delimiter=',' )[:,-1] # hacky way to read list of parameter values 
+
+        return pi[idx]
+
+@dataclass
+class PlottingOptions:
+
+    """
+    class to use with plotter script
+    stores options related to having many solution workdirs to draw from for plotting
+    """
+
+    nplot : int = 25
+    ntotal : int = 1024
+    plot_type : str = "mc_results" # [ snapshot , video , mc_results ]
+    snapshot_num   : int = 20
+    mc_workdir_name : str = "mc_"
 
 
 def make_random_pytorch_dataset( idx_snapshot , mc_workdir_name , n_mc , simdata_base , batchsize ):

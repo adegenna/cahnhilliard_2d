@@ -1,24 +1,44 @@
 from utils_plotting import *
 from dataclasses import dataclass
+from typing import List
+import glob
 
-@dataclass
-class PlottingOptions:
 
-    nx : int = 128
-    ny : int = 128
-    nfiles : int = 100
-    file_base_name : str = "../data/mcruns/C_"
-    plot_type : str = "mc_results" # [ snapshot , video , mc_results ]
-    snapshot_num   : int = 50
-    mc_workdir_name : str = "mc_"
-    n_mc : int = 100
+def f_sort_2d( simlist : List[ SimData ] , nx : int , ny : int ) -> List[ SimData ] : 
+
+    assert( len(simlist) == nx * ny )
+
+    X = []
+    m = []
+
+    for si in simlist:
+
+        pi = np.genfromtxt( glob.glob( si.base_dir + '/params_*' )[0] , delimiter=',' )[:,-1] # hacky way to read list of parameter values 
+        X.append( pi[0] )
+        m.append( pi[-1] )
+
+    sortedx = np.argsort( X )
+
+    sorted = []
+
+    for i in range(nx): # sort rows by y
+        
+        idxI = sortedx[ i*ny : (i+1)*ny ]
+        idxIsort = [ idxI[j] for j in np.argsort( [ m[jj] for jj in idxI ] ) ]
+        sorted.append( [ simlist[j] for j in idxIsort ] )
+
+        #sorted.append( simlist[ idxI[ np.argsort( m[idxI] ) ] ] )
+
+    return [ item for sublist in sorted for item in sublist ]
+    
+
 
 
 
 
 def main( popt : PlottingOptions ):
 
-    simdata = SimData( popt.nx , popt.ny , popt.nfiles , popt.file_base_name )
+    simdata = SimData( 150 , 150 , 1024 , "../data/mc_params/C_" )
 
     if popt.plot_type == 'video':
         make_simdata_video( simdata )
@@ -28,14 +48,10 @@ def main( popt : PlottingOptions ):
         plt.show()
 
     elif popt.plot_type == 'mc_results':
-        plot_mc_results( popt.snapshot_num , \
-                         popt.mc_workdir_name , \
-                         popt.n_mc , \
-                         popt.nfiles , \
-                         simdata )
+        plot_mc_results( popt , simdata  , f_pass=lambda x : ( np.var(x) > 0.08 ) , f_sort_2d=f_sort_2d )
 
 
 
 if __name__ == "__main__":
     
-    main( PlottingOptions( snapshot_num=20 , file_base_name="../data/mc_params/C_" , n_mc=1024 , nfiles=100 , nx=150 , ny=150 ) )
+    main( PlottingOptions( ) )
