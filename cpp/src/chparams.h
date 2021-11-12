@@ -22,7 +22,7 @@ class SimInfo
   
  public:
 
-  SimInfo() { };
+  SimInfo();
   SimInfo( int nx , int ny , std::vector<double> x );
   SimInfo( int nx , int ny );
   ~SimInfo() { };
