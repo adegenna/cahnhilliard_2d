@@ -11,16 +11,13 @@ void run_ch_solver_non_thermal( CHparamsVector& chparams , SimInfo& info )
   // Instantiate rhs
   CahnHilliard2DRHS rhs = CahnHilliard2DRHS( chparams , info );
   
-  std::vector<double> x;
+  std::vector<double> x( info.x.begin() , info.x.end() );
+  int iter = info.iter;
+
   if (info.t0 == 0) {
     rhs.setInitialConditions(x);
-    int iter = 0;
   }
-  else {
-    x        = info.x;
-    int iter = info.iter;
-  }
-  
+
   // define adaptive stepper
   typedef boost::numeric::odeint::runge_kutta_cash_karp54<std::vector<double>> error_stepper_type;
 
@@ -61,17 +58,14 @@ void run_ch_solver_thermal_no_diffusion( CHparamsVector& chparams , SimInfo& inf
 
   // Instantiate rhs
   CahnHilliard2DRHS_thermal_nodiffusion rhs = CahnHilliard2DRHS_thermal_nodiffusion( chparams , info );
-  
-  std::vector<double> x;
+
+  std::vector<double> x( info.x.begin() , info.x.end() );
+  int iter = info.iter;
+
   if (info.t0 == 0) {
     rhs.setInitialConditions(x);
-    int iter = 0;
   }
-  else {
-    x        = info.x;
-    int iter = info.iter;
-  }
-  
+    
   // define adaptive stepper
   typedef boost::numeric::odeint::runge_kutta_cash_karp54<std::vector<double>> error_stepper_type;
 
@@ -113,16 +107,13 @@ void run_ch_solver_thermal_with_diffusion( CHparamsVector& chparams , SimInfo& i
   // Instantiate rhs
   CahnHilliard2DRHS_thermal rhs = CahnHilliard2DRHS_thermal( chparams , info );
   
-  std::vector<double> x;
+  std::vector<double> x( info.x.begin() , info.x.end() );
+  int iter = info.iter;
+
   if (info.t0 == 0) {
     rhs.setInitialConditions(x);
-    int iter = 0;
   }
-  else {
-    x        = info.x;
-    int iter = info.iter;
-  }
-  
+
   // define adaptive stepper
   typedef boost::numeric::odeint::runge_kutta_cash_karp54<std::vector<double>> error_stepper_type;
 
@@ -163,17 +154,14 @@ void run_ch_solver_non_thermal( CHparamsScalar& chparams , SimInfo& info )
 
   // Instantiate rhs
   CahnHilliard2DRHS rhs = CahnHilliard2DRHS( chparams , info );
-  
-  std::vector<double> x;
+
+  std::vector<double> x( info.x.begin() , info.x.end() );
+  int iter = info.iter;
+
   if (info.t0 == 0) {
     rhs.setInitialConditions(x);
-    int iter = 0;
   }
-  else {
-    x        = info.x;
-    int iter = info.iter;
-  }
-  
+
   // define adaptive stepper
   typedef boost::numeric::odeint::runge_kutta_cash_karp54<std::vector<double>> error_stepper_type;
 
@@ -215,16 +203,13 @@ void run_ch_solver_thermal_no_diffusion( CHparamsScalar& chparams , SimInfo& inf
   // Instantiate rhs
   CahnHilliard2DRHS_thermal_nodiffusion rhs = CahnHilliard2DRHS_thermal_nodiffusion( chparams , info );
   
-  std::vector<double> x;
+  std::vector<double> x( info.x.begin() , info.x.end() );
+  int iter = info.iter;
+
   if (info.t0 == 0) {
     rhs.setInitialConditions(x);
-    int iter = 0;
   }
-  else {
-    x        = info.x;
-    int iter = info.iter;
-  }
-  
+
   // define adaptive stepper
   typedef boost::numeric::odeint::runge_kutta_cash_karp54<std::vector<double>> error_stepper_type;
 
@@ -265,17 +250,14 @@ void run_ch_solver_thermal_with_diffusion( CHparamsScalar& chparams , SimInfo& i
 
   // Instantiate rhs
   CahnHilliard2DRHS_thermal rhs = CahnHilliard2DRHS_thermal( chparams , info );
-  
-  std::vector<double> x;
+
+  std::vector<double> x( info.x.begin() , info.x.end() );
+  int iter = info.iter;
+
   if (info.t0 == 0) {
     rhs.setInitialConditions(x);
-    int iter = 0;
   }
-  else {
-    x        = info.x;
-    int iter = info.iter;
-  }
-  
+    
   // define adaptive stepper
   typedef boost::numeric::odeint::runge_kutta_cash_karp54<std::vector<double>> error_stepper_type;
 

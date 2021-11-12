@@ -90,17 +90,7 @@ void CahnHilliard2DRHS::rhs(const std::vector<double> &c, std::vector<double> &d
 
 void CahnHilliard2DRHS::setInitialConditions(std::vector<double> &x)
   {
-    x.resize(info_.nx * info_.ny);
 
-    std::default_random_engine generator;
-    std::uniform_real_distribution<double> distribution(-1.0,1.0);
-
-    // double initial_value = -1.0;
-    for (int i = 0; i < info_.ny; ++i) {
-      for (int j = 0; j < info_.nx; ++j) {
-        x[info_.idx2d(i,j)] = distribution(generator) * 0.005;
-      }
-    }
     // Set BCs if needed
     if ( info_.bc.compare("dirichlet") == 0) {
       x = apply_dirichlet_bc( x , info_ );

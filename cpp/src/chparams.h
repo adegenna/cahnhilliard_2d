@@ -23,12 +23,15 @@ class SimInfo
  public:
 
   SimInfo() { };
+  SimInfo( int nx , int ny , std::vector<double> x );
+  SimInfo( int nx , int ny );
   ~SimInfo() { };
   
-  double t0, tf;                // Initial and final simulation times
-  int iter = 0;                 // Current simulation iteration
-  double dx, dy;                // Spatial discretization
-  int nx, ny;                   // Number of grid points in (x,y)
+  double t0 = 0.0;              // Initial simulation time
+  double tf = 1.0;              // Final simulation time
+  int iter  = 0;                // Current simulation iteration
+  int nx = 64; int ny = 64;     // Number of grid points in (x,y)
+  double dx = 1./64; double dy = 1./64;  // Spatial discretization
   std::vector<double> x;        // Optional, used to specify current state IFF t0 != 0 (MAKE THIS MORE ROBUST)
   std::string bc = "periodic";  // Boundary condition type: "periodic", "neumann", "dirichlet", "mixed_neumann_bottom_dirichlet", "mixed_neumann_top_dirichlet"
   std::string rhs_type = "ch_non_thermal"; // RHS type: "ch_non_thermal", "ch_thermal_no_diffusion", "ch_thermal_with_diffusion"
@@ -40,6 +43,7 @@ class SimInfo
  private:
   int idx2d_impl(int i, int j);
   int mod(int a, int b);
+  void set_random_IC( int nx , int ny );
   
 };
 

@@ -66,19 +66,21 @@ def plot_mc_results( popt : PlottingOptions ,
     f_mc_dir = lambda idx : simdata_base.base_dir + "/" + popt.mc_workdir_name + str(idx) + "/" + simdata_base.base_filename
 
     simdata_list = ( SimData( simdata_base.nx , simdata_base.ny , simdata_base.nfiles , f_mc_dir(i) ) 
-                                for i in np.random.choice( np.arange(popt.ntotal)+1 , popt.ntotal ) )
+                                for i in np.random.choice( np.arange(popt.ntotal)+1 , popt.ntotal , replace=False ) )
     
     nrows = int( np.floor( np.sqrt(popt.nplot) ) )
     ncols = int( np.ceil( popt.nplot / nrows ) )
 
     idxPlot = 1
     nplots  = 0
+    idxCount = 0
 
     simlist = []
 
-    while nplots < popt.nplot:
+    while ( ( nplots < popt.nplot ) & ( idxCount < popt.ntotal ) ):
     
         si = next( simdata_list )
+        idxCount += 1
 
         u = si.read_swig_soln_file( popt.snapshot_num )
         
@@ -93,16 +95,25 @@ def plot_mc_results( popt : PlottingOptions ,
 
         simlist = f_sort_2d( simlist , nrows , ncols )
 
+    P1 = []
+    P2 = []
+
     for (i,si) in enumerate( simlist ):
 
+        p1 = si.read_param( 'params' , -1 )
+        p2 = si.read_param( 'params' , 0 )
+
+        P1.append(p1)
+        P2.append(p2)
+
         axi = plt.subplot( nrows , ncols , i+1 )
-
-        p1 = si.read_param( 'params' , 0 )
-        p2 = si.read_param( 'params' , -1 )
-
         plot_state_snapshot( popt.snapshot_num , si , axi , '(%.2f,%.2f)' %( p1,p2 ) )
 
-
+    plt.figure()
+    plt.scatter( P1 , P2 , s=25 )
+    plt.xlabel( r'm' , fontsize=25 )
+    plt.ylabel( r'$\chi$' , fontsize=25 )
+    
     plt.show()
 
     return ax

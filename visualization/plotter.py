@@ -6,7 +6,7 @@ import glob
 
 def f_sort_2d( simlist : List[ SimData ] , nx : int , ny : int ) -> List[ SimData ] : 
 
-    assert( len(simlist) == nx * ny )
+    assert( len(simlist) <= nx * ny )
 
     X = []
     m = []
@@ -33,12 +33,26 @@ def f_sort_2d( simlist : List[ SimData ] , nx : int , ny : int ) -> List[ SimDat
     
 
 
+def f_sort_1d( simlist : List[ SimData ] , nx : int , ny : int ) -> List[ SimData ] : 
+
+    assert( len(simlist) <= nx * ny )
+
+    X = []
+    m = []
+
+    for si in simlist:
+
+        pi = np.genfromtxt( glob.glob( si.base_dir + '/params_*' )[0] , delimiter=',' )[:,-1] # hacky way to read list of parameter values 
+        X.append( pi[0] )
+    
+    return [ simlist[j] for j in np.argsort(X) ]
+
 
 
 
 def main( popt : PlottingOptions ):
 
-    simdata = SimData( 150 , 150 , 1024 , "../data/mc_params/C_" )
+    simdata = SimData( 150 , 150 , 1024 , "../data/mc_M0p1/C_" )
 
     if popt.plot_type == 'video':
         make_simdata_video( simdata )
@@ -48,10 +62,10 @@ def main( popt : PlottingOptions ):
         plt.show()
 
     elif popt.plot_type == 'mc_results':
-        plot_mc_results( popt , simdata  , f_pass=lambda x : ( np.var(x) > 0.08 ) , f_sort_2d=f_sort_2d )
+        plot_mc_results( popt , simdata  , f_pass=lambda x : ( np.var(x) > 0.08 ) , f_sort_2d=f_sort_1d )
 
 
 
 if __name__ == "__main__":
     
-    main( PlottingOptions( ) )
+    main( PlottingOptions( nplot=9 , ntotal=9 , snapshot_num=100 ) )

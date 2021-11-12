@@ -130,18 +130,7 @@ void CahnHilliard2DRHS_thermal::rhs(const std::vector<double> &ct, std::vector<d
 
 void CahnHilliard2DRHS_thermal::setInitialConditions(std::vector<double> &x)
   {
-    x.resize(2 * info_.nx * info_.ny);
-
-    std::default_random_engine generator;
-    std::uniform_real_distribution<double> distribution(-1.0,1.0);
-
-    for (int i = 0; i < info_.ny; ++i) {
-      for (int j = 0; j < info_.nx; ++j) {
-        x[info_.idx2d(i,j)]                     = distribution(generator) * 0.005;
-	x[info_.idx2d(i,j) + info_.nx*info_.ny] = chpV_.T_min;
-      }
-    }
-
+    
     // Set BCs if needed
     if ( info_.bc.compare("dirichlet") == 0) {
       x = apply_dirichlet_bc( x , info_ );
