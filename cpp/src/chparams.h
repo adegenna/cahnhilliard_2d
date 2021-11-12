@@ -22,9 +22,9 @@ class SimInfo
   
  public:
 
-  SimInfo();
-  SimInfo( int nx , int ny , std::vector<double> x );
-  SimInfo( int nx , int ny );
+//  SimInfo();
+  SimInfo( int nx , int ny , std::vector<double>& x );
+//  SimInfo( int nx , int ny );
   ~SimInfo() { };
   
   double t0 = 0.0;              // Initial simulation time

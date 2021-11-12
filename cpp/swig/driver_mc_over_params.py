@@ -59,14 +59,14 @@ class MaterialParamsUniformDistribution:
 
 def setup_SimInfo( ) -> ch.SimInfo:
 
-    info          = ch.SimInfo()
+    info          = ch.SimInfo( nx=150 , ny=150 , x=ch.DoubleVector( np.random.uniform( -0.005 , 0.005 , 150**2 ) ) )
 
-    info.t0       = 0.0
-    info.nx       = 150
-    info.ny       = 150
-    info.dx       = 1./info.nx
-    info.dy       = 1./info.ny
-    info.bc       = 'neumann'
+    #info.t0       = 0.0
+    #info.nx       = 150
+    #info.ny       = 150
+    #info.dx       = 1./info.nx
+    #info.dy       = 1./info.ny
+    #info.bc       = 'neumann'
 
     return info
 

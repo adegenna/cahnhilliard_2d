@@ -5,7 +5,7 @@
 #include "chparams.h"
 
 
-SimInfo::SimInfo( int nx , int ny , std::vector<double> x ) :
+SimInfo::SimInfo( int nx , int ny , std::vector<double>& x ) :
   nx(nx) , ny(ny) , x(x)
 {
 
@@ -14,19 +14,19 @@ SimInfo::SimInfo( int nx , int ny , std::vector<double> x ) :
 
 }
 
-SimInfo::SimInfo( int nx , int ny ) :
-  nx(nx) , ny(ny)
-{
+// SimInfo::SimInfo( int nx , int ny ) :
+//   nx(nx) , ny(ny)
+// {
 
-  set_random_IC( nx , ny );
+//   set_random_IC( nx , ny );
 
-}
+// }
 
-SimInfo::SimInfo( ) {
+// SimInfo::SimInfo( ) {
 
-  set_random_IC( nx , ny );
+//   set_random_IC( nx , ny );
 
-}
+// }
 
 void SimInfo::set_random_IC( int NX , int NY ) {
 
