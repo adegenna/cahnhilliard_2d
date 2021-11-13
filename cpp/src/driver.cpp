@@ -17,17 +17,20 @@ int main()
   // ***************************************************************
 
   CHparamsScalar chparams;
-  SimInfo info;
   
-  // *********  Inputs  ***********
-  info.nx               = 128;
-  info.ny               = 128;
-  info.dx               = 1.0 / info.nx;
-  info.dy               = 1.0 / info.ny;
-  info.t0               = 0.0;
-  info.bc               = "periodic";
-  info.rhs_type         = "ch_non_thermal";
+  int nx=128; int ny=128;
+  std::vector<double> x0( nx*ny );
+  std::default_random_engine generator;
+  std::uniform_real_distribution<double> distribution(-1.0,1.0);
+  for (int i = 0; i < ny; ++i) {
+    for (int j = 0; j < nx; ++j) {
+      x0[ i*nx + j ] = distribution(generator) * 0.005;
+    }
+  }
 
+  SimInfo info( 128 , 128 , x0 );
+
+  // *********  Inputs  ***********
   double eps_2          = pow( 0.01 ,2 );
   chparams.eps_2        = eps_2;
   chparams.b            = eps_2 / info.dx / info.dx;

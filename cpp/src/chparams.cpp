@@ -14,39 +14,6 @@ SimInfo::SimInfo( int nx , int ny , std::vector<double>& x ) :
 
 }
 
-// SimInfo::SimInfo( int nx , int ny ) :
-//   nx(nx) , ny(ny)
-// {
-
-//   set_random_IC( nx , ny );
-
-// }
-
-// SimInfo::SimInfo( ) {
-
-//   set_random_IC( nx , ny );
-
-// }
-
-void SimInfo::set_random_IC( int NX , int NY ) {
-
-  // Sets this->x
-
-  x.resize( NX * NY );
-
-  std::default_random_engine generator;
-  std::uniform_real_distribution<double> distribution(-1.0,1.0);
-
-  // double initial_value = -1.0;
-  for (int i = 0; i < NY; ++i) {
-    for (int j = 0; j < NX; ++j) {
-      x[ idx2d(i,j) ] = distribution(generator) * 0.005;
-    }
-  }
-
-}
-
-
 double CHparamsScalar::compute_stability_limit(double dx , double dy) {
   double dmin = std::min( dx , dy );
   return 0.5 * dmin * dmin * dmin * dmin / eps_2;

@@ -59,14 +59,15 @@ class MaterialParamsUniformDistribution:
 
 def setup_SimInfo( ) -> ch.SimInfo:
 
-    info          = ch.SimInfo( nx=150 , ny=150 , x=ch.DoubleVector( np.random.uniform( -0.005 , 0.005 , 150**2 ) ) )
+    info          = ch.SimInfo( 150 , 150 , ch.DoubleVector( np.random.uniform( -0.005 , 0.005 , 150**2 ) ) )
 
     #info.t0       = 0.0
     #info.nx       = 150
     #info.ny       = 150
     #info.dx       = 1./info.nx
     #info.dy       = 1./info.ny
-    #info.bc       = 'neumann'
+    
+    info.bc       = 'neumann'
 
     return info
 
@@ -113,11 +114,11 @@ def run_sample( chparams : ch.CHparamsVector , info : ch.SimInfo , mcparams : Di
         nsample : mc sample number (e.g., this is nsample=5 of 100 total samples)
     """
 
-    n_dt = 10
+    n_dt = 1000
 
     stiff_dt = compute_linear_timescale( chparams , info )
 
-    n_tsteps          = 20
+    n_tsteps          = 10
     info.t0           = 0
     t                 = np.linspace(info.t0 , info.t0 + n_dt * stiff_dt , n_tsteps+1)
 
