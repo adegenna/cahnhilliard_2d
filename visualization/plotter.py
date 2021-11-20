@@ -52,7 +52,7 @@ def f_sort_1d( simlist : List[ SimData ] , nx : int , ny : int ) -> List[ SimDat
 
 def main( popt : PlottingOptions ):
 
-    simdata = SimData( 150 , 150 , 1 , "../data/mc_params/mc_1/C_" )
+    simdata = SimData( 150 , 150 , 1 , "../data/mc_M0p2/C_" )
 
     if popt.plot_type == 'video':
         make_simdata_video( simdata )
@@ -68,6 +68,4 @@ def main( popt : PlottingOptions ):
 
 if __name__ == "__main__":
     
-    #main( PlottingOptions( nplot=9 , ntotal=9 , snapshot_num=100 ) )
-
-    main( PlottingOptions( plot_type='snapshot' , snapshot_num=10 ) )
+    main( PlottingOptions( nplot=16 , ntotal=128 , snapshot_num=100 ) )

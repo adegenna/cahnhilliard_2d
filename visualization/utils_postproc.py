@@ -1,6 +1,8 @@
 import numpy as np
 from dataclasses import dataclass
+from typing import Dict
 import glob
+import csv
 
 class SimData:
 
@@ -43,7 +45,15 @@ class SimData:
 
         return xx , yy
 
-    def read_swig_soln_file( self , i  ):
+    def read_swig_soln_file( self , i : int  ) -> np.ndarray:
+
+        """
+        inputs:
+            i : index of solution file (e.g., for 'C_23.out', i=23)
+
+        outputs:
+            2d solution as np.ndarray of shape (nx,ny)
+        """
         
         filenametotal = self.solnbase + str(i) + self.filename_extension
 
@@ -57,6 +67,21 @@ class SimData:
         pi = np.genfromtxt( glob.glob( self.base_dir + '/' + strFile + '*' )[0] , delimiter=',' )[:,-1] # hacky way to read list of parameter values 
 
         return pi[idx]
+
+    def read_params_as_dict( self , strFile : str ) -> Dict[ str , float ]:
+
+        """
+        read parameter savefile and return a dict mapping parameter names to values
+        """
+
+        p = {}
+
+        with open( glob.glob( self.base_dir + '/' + strFile + '*' )[0] ) as csvfile:
+            l = csv.reader( csvfile )
+            for row in l:
+                p.update( { row[0] : float( row[1] ) } )
+
+        return p
 
 @dataclass
 class PlottingOptions:

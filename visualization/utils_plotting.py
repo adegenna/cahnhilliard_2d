@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from utils_postproc import *
 from typing import List
+from qoi import *
 
 
 def plot_state_snapshot( n : int , simdata : SimData , ax=None , strTitle='' ):
@@ -17,10 +18,9 @@ def plot_state_snapshot( n : int , simdata : SimData , ax=None , strTitle='' ):
         ax    = fig.gca()
 
     u = simdata.read_swig_soln_file( n )
+    g2 = np.sum( compute_surface_area_of_gradient_field( u ) )
 
-    uvar = np.var( u )
-
-    ax.set_title( simdata.work_dir + ' , ' + strTitle )
+    ax.set_title( simdata.work_dir + ' , ' + strTitle + r' , $|\nabla u|^2 = $ %.2f' %g2 )
 
     ax.set_xticks([])
     ax.set_yticks([])
